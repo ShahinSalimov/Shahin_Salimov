@@ -2,6 +2,33 @@
 
 Mənbə: "Claude'la video kurgulamak için gereken her şey" (Claude ile Motion Kurulum Kiti, @kerembarant), 12 səhifə.
 
+## Qısa izah
+
+Əsas fikir: Claude videonu Premiere kimi əllə montaj etmir — kompüterdə alətləri işə salır,
+sən isə ona montajçıya deyirmiş kimi nə istədiyini deyirsən.
+
+### Bu kitlə Claude-da nə etmək olar
+
+| İmkan | Necə |
+|-------|------|
+| **Ham videonu avtomatik montaj etmək** | Səssiz yerləri və təkrar cümlələri kəsir. Kitdəki nümunədə 5:39 dəqiqəlik ham çəkiliş 1:18 oldu |
+| **Söz-söz altyazı** | Whisper danışığı saniyəsi ilə mətnə çevirir, altyazı danışıqla sinxron olur |
+| **Motion qrafika** | Kinetic typography, kartlar, UI animasiyaları. Claude kodunu yazır, HyperFrames videoya çevirir |
+| **Öz üslubunu öyrətmək** | Bir dəfə qayda faylı yazılır: rəng, font, altyazı yeri, qadağalar. Bundan sonra hər video eyni üslubda çıxır |
+| **Sözlə revizyon** | "0:12-dəki yazı üzümü örtür, sağa çək" yazırsan, Claude dərhal düzəldir |
+| **ChatGPT ilə də işləmək** | Hazır prompt şablonu var: AI kodu yazır, sən onu render edirsən |
+
+Bütün alətlər pulsuzdur: FFmpeg, Whisper, HyperFrames, yt-dlp. Yalnız Claude Pro planı lazımdır.
+
+### PDF-dən nə hazırlandı
+
+1. **12 səhifə analiz edildi**, hər bölmə ayrıca Claude skill-inə çevrildi (aşağıdakı cədvəl).
+2. **Uyğunlaşdırıldı.** PDF-də olmayan hissələr əlavə edildi: 9:16 Reels/TikTok formatı, Azərbaycan dili (`--language az`), platforma düymələri üçün təhlükəsiz zonalar.
+3. **Şəxsi qayda faylı yazıldı:** `style-rules/examples/shahin-salimov.md` — Montserrat fontu, `#2D7CFF` vurğu rəngi, emoji olmadan, üz örtülmədən.
+4. **Mac-də quraşdırıldı:** FFmpeg, Node.js, yt-dlp, Whisper, HyperFrames — hamısı yoxlanıldı.
+
+Nəticə: Mac-də Claude Code-a bir cümlə yazırsan, o da videonu sənin üslubunda montaj edir.
+
 ## Skill-lər
 
 | Skill | Kitdəki bölmə | Nə edir |
