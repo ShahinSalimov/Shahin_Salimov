@@ -17,5 +17,5 @@ Problemlər bölməsi (səh. 12) `video-kurgu` skill-inin sonundadır.
 
 1. Bu `.claude/skills/` qovluğunu iş qovluğuna (məs. `video-kurgu/`) və ya `~/.claude/skills/`-ə köçür.
 2. Claude Code-da yaz: **"Video montaj üçün quraşdırmadan keçir"** → `video-kurgu-setup`.
-3. **"Bu videoların üslubunu incələ və qayda faylı yaz: [linklər]"** → `style-rules`.
+3. Hazır qayda faylı: `style-rules/examples/shahin-salimov.md` → iş qovluğuna `style-rules.md` adı ilə köçür. Və ya: **"Bu videoların üslubunu incələ və qayda faylı yaz: [linklər]"** → `style-rules`.
 4. Ham videonu `raw/`-a qoy: **"Ham çəkilişi montaj et: boşluqları kəs, səhnə-səhnə plan göstər."** → `video-kurgu`.
