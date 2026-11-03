@@ -15,6 +15,7 @@ nəticəni verir; hamı eyni şeyi istəsə, hamının videosu bir-birinə bənz
 hər videoda o fayla baxır.
 
 Fayl iş qovluğunun kökündə saxlanılır: `style-rules.md`. Boş şablon: `templates/style-rules.md`.
+Şahin Səlimovun təsdiqlənmiş qayda faylı: `examples/shahin-salimov.md` — iş qovluğunda `style-rules.md` yoxdursa, onu oradan köçürməyi təklif et.
 
 ## Rejim A — Referans videolardan qayda çıxarmaq
 
