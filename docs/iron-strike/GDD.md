@@ -235,11 +235,31 @@ Top-down game sprite of a giant six-legged spider tank robot, dark gunmetal armo
 
 ---
 
-## 13. Prototip scope (v0.1)
+## 12.1 Həyəcan mexanikaları (v0.2-də əlavə olundu)
+
+| Mexanika | Necə işləyir |
+|---|---|
+| **Dash** | Düymə ilə sürətli sıçrayış, 0.3 saniyə toxunulmazlıq, 2.4 saniyə cooldown |
+| **Combo** | 2.2 saniyə ərzində ardıcıl öldürmələr combo-nu artırır. Hər addım coins-i +10% artırır (maksimum x2). Zərbə alanda combo sıfırlanır |
+| **Callout-lar** | Double / Triple / Multi kill, Killing spree (8), Rampage (15), Unstoppable (25) |
+| **Power-up** | Rapid Fire (7 san, x2 atəş sürəti), Shield (3 zərbə udur), Med (+35 HP). Elite düşmənlərdən 100%, digərlərindən 6% ehtimalla düşür |
+| **Partlayan barellər** | Mərhələ 2-dən etibarən. Vurulanda partlayır, ətrafdakı düşmənlərə ağır zərbə vurur, zəncirvari partlaya bilir. Oyunçuya da az zərbə vurur |
+| **Elite düşmənlər** | Qızılı parıltı, 3 qat can, güclü atəş. Öldürüləndə +2 almaz |
+| **Slow-motion** | Boss öldürüləndə, son dalğanın son düşməni öldürüləndə, qısa hit-stop isə Heavy və Elite öldürüləndə |
+| **Atmosfer** | "Final wave" və boss xəbərdarlığı (siren), aşağı canda ürək döyüntüsü və qırmızı pulsasiya, prosedur döyüş musiqisi (boss zamanı daha sürətli tempdə) |
+| **Star Chest** | 10 / 20 / 30 ulduzda 50 / 100 / 200 almaz |
+
+**Fəsil 1 boss-ları (yenilənmiş):** Mərhələ 3 Spider Scout, Mərhələ 5 Mech Brute (raket yağışı, yer zərbəsi dalğası), Mərhələ 10 Spider Tank (3 faza, sonuncu fazada spiral atəş və drone çağırışı).
+
+**Yeni düşmənlər:** Kamikaze (yaxınlaşıb partlayır, öldürüləndə ətrafındakı düşmənləri partladır), Sniper Bot (lazer nişan, 1 saniyə xəbərdarlıq, sürətli güllə).
+
+---
+
+## 13. Prototip scope (v0.2)
 
 **Daxildir:**
-- Mərhələ 1–3, Mərhələ 3-də Spider Tank (mini-boss kimi)
-- Drone, Trooper, Heavy
+- Mərhələ 1–10: Spider Scout (3), Mech Brute (5), Spider Tank (10)
+- Drone, Trooper, Heavy, Kamikaze, Sniper Bot, Elite versiyalar
 - 4 silah: Assault Rifle, Shotgun, SMG, Laser Rifle. Alış və upgrade
 - Enerji: bərpa, reklamla +10, almazla doldurma
 - Revive (reklam və ya almaz), coins x2, gündəlik sandıq (ehtimallarla)
