@@ -1,0 +1,755 @@
+<title>Ghost Flip</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Creepster&display=swap">
+<style>
+/* Layout: one phone-width column; sticky money bar on top, map of listings or one house below, full-screen overlays for busting, ads and sales. Single night look by design. */
+:root {
+  --night: #1b1330;
+  --night-2: #261b3d;
+  --panel: #33264d;
+  --panel-2: #3e2f5c;
+  --line: #4d3c6e;
+  --ink: #f1ecff;
+  --muted: #a99cc4;
+  --ecto: #7cffb2;
+  --ecto-deep: #1f6b4a;
+  --gold: #ffd54a;
+  --window: #ffc86b;
+  --ghost: #eaf2ff;
+  --danger: #ff7a8a;
+  --wall-h: #221933;
+  --wall-0: #3a3149;
+  --wall-1: #4b4562;
+  --wall-2: #6a5876;
+  --wall-3: #8c6c8f;
+  --floor-h: #17101f;
+  --floor-0: #2c2433;
+  --floor-1: #3d3644;
+  --floor-2: #5b4433;
+  --floor-3: #7a5236;
+  --font-display: "Creepster", "Baloo 2", system-ui, sans-serif;
+  --font-ui: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--night-2); }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+button:focus-visible { outline: 3px solid var(--ecto); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.app { max-width: 480px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--night-2); border-bottom: 1px solid var(--line);
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 10px;
+}
+.logo { font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; color: var(--ecto); line-height: 1; margin-right: auto; }
+.pill { display: flex; align-items: center; gap: 6px; background: var(--panel); border-radius: 999px; padding: 4px 12px 4px 6px; font-weight: 700; font-size: 15px; }
+.pill .dot { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--night); }
+.pill.cash .dot { background: var(--gold); }
+.pill.ecto .dot { background: var(--ecto); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.icon-btn { width: 38px; height: 38px; border-radius: 12px; background: var(--panel); display: grid; place-items: center; }
+
+.main {
+  flex: 1; display: flex; flex-direction: column; gap: 14px;
+  padding-block: 16px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sub { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--muted); font-size: 14px; }
+.sub b { color: var(--ecto); font-weight: 700; }
+h1, h2 { margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: 24px; font-weight: 800; }
+h2 { font-size: 19px; font-weight: 800; }
+.label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+/* Listing cards */
+.listing { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; background: var(--panel); border-radius: 18px; padding: 12px; text-align: left; width: 100%; }
+.listing.locked { opacity: .5; }
+.listing .art { width: 96px; height: 84px; border-radius: 12px; background: var(--night-2); display: grid; place-items: end center; overflow: hidden; }
+.listing .info { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.stats b { color: var(--ink); font-weight: 700; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: var(--panel-2); color: var(--muted); width: max-content; }
+.chip.go { background: var(--ecto-deep); color: var(--ecto); }
+.chip.gold { background: #4d3d12; color: var(--gold); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; padding: 10px 16px; font-weight: 800; font-size: 16px; background: var(--ecto); color: var(--night); box-shadow: 0 4px 0 var(--ecto-deep); transition: transform .08s; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ecto-deep); }
+.btn[disabled] { background: var(--panel-2); color: var(--muted); box-shadow: 0 4px 0 #241a38; cursor: not-allowed; }
+.btn.gold { background: var(--gold); box-shadow: 0 4px 0 #8a6a12; }
+.btn.ghosty { background: var(--panel-2); color: var(--ink); box-shadow: 0 4px 0 #241a38; }
+.btn.small { padding: 6px 12px; font-size: 14px; border-radius: 11px; }
+.btn.wide { width: 100%; }
+.ad-tag { font-size: 10px; font-weight: 800; letter-spacing: .06em; background: var(--night); color: var(--gold); padding: 1px 6px; border-radius: 6px; }
+.link { background: none; color: var(--muted); font-weight: 600; text-decoration: underline; padding: 6px; }
+
+/* House view */
+.back { align-self: flex-start; background: none; color: var(--muted); font-weight: 700; padding: 0; }
+.rooms { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 360px) { .rooms { grid-template-columns: 1fr; } }
+.room { background: var(--panel); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.room .meta { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 6px; }
+.room .name { font-weight: 800; font-size: 15px; display: flex; justify-content: space-between; gap: 6px; }
+.room .name small { color: var(--muted); font-weight: 600; font-size: 12px; }
+.scene { position: relative; height: 96px; background: var(--wall-h); overflow: hidden; }
+.scene .floor { position: absolute; inset: auto 0 0; height: 26px; background: var(--floor-h); }
+.scene .win { position: absolute; top: 16px; left: 18px; width: 30px; height: 36px; border-radius: 4px; background: var(--night); box-shadow: inset 0 0 0 3px var(--floor-h); }
+.scene .lamp { position: absolute; right: 18px; bottom: 26px; width: 14px; height: 40px; display: none; }
+.scene .lamp::before { content: ""; position: absolute; top: 0; left: -6px; width: 26px; height: 14px; border-radius: 12px 12px 3px 3px; background: var(--window); box-shadow: 0 0 22px var(--window); }
+.scene .lamp::after { content: ""; position: absolute; top: 14px; left: 6px; width: 2px; height: 26px; background: var(--floor-h); }
+.scene .web { position: absolute; top: 0; right: 0; width: 34px; opacity: .55; }
+.scene .mini-ghost { position: absolute; right: 26px; top: 18px; width: 40px; animation: bob 2.4s ease-in-out infinite; }
+.scene.s0 { background: var(--wall-0); } .scene.s0 .floor { background: var(--floor-0); }
+.scene.s1 { background: var(--wall-1); } .scene.s1 .floor { background: var(--floor-1); }
+.scene.s2 { background: var(--wall-2); } .scene.s2 .floor { background: var(--floor-2); }
+.scene.s3 { background: var(--wall-3); } .scene.s3 .floor { background: var(--floor-3); }
+.scene.s3 .win { background: var(--window); box-shadow: inset 0 0 0 3px var(--floor-3), 0 0 18px var(--window); }
+.scene.s3 .lamp { display: block; }
+.scene.s1 .web, .scene.s2 .web, .scene.s3 .web { display: none; }
+.scene.haunted { box-shadow: inset 0 0 40px rgba(124,255,178,.18); }
+.progress { height: 8px; border-radius: 99px; background: var(--night); overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--ecto); width: 0; transition: width .25s linear; }
+.steps { display: flex; gap: 4px; }
+.steps i { flex: 1; height: 5px; border-radius: 4px; background: var(--night); }
+.steps i.on { background: var(--ecto); }
+.house-head { display: flex; flex-direction: column; gap: 6px; }
+.ready { background: var(--panel); border: 2px solid var(--ecto); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
+
+/* Overlays */
+.overlay { position: fixed; inset: 0; z-index: 20; background: rgba(12,7,22,.82); display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); animation: fade .15s; }
+.modal { width: 100%; max-width: 380px; background: var(--night-2); border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 12px; text-align: center; align-items: center; }
+.modal p { margin: 0; color: var(--muted); line-height: 1.45; }
+.big { font-size: 34px; font-weight: 800; color: var(--gold); line-height: 1; }
+.modal .actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; background: var(--panel); padding: 10px 12px; border-radius: 14px; }
+.row div { min-width: 0; }
+.row small { display: block; color: var(--muted); font-size: 13px; }
+
+/* Bust arena */
+.bust { position: fixed; inset: 0; z-index: 15; background: var(--wall-h); display: flex; flex-direction: column; }
+.bust-top { padding-block: calc(env(safe-area-inset-top, 0px) + 12px) 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--night-2); display: flex; flex-direction: column; gap: 8px; }
+.bust-top .line1 { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.bust-top .hint { color: var(--muted); font-size: 14px; }
+.meter { height: 16px; border-radius: 99px; background: var(--night); overflow: hidden; border: 2px solid var(--line); }
+.meter > i { display: block; height: 100%; background: var(--ecto); transition: width .12s; }
+.arena { position: relative; flex: 1; overflow: hidden; touch-action: manipulation; background: radial-gradient(circle at 50% 40%, #2e2245 0%, var(--wall-h) 70%); }
+.arena .floorline { position: absolute; inset: auto 0 0; height: 18%; background: var(--floor-h); }
+.arena.shake { animation: shake .3s; }
+.foe { position: absolute; width: 120px; height: 132px; margin: -66px 0 0 -60px; transition: left .35s cubic-bezier(.5,0,.3,1.4), top .35s cubic-bezier(.5,0,.3,1.4); cursor: pointer; }
+.foe svg { width: 100%; height: 100%; animation: bob 2s ease-in-out infinite; filter: drop-shadow(0 0 16px rgba(124,255,178,.35)); }
+.foe.hit svg { animation: hit .15s; }
+.foe.shielded svg { opacity: .55; filter: grayscale(.6); }
+.foe.poof { animation: poof .6s forwards; pointer-events: none; }
+.bubble { position: absolute; left: 50%; top: -22px; transform: translateX(-50%); background: var(--ghost); color: var(--night); font-weight: 800; font-size: 13px; padding: 2px 10px; border-radius: 10px; white-space: nowrap; pointer-events: none; }
+.proj { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; display: grid; place-items: center; background: var(--panel-2); border: 2px solid var(--gold); cursor: pointer; }
+.chair { position: absolute; left: 50%; bottom: 10%; width: 120px; margin-left: -60px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.chair .progress { width: 100px; }
+.float { position: fixed; z-index: 40; pointer-events: none; font-weight: 800; font-size: 20px; color: var(--ink); text-shadow: 0 2px 0 var(--night); animation: floatUp .8s forwards; }
+.float.cash { color: var(--gold); }
+.float.ecto { color: var(--ecto); }
+
+.lucky { position: fixed; z-index: 12; top: calc(env(safe-area-inset-top, 0px) + 70px); left: -80px; width: 64px; height: 70px; animation: drift 8s linear forwards; cursor: pointer; }
+.lucky svg { width: 100%; height: 100%; filter: drop-shadow(0 0 14px var(--gold)); animation: bob 1.4s ease-in-out infinite; }
+
+.ad-screen { position: fixed; inset: 0; z-index: 30; background: #0b0614; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
+.ad-screen .label { color: var(--gold); }
+.ad-box { width: min(300px, 100%); aspect-ratio: 9 / 12; border-radius: 18px; border: 2px dashed var(--line); display: grid; place-items: center; color: var(--muted); font-weight: 700; padding: 20px; }
+.ad-count { font-size: 40px; font-weight: 800; }
+
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); transform: translateX(-50%); z-index: 50; background: var(--ink); color: var(--night); font-weight: 800; padding: 8px 16px; border-radius: 14px; max-width: calc(100% - 32px); text-align: center; animation: toastIn .2s; }
+.proto-note { color: var(--muted); font-size: 12px; text-align: center; }
+
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes hit { 0% { transform: scale(1); } 50% { transform: scale(.88) rotate(-4deg); } 100% { transform: scale(1); } }
+@keyframes poof { to { transform: scale(1.6); opacity: 0; } }
+@keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-60px); opacity: 0; } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes drift { 0% { left: -80px; } 100% { left: calc(100% + 80px); } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes toastIn { from { transform: translate(-50%, 12px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .foe svg, .lucky svg, .scene .mini-ghost { animation: none; }
+  .foe { transition: none; }
+}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="logo">Ghost Flip</div>
+    <div class="pill cash"><span class="dot">$</span><span class="num" id="cash">0</span></div>
+    <div class="pill ecto"><span class="dot"></span><span class="num" id="ecto">0</span></div>
+    <button class="icon-btn" id="toolsBtn" aria-label="Tools and settings">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="stroke: var(--ink)" stroke-width="2.2" stroke-linecap="round"><path d="M9 3h6l-1 7h-4z"/><path d="M10 10v8a2 2 0 0 0 4 0v-8"/><path d="M5 5l2 2M19 5l-2 2"/></svg>
+    </button>
+  </header>
+  <main class="main" id="main"></main>
+</div>
+<div id="layer"></div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- Data ----------
+const GHOSTS = {
+  whisper: { name: 'Whisper', hint: 'Shy. Teleports around the room. Catch her!', color: '#eaf2ff' },
+  pete:    { name: 'Poltergeist Pete', hint: 'Throws stuff. Tap flying objects before they land or he heals.', color: '#d6e6ff' },
+  grandpa: { name: 'Grumpy Grandpa', hint: 'Won\'t budge until his rocking chair is fixed. Tap the chair first.', color: '#c9d8ff' }
+};
+
+const HOUSES = [
+  { id: 'shack', name: 'Shack in the Woods', buy: 500, reno: 700, sell: 2000, rent: 2, base: 5,
+    rooms: [{ n: 'Living Room', g: 'whisper' }, { n: 'Bedroom', g: null }] },
+  { id: 'cottage', name: 'Creaky Cottage', buy: 1500, reno: 2000, sell: 5500, rent: 5, base: 8,
+    rooms: [{ n: 'Kitchen', g: 'pete' }, { n: 'Attic', g: 'whisper' }, { n: 'Bathroom', g: null }] },
+  { id: 'suburb', name: 'Suburban Split-Level', buy: 4000, reno: 5500, sell: 15000, rent: 14, base: 12,
+    rooms: [{ n: 'Den', g: 'grandpa' }, { n: 'Garage', g: 'pete' }, { n: 'Kids Room', g: 'whisper' }] },
+  { id: 'farm', name: 'Old Farmhouse', buy: 11000, reno: 15000, sell: 40000, rent: 38, base: 18, soon: true, rooms: [] }
+];
+const STAGES = ['Clean', 'Repair', 'Style'];
+const STAGE_SHARE = [0.2, 0.35, 0.45];
+const STAGE_TIME = [1, 1.3, 1.6];
+const OFFLINE_CAP_MS = 2 * 3600 * 1000;
+const CHEST_COOLDOWN_MS = 5 * 60 * 1000; // GDD: 4h. Shortened for prototype testing.
+const INTER_GAP_MS = 3 * 60 * 1000;
+
+// ---------- State ----------
+const fresh = () => ({
+  cash: 1500, ecto: 0, flash: 1, sales: 0, lastInter: 0, noAds: false, intro: false,
+  chestAt: 0, lastSeen: Date.now(),
+  houses: Object.fromEntries(HOUSES.map((h, i) => [h.id, { status: i === 0 ? 'listing' : 'locked', rooms: [], done: 0, rented: 0 }]))
+});
+let S = fresh();
+let view = { name: 'map' };
+let bust = null;
+
+const load = () => { try { const raw = localStorage.getItem('ghostflip.v1'); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } };
+const save = () => { S.lastSeen = Date.now(); try { localStorage.setItem('ghostflip.v1', JSON.stringify(S)); } catch (e) {} };
+
+// ---------- Helpers ----------
+const $ = (s, el = document) => el.querySelector(s);
+const layer = $('#layer');
+const H = id => HOUSES.find(h => h.id === id);
+const idx = id => HOUSES.findIndex(h => h.id === id);
+const money = n => {
+  n = Math.floor(n);
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  return '$' + n.toLocaleString('en-US');
+};
+const ghostHp = (h) => Math.round(20 * Math.pow(1.5, idx(h.id)));
+const dmg = () => Math.pow(1.15, S.flash - 1);
+const stageCost = (h, s) => Math.round(h.reno / h.rooms.length * STAGE_SHARE[s]);
+const stageTime = (h, s) => h.base * STAGE_TIME[s] * 1000;
+const rentPerMin = () => HOUSES.reduce((t, h) => t + S.houses[h.id].rented * h.rent, 0);
+const nextGoal = () => HOUSES.find(h => !h.soon && S.houses[h.id].status !== 'locked' && S.houses[h.id].done === 0) || HOUSES[0];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function toast(msg) {
+  const old = $('.toast'); if (old) old.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2200);
+}
+function floatText(x, y, text, cls = '') {
+  const f = document.createElement('div'); f.className = 'float ' + cls; f.textContent = text;
+  f.style.left = (x - 20) + 'px'; f.style.top = (y - 20) + 'px';
+  document.body.appendChild(f); setTimeout(() => f.remove(), 800);
+}
+function addCash(n, x, y) { S.cash += n; if (x != null) floatText(x, y, '+' + money(n), 'cash'); updateBar(); }
+function addEcto(n, x, y) { S.ecto += n; if (x != null) floatText(x, y + 26, '+' + n + ' ecto', 'ecto'); updateBar(); }
+
+// ---------- Art ----------
+function ghostSVG(type, opts = {}) {
+  const color = opts.gold ? '#ffd54a' : (GHOSTS[type] ? GHOSTS[type].color : '#eaf2ff');
+  let face = '';
+  if (type === 'pete') {
+    face = `<path d="M30 36 L44 42 M70 36 L56 42" style="stroke:#1b1330" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="39" cy="50" rx="5" ry="6" style="fill:#1b1330"/><ellipse cx="61" cy="50" rx="5" ry="6" style="fill:#1b1330"/>
+      <path d="M38 68 L44 63 L50 68 L56 63 L62 68" style="stroke:#1b1330;fill:none" stroke-width="3.5" stroke-linejoin="round"/>`;
+  } else if (type === 'grandpa') {
+    face = `<path d="M28 36 Q38 30 46 37 M54 37 Q62 30 72 36" style="stroke:#f4f4f4;fill:none" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="39" cy="48" r="9" style="fill:none;stroke:#1b1330" stroke-width="3"/><circle cx="61" cy="48" r="9" style="fill:none;stroke:#1b1330" stroke-width="3"/>
+      <path d="M48 48 L52 48" style="stroke:#1b1330" stroke-width="3"/>
+      <circle cx="39" cy="49" r="3.5" style="fill:#1b1330"/><circle cx="61" cy="49" r="3.5" style="fill:#1b1330"/>
+      <path d="M34 66 Q42 58 50 64 Q58 58 66 66 Q58 70 50 67 Q42 70 34 66Z" style="fill:#f4f4f4"/>
+      <path d="M44 74 Q50 71 56 74" style="stroke:#1b1330;fill:none" stroke-width="3" stroke-linecap="round"/>`;
+  } else {
+    face = `<ellipse cx="39" cy="48" rx="6" ry="8" style="fill:#1b1330"/><ellipse cx="61" cy="48" rx="6" ry="8" style="fill:#1b1330"/>
+      <circle cx="41" cy="45" r="2" style="fill:#fff"/><circle cx="63" cy="45" r="2" style="fill:#fff"/>
+      <ellipse cx="30" cy="60" rx="5" ry="3" style="fill:#ffb3c7;opacity:.7"/><ellipse cx="70" cy="60" rx="5" ry="3" style="fill:#ffb3c7;opacity:.7"/>
+      <ellipse cx="50" cy="64" rx="4" ry="5" style="fill:#1b1330"/>`;
+  }
+  return `<svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 6C24 6 12 26 12 50V96Q20 88 28 96Q36 104 44 96Q50 90 56 96Q64 104 72 96Q80 88 88 96V50C88 26 76 6 50 6Z" style="fill:${color};opacity:.94"/>${face}</svg>`;
+}
+function houseSVG(i, state) {
+  const w = 56 + i * 8, haunted = state !== 'done';
+  const wall = haunted ? '#4a3d5f' : '#a07a9a', roof = haunted ? '#2a2038' : '#6b3f55';
+  const win = haunted ? '#7cffb2' : '#ffc86b';
+  const tilt = haunted ? 'rotate(-3 50 60)' : '';
+  return `<svg viewBox="0 0 100 84" width="${w + 30}" aria-hidden="true"><g transform="${tilt}">
+    <rect x="22" y="40" width="56" height="40" style="fill:${wall}"/>
+    <path d="M14 42 L50 12 L86 42Z" style="fill:${roof}"/>
+    <rect x="30" y="50" width="12" height="12" rx="2" style="fill:${win};opacity:${haunted ? .55 : 1}"/>
+    <rect x="58" y="50" width="12" height="12" rx="2" style="fill:${win};opacity:${haunted ? .35 : 1}"/>
+    <rect x="45" y="60" width="10" height="20" style="fill:${roof}"/></g></svg>`;
+}
+const webSVG = `<svg class="web" viewBox="0 0 40 40"><path d="M40 0 L0 0 M40 0 L40 40 M40 0 L8 30 M40 0 L20 36 M40 0 L4 16 M14 0 Q26 14 40 14 M26 0 Q32 8 40 6 M6 0 Q22 24 40 26" style="stroke:#c9bfe0;fill:none" stroke-width=".8"/></svg>`;
+
+// ---------- Rendering ----------
+function updateBar() {
+  $('#cash').textContent = money(S.cash).slice(1);
+  $('#ecto').textContent = S.ecto;
+}
+
+function render() {
+  updateBar();
+  const m = $('#main');
+  if (view.name === 'house') m.innerHTML = houseView(view.id);
+  else m.innerHTML = mapView();
+  window.scrollTo({ top: 0 });
+}
+
+function mapView() {
+  const rpm = rentPerMin();
+  const cards = HOUSES.map((h, i) => {
+    const st = S.houses[h.id];
+    const locked = st.status === 'locked' || h.soon;
+    let chips = '';
+    if (h.soon) chips += `<span class="chip">Coming in full version</span>`;
+    else if (st.status === 'locked') chips += `<span class="chip">Flip ${esc(HOUSES[i - 1].name)} to unlock</span>`;
+    else if (st.status === 'listing') chips += `<span class="chip go">For sale</span>`;
+    else if (st.status === 'ready') chips += `<span class="chip gold">Ready to sell</span>`;
+    else {
+      const total = h.rooms.length * 3, done = st.rooms.reduce((t, r) => t + r.stage, 0);
+      chips += `<span class="chip go">Renovating ${Math.round(done / total * 100)}%</span>`;
+    }
+    if (st.rented) chips += ` <span class="chip gold">Rented ×${st.rented}</span>`;
+    return `<button class="listing ${locked ? 'locked' : ''}" data-act="open" data-id="${h.id}" ${locked ? 'disabled' : ''}>
+      <div class="art">${houseSVG(i, 'haunted')}</div>
+      <div class="info">
+        <h2>${esc(h.name)}</h2>
+        <div class="stats"><span>Buy <b>${money(h.buy)}</b></span><span>Sells <b>${money(h.sell)}</b></span><span>Rent <b>${money(h.rent)}/min</b></span></div>
+        <div>${chips}</div>
+      </div></button>`;
+  }).join('');
+  return `
+    <div class="sub"><span>Haunted listings</span><span>Rent income <b class="num">${money(rpm)}/min</b></span></div>
+    ${cards}
+    <p class="proto-note">Prototype build. Ads are simulated, nothing is charged.</p>`;
+}
+
+function roomCard(h, st, r, ri) {
+  const room = h.rooms[ri];
+  const haunted = r.hp > 0;
+  const sceneCls = haunted ? 'haunted' : 's' + r.stage;
+  let body = '';
+  if (haunted) {
+    body = `<button class="btn small wide" data-act="bust" data-room="${ri}">Bust ${esc(GHOSTS[room.g].name.split(' ').pop())}</button>`;
+  } else if (r.end) {
+    const left = Math.max(0, r.end - Date.now());
+    const pct = 100 - left / stageTime(h, r.stage) * 100;
+    body = `<div class="progress"><i data-bar="${ri}" style="width:${pct}%"></i></div>
+      <div class="sub"><span>${STAGES[r.stage]}ing…</span><span class="num" data-left="${ri}">${Math.ceil(left / 1000)}s</span></div>
+      <button class="btn small gold wide" data-act="rush" data-room="${ri}">Finish now <span class="ad-tag">${S.noAds ? 'FREE' : 'AD'}</span></button>`;
+  } else if (r.stage < 3) {
+    const cost = stageCost(h, r.stage);
+    body = `<button class="btn small wide" data-act="reno" data-room="${ri}" ${S.cash < cost ? 'disabled' : ''}>${STAGES[r.stage]} · ${money(cost)}</button>`;
+  } else {
+    body = `<span class="chip go">Done</span>`;
+  }
+  const steps = [0, 1, 2].map(s => `<i class="${r.stage > s ? 'on' : ''}"></i>`).join('');
+  return `<div class="room">
+    <div class="scene ${sceneCls}"><div class="win"></div><div class="lamp"></div><div class="floor"></div>${webSVG}
+      ${haunted ? `<div class="mini-ghost">${ghostSVG(room.g)}</div>` : ''}</div>
+    <div class="meta"><div class="name"><span>${esc(room.n)}</span><small>${haunted ? 'Haunted' : (r.stage < 3 ? STAGES[r.stage] + ' next' : 'Styled')}</small></div>
+      <div class="steps">${steps}</div>${body}</div></div>`;
+}
+
+function houseView(id) {
+  const h = H(id), st = S.houses[id], i = idx(id);
+  let content = '';
+  if (st.status === 'listing') {
+    const ghosts = h.rooms.filter(r => r.g).map(r => GHOSTS[r.g].name);
+    content = `<div class="ready" style="border-color: var(--line)">
+      <div>${houseSVG(i, 'haunted')}</div>
+      <p class="proto-note" style="font-size:14px">${h.rooms.length} rooms · ${ghosts.length} ghost${ghosts.length > 1 ? 's' : ''}: ${esc(ghosts.join(', '))}</p>
+      <div class="stats" style="justify-content:center"><span>Renovation <b>${money(h.reno)}</b></span><span>Sells <b>${money(h.sell)}</b></span></div>
+      <button class="btn wide" data-act="buy" ${S.cash < h.buy ? 'disabled' : ''}>Buy for ${money(h.buy)}</button>
+      ${S.cash < h.buy ? `<p class="proto-note">You need ${money(h.buy - S.cash)} more. Rent income and Lucky Ghosts help.</p>` : ''}
+    </div>`;
+  } else {
+    content = `<div class="rooms">${st.rooms.map((r, ri) => roomCard(h, st, r, ri)).join('')}</div>`;
+    if (st.status === 'ready') content = `<div class="ready">
+        <h2>All rooms are ghost-free and styled</h2>
+        <div class="big num">${money(h.sell)}</div>
+        <button class="btn gold wide" data-act="sellmenu">Sell or rent</button></div>` + content;
+  }
+  return `<button class="back" data-act="map">‹ All listings</button>
+    <div class="house-head"><span class="label">${st.status === 'listing' ? 'For sale' : 'Your property'}</span><h1>${esc(h.name)}</h1></div>
+    ${content}`;
+}
+
+// ---------- Overlays ----------
+function modal(html, onClick) {
+  layer.innerHTML = `<div class="overlay"><div class="modal">${html}</div></div>`;
+  const ov = layer.firstElementChild;
+  ov.addEventListener('click', e => {
+    const b = e.target.closest('[data-m]');
+    if (b) onClick(b.dataset.m, b);
+  });
+}
+const closeModal = () => { layer.innerHTML = ''; };
+
+function showAd(kind, onDone) {
+  if (S.noAds && kind === 'rewarded') { onDone(true); return; }
+  const secs = 3;
+  const el = document.createElement('div'); el.className = 'ad-screen';
+  el.innerHTML = `<span class="label">${kind === 'rewarded' ? 'Rewarded ad' : 'Ad'} · simulated</span>
+    <div class="ad-box">A real AdMob ${kind === 'rewarded' ? 'rewarded video' : 'interstitial'} plays here in the Android build.</div>
+    <div class="ad-count num">${secs}</div>
+    <button class="link" data-x>${kind === 'rewarded' ? 'Close (no reward)' : ''}</button>`;
+  document.body.appendChild(el);
+  let n = secs;
+  const cnt = $('.ad-count', el), x = $('[data-x]', el);
+  const t = setInterval(() => {
+    n--; cnt.textContent = Math.max(n, 0);
+    if (n <= 0) {
+      clearInterval(t);
+      cnt.innerHTML = `<button class="btn ${kind === 'rewarded' ? 'gold' : 'ghosty'}" data-claim>${kind === 'rewarded' ? 'Claim reward' : 'Close ad'}</button>`;
+      x.textContent = '';
+      $('[data-claim]', el).onclick = () => { el.remove(); onDone(true); };
+    }
+  }, 1000);
+  x.onclick = () => { if (kind !== 'rewarded') return; clearInterval(t); el.remove(); onDone(false); };
+}
+
+function maybeInterstitial(then) {
+  const now = Date.now();
+  if (!S.noAds && S.sales > 3 && now - S.lastInter > INTER_GAP_MS) { S.lastInter = now; showAd('interstitial', then); }
+  else then();
+}
+
+function sellMenu(id) {
+  const h = H(id);
+  modal(`<span class="label">Sold sign is up</span><h2>${esc(h.name)}</h2>
+    <div class="big num">${money(h.sell)}</div>
+    <div class="actions">
+      <button class="btn gold wide" data-m="x2">Sell for ${money(h.sell * 2)} <span class="ad-tag">${S.noAds ? 'FREE' : 'AD'}</span></button>
+      <button class="btn wide" data-m="sell">Sell for ${money(h.sell)}</button>
+      <button class="btn ghosty wide" data-m="rent">Keep it and rent for ${money(h.rent)}/min</button>
+    </div><p>Selling pays now. Renting pays forever, even while you are away (up to 2 hours).</p>`, (m) => {
+    if (m === 'x2') showAd('rewarded', ok => ok ? finishHouse(id, 'sell', 2) : null);
+    if (m === 'sell') finishHouse(id, 'sell', 1);
+    if (m === 'rent') finishHouse(id, 'rent', 1);
+  });
+}
+
+function finishHouse(id, how, mult) {
+  const h = H(id), st = S.houses[id], i = idx(id);
+  closeModal();
+  if (how === 'sell') { S.sales++; addCash(h.sell * mult, innerWidth / 2, innerHeight / 2); }
+  else st.rented++;
+  st.done++; st.status = 'listing'; st.rooms = [];
+  const next = HOUSES[i + 1];
+  let unlocked = false;
+  if (next && S.houses[next.id].status === 'locked') { S.houses[next.id].status = 'listing'; unlocked = !next.soon; }
+  save();
+  view = { name: 'map' };
+  maybeInterstitial(() => {
+    render();
+    toast(how === 'sell' ? `Sold for ${money(h.sell * mult)}` : `Rented out: +${money(h.rent)}/min`);
+    if (unlocked) setTimeout(() => toast(`New listing: ${next.name}`), 2300);
+  });
+}
+
+function toolsMenu() {
+  const cost = 5 * S.flash;
+  const chestLeft = Math.max(0, S.chestAt - Date.now());
+  modal(`<h2>Gear</h2>
+    <div class="row"><div><b>Flashlight · Lv ${S.flash}</b><small>${dmg().toFixed(2)} damage per tap. Next level +15%.</small></div>
+      <button class="btn small" data-m="up" ${S.ecto < cost ? 'disabled' : ''}>${cost} ecto</button></div>
+    <div class="row"><div><b>Ectoplasm chest</b><small>${chestLeft ? 'Refills in ' + Math.ceil(chestLeft / 60000) + ' min' : '10–30 ectoplasm'}</small></div>
+      <button class="btn small gold" data-m="chest" ${chestLeft ? 'disabled' : ''}>Open <span class="ad-tag">${S.noAds ? 'FREE' : 'AD'}</span></button></div>
+    <div class="row"><div><b>Remove Ads</b><small>${S.noAds ? 'Owned. Rewards are instant.' : '$2.99 in the store. Test purchase here.'}</small></div>
+      <button class="btn small ghosty" data-m="noads" ${S.noAds ? 'disabled' : ''}>${S.noAds ? 'Owned' : 'Test buy'}</button></div>
+    <div class="actions"><button class="btn ghosty wide" data-m="close">Close</button>
+      <button class="link" data-m="reset">Reset progress</button></div>`, (m, b) => {
+    if (m === 'close') closeModal();
+    if (m === 'up' && S.ecto >= cost) { S.ecto -= cost; S.flash++; save(); toolsMenu(); updateBar(); }
+    if (m === 'chest') showAd('rewarded', ok => {
+      if (!ok) return;
+      const n = 10 + Math.floor(Math.random() * 21);
+      S.chestAt = Date.now() + CHEST_COOLDOWN_MS; addEcto(n); save(); toolsMenu(); toast(`+${n} ectoplasm`);
+    });
+    if (m === 'noads') { S.noAds = true; save(); render(); toolsMenu(); }
+    if (m === 'reset') {
+      if (b.dataset.armed) { S = fresh(); save(); closeModal(); view = { name: 'map' }; render(); intro(); }
+      else { b.dataset.armed = '1'; b.textContent = 'Tap again to erase everything'; b.style.color = 'var(--danger)'; }
+    }
+  });
+}
+
+function intro() {
+  if (S.intro) return;
+  modal(`<div style="width:110px">${ghostSVG('whisper')}</div>
+    <h2>$500 for a haunted shack?</h2>
+    <p>Deal. Buy cheap haunted houses, bust the ghosts, fix up every room and sell for a big profit.</p>
+    <div class="actions"><button class="btn wide" data-m="go">Let's flip</button></div>`, () => { S.intro = true; save(); closeModal(); });
+}
+
+// ---------- Busting ----------
+function startBust(id, ri) {
+  const h = H(id), st = S.houses[id], r = st.rooms[ri], type = h.rooms[ri].g, g = GHOSTS[type];
+  const el = document.createElement('div'); el.className = 'bust';
+  el.innerHTML = `<div class="bust-top">
+      <div class="line1"><h2>${esc(g.name)}</h2><button class="btn small ghosty" data-leave>Leave</button></div>
+      <div class="hint">${esc(g.hint)}</div>
+      <div class="meter" aria-label="Spook meter"><i style="width:${r.hp / r.max * 100}%"></i></div></div>
+    <div class="arena"><div class="floorline"></div><div class="foe" style="left:50%;top:42%">${ghostSVG(type)}</div></div>`;
+  document.body.appendChild(el);
+  const arena = $('.arena', el), foe = $('.foe', el), bar = $('.meter i', el);
+  bust = { el, timers: [], raf: 0, done: false, projs: [] };
+
+  const setBar = () => { bar.style.width = Math.max(0, r.hp / r.max * 100) + '%'; };
+  const say = (txt) => {
+    const old = $('.bubble', foe); if (old) old.remove();
+    const b = document.createElement('div'); b.className = 'bubble'; b.textContent = txt; foe.appendChild(b);
+    setTimeout(() => b.remove(), 900);
+  };
+  const move = () => {
+    const a = arena.getBoundingClientRect();
+    foe.style.left = (15 + Math.random() * 70) + '%';
+    foe.style.top = (22 + Math.random() * 42) + '%';
+    return a;
+  };
+
+  let shielded = type === 'grandpa';
+  if (shielded) {
+    foe.classList.add('shielded');
+    foe.style.top = '30%';
+    const chair = document.createElement('div'); chair.className = 'chair';
+    chair.innerHTML = `<svg viewBox="0 0 100 80" width="110" aria-hidden="true"><path d="M20 10 V50 H80 V30" style="stroke:#a07a5a;fill:none" stroke-width="8" stroke-linecap="round"/><path d="M10 70 Q50 82 90 70" style="stroke:#a07a5a;fill:none" stroke-width="6" stroke-linecap="round"/><path d="M28 50 L22 70 M72 50 L82 68" style="stroke:#a07a5a" stroke-width="6" stroke-linecap="round"/><path d="M60 30 L76 46" style="stroke:#ff7a8a" stroke-width="4" stroke-dasharray="4 4"/></svg>
+      <div class="progress"><i style="width:0%"></i></div><span class="label">Tap to fix</span>`;
+    arena.appendChild(chair);
+    let fix = 0;
+    chair.addEventListener('pointerdown', e => {
+      if (!shielded) return;
+      fix++; $('i', chair).style.width = (fix / 6 * 100) + '%';
+      floatText(e.clientX, e.clientY, 'bang');
+      if (fix >= 6) {
+        shielded = false; foe.classList.remove('shielded'); chair.remove();
+        say('Fine. Try me.');
+      }
+    });
+  }
+  if (type === 'whisper') {
+    const every = 1300 - idx(id) * 200;
+    bust.timers.push(setInterval(() => !bust.done && move(), every));
+  }
+  if (type === 'pete') {
+    bust.timers.push(setInterval(() => !bust.done && throwThing(), 1700));
+    bust.timers.push(setInterval(() => !bust.done && move(), 2600));
+  }
+
+  function throwThing() {
+    const a = arena.getBoundingClientRect(), f = foe.getBoundingClientRect();
+    const p = document.createElement('div'); p.className = 'proj';
+    p.innerHTML = Math.random() < .5
+      ? `<svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" style="fill:#eaf2ff"/><circle cx="13" cy="13" r="6" style="fill:none;stroke:#a99cc4" stroke-width="2"/></svg>`
+      : `<svg width="26" height="26" viewBox="0 0 26 26"><rect x="4" y="5" width="18" height="16" rx="2" style="fill:#ff7a8a"/><rect x="7" y="5" width="2" height="16" style="fill:#1b1330"/></svg>`;
+    const sx = f.left - a.left + f.width / 2, sy = f.top - a.top + f.height / 2;
+    const ex = 30 + Math.random() * (a.width - 60), ey = a.height - 30;
+    const t0 = performance.now(), dur = 2300 - idx(id) * 200;
+    const obj = { p, alive: true };
+    p.style.left = sx + 'px'; p.style.top = sy + 'px';
+    arena.appendChild(p);
+    p.addEventListener('pointerdown', e => {
+      e.stopPropagation(); if (!obj.alive) return;
+      obj.alive = false; p.remove();
+      const c = Math.max(1, Math.round(h.buy * 0.004));
+      addCash(c, e.clientX, e.clientY);
+    });
+    const step = (now) => {
+      if (!obj.alive || bust.done) return;
+      const k = Math.min(1, (now - t0) / dur);
+      p.style.left = (sx + (ex - sx) * k) + 'px';
+      p.style.top = (sy + (ey - sy) * k - Math.sin(k * Math.PI) * 60) + 'px';
+      if (k < 1) requestAnimationFrame(step);
+      else {
+        obj.alive = false; p.remove();
+        r.hp = Math.min(r.max, r.hp + r.max * 0.08); setBar();
+        arena.classList.remove('shake'); void arena.offsetWidth; arena.classList.add('shake');
+        say('Ha! Missed one.');
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
+  foe.addEventListener('pointerdown', e => {
+    if (bust.done) return;
+    if (shielded) { say('Hmph! Fix my chair.'); return; }
+    r.hp -= dmg(); setBar();
+    floatText(e.clientX, e.clientY, '-' + (Math.round(dmg() * 10) / 10));
+    foe.classList.remove('hit'); void foe.offsetWidth; foe.classList.add('hit');
+    if (type === 'whisper' && Math.random() < .25) move();
+    if (r.hp <= 0) win(e.clientX, e.clientY);
+  });
+
+  function win(x, y) {
+    bust.done = true; r.hp = 0;
+    foe.classList.add('poof');
+    const ghostCount = h.rooms.filter(q => q.g).length;
+    addCash(Math.round(h.buy * 0.05 / ghostCount), x, y);
+    addEcto(2 + Math.floor(Math.random() * 3), x, y);
+    save();
+    const b = document.createElement('div'); b.className = 'bubble';
+    b.style.cssText = 'top:45%;font-size:22px;padding:6px 18px'; b.textContent = 'Busted!';
+    arena.appendChild(b);
+    setTimeout(endBust, 1100);
+  }
+  $('[data-leave]', el).onclick = endBust;
+}
+function endBust() {
+  if (!bust) return;
+  bust.timers.forEach(clearInterval); bust.done = true; bust.el.remove(); bust = null;
+  save(); render();
+}
+
+// ---------- Actions ----------
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const act = b.dataset.act;
+  if (act === 'map') { view = { name: 'map' }; render(); return; }
+  if (act === 'open') { view = { name: 'house', id: b.dataset.id }; render(); return; }
+  const id = view.id, h = H(id), st = id && S.houses[id];
+  const ri = +b.dataset.room;
+  if (act === 'buy' && S.cash >= h.buy) {
+    S.cash -= h.buy; st.status = 'owned';
+    st.rooms = h.rooms.map(rm => ({ hp: rm.g ? ghostHp(h) : 0, max: ghostHp(h), stage: 0, end: 0 }));
+    save(); render(); toast('Keys are yours. Something moved in the hallway…');
+  }
+  if (act === 'bust') startBust(id, ri);
+  if (act === 'reno') {
+    const r = st.rooms[ri], cost = stageCost(h, r.stage);
+    if (S.cash < cost) return;
+    S.cash -= cost; r.end = Date.now() + stageTime(h, r.stage); save(); render();
+  }
+  if (act === 'rush') showAd('rewarded', ok => { if (ok) { const r = st.rooms[ri]; if (r.end) { r.end = Date.now(); tick(); } } });
+  if (act === 'sellmenu') sellMenu(id);
+});
+$('#toolsBtn').onclick = toolsMenu;
+
+// ---------- Loop ----------
+let rentCarry = 0, lastTick = Date.now();
+function tick() {
+  const now = Date.now();
+  const dt = now - lastTick; lastTick = now;
+  // rent
+  const rpm = rentPerMin();
+  if (rpm) { rentCarry += rpm * dt / 60000; if (rentCarry >= 1) { const w = Math.floor(rentCarry); rentCarry -= w; S.cash += w; updateBar(); } }
+  // renovations
+  let changed = false;
+  HOUSES.forEach(h => {
+    const st = S.houses[h.id];
+    st.rooms.forEach((r, ri) => {
+      if (r.end && now >= r.end) {
+        r.end = 0; r.stage++; changed = true;
+        if (view.name !== 'house' || view.id !== h.id) toast(`${h.rooms[ri].n}: ${STAGES[r.stage - 1].toLowerCase()} done`);
+      }
+    });
+    if (st.status === 'owned' && st.rooms.length && st.rooms.every(r => r.hp <= 0 && r.stage === 3)) { st.status = 'ready'; changed = true; }
+  });
+  if (changed) { save(); if (!bust) render(); return; }
+  // live timers on house view
+  if (view.name === 'house' && !bust) {
+    const h = H(view.id), st = S.houses[view.id];
+    st.rooms.forEach((r, ri) => {
+      if (!r.end) return;
+      const left = Math.max(0, r.end - now);
+      const bar = $(`[data-bar="${ri}"]`), lt = $(`[data-left="${ri}"]`);
+      if (bar) bar.style.width = (100 - left / stageTime(h, r.stage) * 100) + '%';
+      if (lt) lt.textContent = Math.ceil(left / 1000) + 's';
+    });
+    // re-enable buttons when cash arrives
+    document.querySelectorAll('[data-act="reno"],[data-act="buy"]').forEach(btn => {
+      let cost = 0;
+      if (btn.dataset.act === 'buy') cost = h.buy;
+      else { const r = st.rooms[+btn.dataset.room]; cost = r ? stageCost(h, r.stage) : 0; }
+      btn.disabled = S.cash < cost;
+    });
+  }
+}
+
+// Lucky ghost
+function scheduleLucky() { setTimeout(spawnLucky, 40000 + Math.random() * 35000); }
+function spawnLucky() {
+  if (bust || layer.innerHTML || document.hidden) { scheduleLucky(); return; }
+  const g = document.createElement('button'); g.className = 'lucky'; g.setAttribute('aria-label', 'Lucky Ghost');
+  g.innerHTML = ghostSVG('whisper', { gold: true });
+  document.body.appendChild(g);
+  const gone = setTimeout(() => { g.remove(); scheduleLucky(); }, 8000);
+  g.onclick = () => {
+    clearTimeout(gone); g.remove();
+    const base = Math.max(50, Math.round(nextGoal().buy * 0.06));
+    modal(`<div style="width:90px">${ghostSVG('whisper', { gold: true })}</div><h2>Lucky Ghost!</h2>
+      <p>She drops a bag of coins on her way out.</p>
+      <div class="actions"><button class="btn gold wide" data-m="ad">Take ${money(base * 5)} <span class="ad-tag">${S.noAds ? 'FREE' : 'AD'}</span></button>
+      <button class="btn ghosty wide" data-m="take">Take ${money(base)}</button></div>`, m => {
+      closeModal();
+      if (m === 'take') { addCash(base, innerWidth / 2, innerHeight / 2); save(); }
+      if (m === 'ad') showAd('rewarded', ok => { addCash(ok ? base * 5 : base, innerWidth / 2, innerHeight / 2); save(); });
+      scheduleLucky();
+    });
+  };
+}
+
+// Offline earnings
+function offline() {
+  const rpm = rentPerMin();
+  const away = Math.min(Date.now() - (S.lastSeen || Date.now()), OFFLINE_CAP_MS);
+  const earned = Math.floor(rpm * away / 60000);
+  if (away < 30000 || earned < 1) return;
+  const mins = Math.round(away / 60000);
+  modal(`<span class="label">While you were away</span><h2>Your tenants paid rent</h2>
+    <div class="big num">${money(earned)}</div><p>${mins} min of rent income (max 2 hours).</p>
+    <div class="actions"><button class="btn gold wide" data-m="x3">Collect ${money(earned * 3)} <span class="ad-tag">${S.noAds ? 'FREE' : 'AD'}</span></button>
+    <button class="btn ghosty wide" data-m="x1">Collect ${money(earned)}</button></div>`, m => {
+    closeModal();
+    if (m === 'x1') { addCash(earned, innerWidth / 2, innerHeight / 2); save(); }
+    if (m === 'x3') showAd('rewarded', ok => { addCash(earned * (ok ? 3 : 1), innerWidth / 2, innerHeight / 2); save(); });
+  });
+}
+
+// ---------- Boot ----------
+function start(data) {
+  const saved = (data && data.cash != null) ? data : load();
+  if (saved && saved.houses) S = Object.assign(fresh(), saved);
+  render();
+  if (!S.intro) intro(); else offline();
+  setInterval(tick, 250);
+  setInterval(save, 3000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  scheduleLucky();
+}
+window.claude?.hot?.snapshot?.(() => (save(), S));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
