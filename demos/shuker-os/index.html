@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shuker OS</title>
+<meta name="description" content="Shuker OS: şəxsi biznes idarəetmə sisteminin vizual demosu (nümunə məlumatlar).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0d; --surface:#151518; --surface-2:#1d1d21; --line:#2a2a30;
+  --text:#f4f4f5; --muted:#9a9aa3; --dim:#6b6b74;
+  --gold:#e7b54a; --gold-soft:rgba(231,181,74,.14);
+  --green:#3ecf8e; --green-soft:rgba(62,207,142,.14);
+  --red:#ff6b6b; --red-soft:rgba(255,107,107,.14);
+  --blue:#6aa8ff; --blue-soft:rgba(106,168,255,.14);
+  --violet:#b28dff; --violet-soft:rgba(178,141,255,.14);
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;justify-content:center}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.app{width:100%;max-width:440px;min-height:100vh;position:relative;padding-bottom:96px;overflow-x:hidden}
+@media(min-width:600px){
+  body{padding:24px 0;background:radial-gradient(circle at 30% 10%,#1b1710 0,#0b0b0d 55%)}
+  .app{min-height:calc(100vh - 48px);border:1px solid var(--line);border-radius:32px;background:var(--bg);overflow:hidden}
+  .nav{border-radius:0 0 32px 32px}
+}
+.demo-banner{background:var(--gold-soft);color:var(--gold);font-size:11px;font-weight:600;text-align:center;padding:6px 16px;letter-spacing:.02em}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 8px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#f2c766,#b7832a);color:#1a1205;display:grid;place-items:center;font-weight:800;font-size:15px}
+.brand h1{font-size:17px;font-weight:800;letter-spacing:-.01em}
+.brand p{font-size:12px;color:var(--muted)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--surface-2);border:2px solid var(--gold);display:grid;place-items:center;font-weight:700;font-size:13px;position:relative}
+.avatar .dot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
+.view{display:none;padding:8px 16px 16px;animation:fade .25s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h2.greet{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.section-title{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 10px}
+.section-title h3{font-size:15px;font-weight:700}
+.section-title button{font-size:12px;color:var(--gold);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.brief{background:linear-gradient(160deg,#241c0d 0,#151518 70%);border-color:#3a2e15}
+.brief-top{display:flex;align-items:center;gap:12px}
+.play{width:48px;height:48px;border-radius:50%;background:var(--gold);color:#1a1205;display:grid;place-items:center;flex-shrink:0;transition:transform .15s}
+.play:active{transform:scale(.94)}
+.brief-meta b{display:block;font-size:14px}
+.brief-meta span{font-size:12px;color:var(--muted)}
+.wave{display:flex;align-items:center;gap:3px;height:28px;margin:14px 0 4px}
+.wave i{display:block;width:4px;border-radius:2px;background:var(--gold);opacity:.35;height:6px;transition:height .12s}
+.wave.on i{opacity:1}
+.transcript{font-size:13.5px;line-height:1.55;color:#e3dccb;min-height:0}
+.transcript:empty{display:none}
+.transcript .caret{display:inline-block;width:2px;height:14px;background:var(--gold);vertical-align:-2px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.kpi span{font-size:11.5px;color:var(--muted);display:block}
+.kpi b{font-size:21px;font-weight:800;letter-spacing:-.02em;display:block;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.kpi small{font-size:11.5px;font-weight:600}
+.up{color:var(--green)} .down{color:var(--red)}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;width:100%;text-align:left}
+.row .time{font-size:12px;font-weight:700;color:var(--gold);width:44px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;font-weight:800;font-size:13px}
+.row .body{flex:1;min-width:0}
+.row .body b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .body span{font-size:12px;color:var(--muted)}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.p-gold{background:var(--gold-soft);color:var(--gold)}
+.p-green{background:var(--green-soft);color:var(--green)}
+.p-red{background:var(--red-soft);color:var(--red)}
+.p-blue{background:var(--blue-soft);color:var(--blue)}
+.p-violet{background:var(--violet-soft);color:var(--violet)}
+.c-gold{background:var(--gold-soft);color:var(--gold)}
+.c-green{background:var(--green-soft);color:var(--green)}
+.c-blue{background:var(--blue-soft);color:var(--blue)}
+.c-violet{background:var(--violet-soft);color:var(--violet)}
+.c-red{background:var(--red-soft);color:var(--red)}
+.lead{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.lead div{background:var(--surface-2);border-radius:12px;padding:10px;text-align:center}
+.lead b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.lead span{font-size:11px;color:var(--muted)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-weight:700}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(62,207,142,.6)}100%{box-shadow:0 0 0 8px rgba(62,207,142,0)}}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:8px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.tab em{font-style:normal;opacity:.6;margin-left:4px}
+.deal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;width:100%;text-align:left;display:block}
+.deal-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.deal-top b{font-size:15px}
+.deal p{font-size:12.5px;color:var(--muted);margin:6px 0 10px}
+.deal-foot{display:flex;justify-content:space-between;align-items:center;font-size:12.5px}
+.deal-foot b{font-variant-numeric:tabular-nums}
+.progress{height:5px;background:var(--surface-2);border-radius:3px;margin-top:10px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--gold);border-radius:3px}
+.ai-score{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--violet);font-weight:600}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 0;text-align:center}
+.day span{display:block;font-size:10.5px;color:var(--muted)}
+.day b{display:block;font-size:16px;margin-top:2px}
+.day i{display:block;width:5px;height:5px;border-radius:50%;margin:5px auto 0;background:transparent}
+.day.has i{background:var(--gold)}
+.day.on{background:var(--gold);color:#1a1205;border-color:var(--gold)}
+.day.on span{color:#3d2c08}
+.day.on i{background:#1a1205}
+.warn{display:flex;gap:10px;align-items:flex-start;background:var(--red-soft);border:1px solid rgba(255,107,107,.3);color:#ffc9c9;border-radius:14px;padding:12px;font-size:12.5px;line-height:1.45;margin-bottom:12px}
+.warn b{color:var(--red)}
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.leg{display:flex;align-items:center;gap:10px;font-size:13px}
+.leg .sw{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.leg .nm{flex:1}
+.leg .bar{flex:1.4;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.leg .bar i{display:block;height:100%;border-radius:3px}
+.leg b{width:72px;text-align:right;font-variant-numeric:tabular-nums}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:10px;padding-bottom:140px}
+.msg{max-width:86%;padding:11px 14px;border-radius:18px;font-size:14px;line-height:1.5;animation:fade .25s ease}
+.msg.me{align-self:flex-end;background:var(--gold);color:#1a1205;border-bottom-right-radius:6px;font-weight:500}
+.msg.ai{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:6px}
+.msg.ai b{color:var(--gold)}
+.msg .voice{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px;opacity:.8}
+.msg .voice .mini{display:flex;gap:2px;align-items:center}
+.msg .voice .mini i{width:3px;background:#1a1205;border-radius:2px;display:block}
+.msg .action{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.msg .action div{display:flex;align-items:center;gap:8px;font-size:12.5px;background:var(--surface-2);padding:8px 10px;border-radius:10px}
+.msg .action div::before{content:"\2713";color:var(--green);font-weight:800}
+.msg pre{font:inherit;white-space:pre-wrap;font-size:13px}
+.typing{display:flex;gap:4px;padding:14px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.composer{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);width:100%;max-width:440px;padding:10px 16px;background:linear-gradient(transparent,var(--bg) 30%);display:none}
+.composer.show{display:block}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;font-size:12px;padding:7px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.inputrow{display:flex;gap:8px;align-items:center}
+.inputrow input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:12px 16px;color:var(--text);font:inherit;font-size:14px;outline:none}
+.inputrow input:focus{border-color:var(--gold)}
+.mic{width:46px;height:46px;border-radius:50%;background:var(--gold);color:#1a1205;display:grid;place-items:center;flex-shrink:0}
+.mic.rec{background:var(--red);color:#fff;animation:pulse-r 1.2s infinite}
+@keyframes pulse-r{0%{box-shadow:0 0 0 0 rgba(255,107,107,.6)}100%{box-shadow:0 0 0 14px rgba(255,107,107,0)}}
+/* nav */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:rgba(17,17,20,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--dim);font-weight:600;padding:4px 0}
+.nav button.on{color:var(--gold)}
+.nav svg{width:22px;height:22px}
+.nav .ai-btn{position:relative}
+.nav .ai-btn .orb{width:44px;height:44px;margin-top:-22px;border-radius:50%;background:linear-gradient(135deg,#f2c766,#b7832a);display:grid;place-items:center;color:#1a1205;box-shadow:0 6px 20px rgba(231,181,74,.35);border:4px solid var(--bg)}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:100%;max-width:440px;background:var(--surface);border-radius:24px 24px 0 0;border-top:1px solid var(--line);padding:10px 18px calc(22px + env(safe-area-inset-bottom));z-index:21;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility .28s;max-height:88vh;overflow-y:auto}
+.sheet{visibility:hidden}
+.sheet.show{transform:translate(-50%,0);visibility:visible}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+.sheet h4{font-size:19px;font-weight:800;margin-bottom:4px}
+.sheet .meta{font-size:13px;color:var(--muted);margin-bottom:14px}
+.kv{display:flex;justify-content:space-between;font-size:13.5px;padding:10px 0;border-bottom:1px solid var(--line)}
+.kv span{color:var(--muted)}
+.ai-box{background:var(--violet-soft);border:1px solid rgba(178,141,255,.3);border-radius:14px;padding:12px;margin:14px 0;font-size:13px;line-height:1.5;color:#ddd0ff}
+.ai-box b{color:var(--violet)}
+.btn{width:100%;padding:14px;border-radius:14px;font-weight:700;font-size:14px;margin-top:8px}
+.btn-gold{background:var(--gold);color:#1a1205}
+.btn-ghost{background:var(--surface-2);color:var(--text)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.stat-grid div{background:var(--surface-2);border-radius:12px;padding:12px}
+.stat-grid span{font-size:11px;color:var(--muted);display:block}
+.stat-grid b{font-size:18px;font-weight:800}
+.brands{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.brands span{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--surface-2)}
+.toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);background:var(--text);color:var(--bg);padding:12px 16px;border-radius:14px;font-size:13px;font-weight:600;z-index:40;transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:calc(100% - 32px);display:flex;gap:8px;align-items:center}
+.toast.show{transform:translate(-50%,0)}
+.notif{position:fixed;top:12px;left:50%;transform:translate(-50%,-160%);width:calc(100% - 24px);max-width:416px;background:rgba(30,30,34,.96);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;padding:12px 14px;z-index:41;display:flex;gap:12px;align-items:center;transition:transform .35s cubic-bezier(.2,.8,.2,1);text-align:left}
+.notif.show{transform:translate(-50%,0)}
+.notif .logo{width:36px;height:36px;font-size:13px;border-radius:10px}
+.notif b{font-size:13px;display:block}
+.notif span{font-size:12.5px;color:var(--muted)}
+.empty{font-size:13px;color:var(--dim);text-align:center;padding:24px}
+.foot-note{font-size:11px;color:var(--dim);text-align:center;margin-top:24px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="demo-banner">DEMO · bütün rəqəmlər nümunədir, real məlumat deyil</div>
+  <header>
+    <div class="brand">
+      <div class="logo">S</div>
+      <div><h1>Shuker OS</h1><p>Şəxsi biznes mərkəzi</p></div>
+    </div>
+    <button class="avatar" id="avatarBtn" aria-label="Bildirişlər">ŞS<span class="dot"></span></button>
+  </header>
+
+  <!-- HOME -->
+  <section class="view active" id="v-home">
+    <h2 class="greet" id="greet">Sabahın xeyir, Şükran</h2>
+    <p class="sub" id="today"></p>
+
+    <div class="card brief">
+      <div class="brief-top">
+        <button class="play" id="playBrief" aria-label="Brifinqi dinlə">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="brief-meta"><b>Səhər brifinqi</b><span>AI köməkçi · 0:42 · 09:00-da göndərildi</span></div>
+      </div>
+      <div class="wave" id="wave"></div>
+      <div class="transcript" id="transcript"></div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span>Bu ay gəlir</span><b id="kpiIncome">0 ₼</b><small class="up">+18% keçən aya görə</small></div>
+      <div class="kpi"><span>Aktiv reklamlar</span><b id="kpiActive">0</b><small class="up">3 yeni təklif</small></div>
+      <div class="kpi"><span>Orta reels baxışı</span><b>1,1M</b><small class="up">+9% bu həftə</small></div>
+      <div class="kpi"><span>Gözlənilən ödəniş</span><b id="kpiPending">0 ₼</b><small class="down">2 brend</small></div>
+    </div>
+
+    <div class="section-title"><h3>Bu gün</h3><button data-go="cal">Təqvim</button></div>
+    <div class="list" id="todayList"></div>
+
+    <div class="section-title"><h3>Canlı kampaniya</h3><span class="live">CANLI</span></div>
+    <div class="card">
+      <div class="deal-top"><b>Riviera Residence · lead botu</b><span class="pill p-green">Aktiv</span></div>
+      <p class="sub" style="margin:6px 0 0">İzləyici şərhə <b style="color:var(--gold)">RIVIERA</b> yazır, bot DM-də broşür göndərir və nömrəni developerə ötürür.</p>
+      <div class="lead">
+        <div><b id="lc1">0</b><span>Şərh</span></div>
+        <div><b id="lc2">0</b><span>DM göndərildi</span></div>
+        <div><b id="lc3">0</b><span>Nömrə</span></div>
+      </div>
+    </div>
+
+    <div class="section-title"><h3>Yeni təkliflər</h3><button data-go="deals" data-stage="sorgu">Hamısı</button></div>
+    <div class="list" id="offerList"></div>
+
+    <div class="section-title"><h3>Canlı Media Kit</h3></div>
+    <button class="row" id="openKit">
+      <div class="ic c-gold">MK</div>
+      <div class="body"><b>shuker.os/mediakit</b><span>Hər gün avtomatik yenilənir · brendə link göndər</span></div>
+      <span class="pill p-gold">Aç</span>
+    </button>
+    <p class="foot-note">Shuker OS · demo versiya<br>Hazırladı: Şahin Səlimov</p>
+  </section>
+
+  <!-- DEALS -->
+  <section class="view" id="v-deals">
+    <h2 class="greet">Reklamlar</h2>
+    <p class="sub">Bütün brend əməkdaşlıqları bir yerdə</p>
+    <div class="tabs" id="stageTabs"></div>
+    <div class="list" id="dealList"></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="view" id="v-cal">
+    <h2 class="greet">Təqvim</h2>
+    <p class="sub">Çəkilişlər, paylaşımlar, səfərlər</p>
+    <div class="days" id="days"></div>
+    <div id="conflict"></div>
+    <div class="list" id="calList"></div>
+  </section>
+
+  <!-- FINANCE -->
+  <section class="view" id="v-fin">
+    <h2 class="greet">Maliyyə</h2>
+    <p class="sub">Son 6 ayın reklam gəlirləri</p>
+    <div class="card">
+      <div class="deal-top"><span style="font-size:12px;color:var(--muted)">6 ay cəmi</span><span class="pill p-green">+42%</span></div>
+      <b style="font-size:28px;font-weight:800;letter-spacing:-.02em;display:block;margin:4px 0 10px" id="finTotal"></b>
+      <svg class="chart" id="barChart" viewBox="0 0 340 170"></svg>
+    </div>
+    <div class="section-title"><h3>Sahələr üzrə (bu ay)</h3></div>
+    <div class="card"><div class="legend" id="catLegend"></div></div>
+    <div class="section-title"><h3>Gözlənilən ödənişlər</h3></div>
+    <div class="list" id="payList"></div>
+  </section>
+
+  <!-- AI -->
+  <section class="view" id="v-ai">
+    <h2 class="greet">AI köməkçi</h2>
+    <p class="sub">Səslə və ya yazı ilə idarə et</p>
+    <div class="chat" id="chat"></div>
+  </section>
+
+  <div class="composer" id="composer">
+    <div class="chips" id="chips"></div>
+    <form class="inputrow" id="chatForm">
+      <input id="chatInput" placeholder="Yaz və ya mikrofona bas…" autocomplete="off">
+      <button type="button" class="mic" id="micBtn" aria-label="Səsli mesaj">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <nav class="nav" id="nav">
+    <button class="on" data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Əsas</button>
+    <button data-go="deals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Reklamlar</button>
+    <button data-go="ai" class="ai-btn"><span class="orb"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.3L20.5 10l-6.3 2.2L12 18.5l-2.2-6.3L3.5 10l6.3-1.7z"/></svg></span>AI</button>
+    <button data-go="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Təqvim</button>
+    <button data-go="fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Maliyyə</button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+<button class="notif" id="notif"><div class="logo">S</div><div><b id="notifTitle"></b><span id="notifText"></span></div></button>
+
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const fmt = n => n.toLocaleString('az-AZ').replace(/,/g,' ') + ' ₼';
+const months = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avqust','sentyabr','oktyabr','noyabr','dekabr'];
+const wdays = ['B','Be','Ça','Ç','Ca','C','Ş'];
+const wdaysLong = ['Bazar','Bazar ertəsi','Çərşənbə axşamı','Çərşənbə','Cümə axşamı','Cümə','Şənbə'];
+
+/* ---------- DATA (nümunə) ---------- */
+const STAGES = [
+  {id:'sorgu',name:'Sorğu',pill:'p-violet'},
+  {id:'muqavile',name:'Müqavilə',pill:'p-blue'},
+  {id:'cekilis',name:'Çəkiliş',pill:'p-gold'},
+  {id:'paylasildi',name:'Paylaşıldı',pill:'p-green'},
+  {id:'hesabat',name:'Hesabat',pill:'p-green'}
+];
+const CAT = {
+  'Əmlak':{c:'c-gold',col:'#e7b54a'},
+  'Market':{c:'c-green',col:'#3ecf8e'},
+  'Restoran':{c:'c-red',col:'#ff6b6b'},
+  'Avto':{c:'c-blue',col:'#6aa8ff'},
+  'İdman':{c:'c-violet',col:'#b28dff'}
+};
+let deals = [
+  {id:1,brand:'Riviera Residence',cat:'Əmlak',stage:'hesabat',price:9000,paid:true,deliver:'1 collab reels + lead botu',note:'Lead botu aktivdir, developerə gündəlik hesabat gedir',views:'1,4M'},
+  {id:2,brand:'Harbour Residence',cat:'Əmlak',stage:'paylasildi',price:8500,paid:false,deliver:'1 collab reels + 3 story',note:'2-ci ödəniş gözlənilir',views:'980K'},
+  {id:3,brand:'Araz Supermarket',cat:'Market',stage:'cekilis',price:7000,paid:false,deliver:'Giveaway reels + 5 story',note:'"15 AZN-ə iPhone 17" kampaniyası',views:'-'},
+  {id:4,brand:'Chaidan Baku',cat:'Restoran',stage:'muqavile',price:2500,paid:false,deliver:'1 reels + 2 story',note:'Müqavilə imzaya göndərilib',views:'-'},
+  {id:5,brand:'Hünkar Döner Kabab',cat:'Restoran',stage:'paylasildi',price:2000,paid:true,deliver:'1 reels',note:'Hesabat 48 saatdan sonra avtomatik gedəcək',views:'760K'},
+  {id:6,brand:'Avto salon (yeni təklif)',cat:'Avto',stage:'sorgu',price:6000,paid:false,deliver:'2 reels',note:'Büdcə: 5 000–7 000 ₼',score:92,why:'Avto məzmununuz (Ferrari, F1) orta hesabla 30% daha çox baxış yığır.'},
+  {id:7,brand:'Fitness şəbəkəsi (yeni təklif)',cat:'İdman',stage:'sorgu',price:4000,paid:false,deliver:'1 reels + 4 story',note:'Büdcə: 3 000 ₼',score:78,why:'İdmançı imicinizə uyğundur, amma təklif olunan büdcə tövsiyədən 25% aşağıdır.'},
+  {id:8,brand:'Telekom operatoru (yeni təklif)',cat:'Avto',stage:'sorgu',price:12000,paid:false,deliver:'3 ay ambassador',note:'Uzunmüddətli əməkdaşlıq',score:85,why:'Uzunmüddətli müqavilə aylıq sabit gəlir deməkdir. Eksklüzivlik şərtini yoxlamaq lazımdır.'}
+];
+
+const now = new Date();
+const WED=(3-now.getDay()+7)%7;
+function dayOffset(n){const d=new Date(now);d.setDate(d.getDate()+n);return d;}
+let events = [
+  {d:0,t:'11:00',title:'Ssenari oxunuşu',sub:'shuker_media komandası ilə',cat:'İdman'},
+  {d:0,t:'14:00',title:'Araz · giveaway çəkilişi',sub:'Yasamal filialı · 2 saat',cat:'Market'},
+  {d:0,t:'19:30',title:'Hünkar reels · paylaşım',sub:'Avtomatik paylaşım planlanıb',cat:'Restoran'},
+  {d:1,t:'10:00',title:'Məşq + idman məzmunu',sub:'Zal · 1,5 saat',cat:'İdman'},
+  {d:WED,t:'12:00',title:'Harbour Residence · story seriyası',sub:'Sea Breeze ərazisi',cat:'Əmlak'},
+  {d:WED,t:'12:30',title:'Telekom görüşü',sub:'Ofis · 1 saat',cat:'Avto'},
+  {d:4,t:'09:00',title:'Tbilisi səfəri',sub:'3 gün · səyahət məzmunu',cat:'Avto'}
+];
+
+/* ---------- NAV ---------- */
+let current='home';
+function go(view, opts){
+  current=view;
+  $$('.view').forEach(v=>v.classList.toggle('active', v.id==='v-'+view));
+  $$('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.go===view));
+  $('#composer').classList.toggle('show', view==='ai');
+  if(view==='deals'){ if(opts && opts.stage) activeStage=opts.stage; renderDeals(); }
+  if(view==='cal') renderCal();
+  if(view==='fin') renderFin();
+  if(view==='ai' && !$('#chat').children.length) aiWelcome();
+  window.scrollTo({top:0});
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-go]');
+  if(b){ go(b.dataset.go, {stage:b.dataset.stage}); }
+});
+
+/* ---------- TOAST / NOTIF / SHEET ---------- */
+let tT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2600);}
+let nT;
+function notify(title,text,onClick){
+  $('#notifTitle').textContent=title;$('#notifText').textContent=text;
+  const n=$('#notif');n.classList.add('show');n.onclick=()=>{n.classList.remove('show');onClick&&onClick();};
+  clearTimeout(nT);nT=setTimeout(()=>n.classList.remove('show'),5000);
+}
+function openSheet(html){$('#sheetBody').innerHTML=html;$('#sheet').classList.add('show');$('#scrim').classList.add('show');}
+function closeSheet(){$('#sheet').classList.remove('show');$('#scrim').classList.remove('show');}
+$('#scrim').onclick=closeSheet;
+
+/* ---------- HOME ---------- */
+function greet(){
+  const h=now.getHours();
+  $('#greet').textContent = (h<12?'Sabahın xeyir':h<18?'Günortan xeyir':'Axşamın xeyir')+', Şükran';
+  $('#today').textContent = wdaysLong[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()];
+}
+function countUp(el,to,suffix,dur){
+  const start=performance.now();
+  (function f(t){const p=Math.min(1,(t-start)/dur);const v=Math.round(to*(1-Math.pow(1-p,3)));el.textContent=suffix==='₼'?fmt(v):v.toLocaleString('az-AZ').replace(/,/g,' ');if(p<1)requestAnimationFrame(f);})(start);
+}
+function renderKpis(){
+  const income = deals.filter(d=>d.paid).reduce((a,d)=>a+d.price,0)+21500;
+  const pending = deals.filter(d=>!d.paid && ['paylasildi','hesabat','cekilis'].includes(d.stage)).reduce((a,d)=>a+d.price,0);
+  countUp($('#kpiIncome'),income,'₼',1100);
+  countUp($('#kpiActive'),deals.filter(d=>d.stage!=='sorgu').length,'',700);
+  countUp($('#kpiPending'),pending,'₼',1100);
+}
+function evRow(e,showTime=true){
+  const c=CAT[e.cat]||CAT['Əmlak'];
+  return `<div class="row">${showTime?`<span class="time">${e.t}</span>`:''}<div class="ic ${c.c}">${e.title.slice(0,2).toUpperCase()}</div><div class="body"><b>${e.title}</b><span>${e.sub}</span></div>${e.isNew?'<span class="pill p-green">Yeni</span>':''}</div>`;
+}
+function renderToday(){
+  const list=events.filter(e=>e.d===0).sort((a,b)=>a.t.localeCompare(b.t));
+  $('#todayList').innerHTML=list.map(e=>evRow(e)).join('');
+}
+function offerRow(d){
+  const c=CAT[d.cat];
+  return `<button class="row" data-deal="${d.id}"><div class="ic ${c.c}">${d.brand.slice(0,2).toUpperCase()}</div><div class="body"><b>${d.brand}</b><span>${d.deliver} · ${fmt(d.price)}</span></div><span class="pill p-violet">AI ${d.score}</span></button>`;
+}
+function renderOffers(){
+  $('#offerList').innerHTML=deals.filter(d=>d.stage==='sorgu').sort((a,b)=>b.score-a.score).map(offerRow).join('');
+}
+
+/* brief */
+const BRIEF = "Sabahın xeyir, Şükran. Bu gün saat 14:00-da Araz giveaway çəkilişin var, komanda artıq yerdədir. Harbour Residence-in 2-ci ödənişi hələ gəlməyib, xatırlatma göndərim? Dünənki Hünkar reels-i 760 min baxış yığıb, restoran reklamlarının orta göstəricisindən 22% yüksəkdir. 3 yeni reklam təklifi gəlib: ən uyğunu avto salondur, AI uyğunluq balı 92. Çərşənbə günü 12:00-da iki iş üst-üstə düşür, təqvimə bax.";
+const wave=$('#wave');
+for(let i=0;i<46;i++){const s=document.createElement('i');s.style.height=(6+Math.abs(Math.sin(i*1.7))*16)+'px';wave.appendChild(s);}
+let briefTimer=null, waveTimer=null, briefPos=0, playing=false;
+function stopBrief(done){
+  playing=false;clearInterval(briefTimer);clearInterval(waveTimer);wave.classList.remove('on');
+  $('#playIcon').innerHTML='<path d="M8 5v14l11-7z"/>';
+  const tr=$('#transcript');tr.textContent=BRIEF.slice(0,briefPos);
+  if(done){briefPos=0;}
+}
+$('#playBrief').onclick=()=>{
+  if(playing){stopBrief(false);return;}
+  if(briefPos>=BRIEF.length) briefPos=0;
+  playing=true;wave.classList.add('on');
+  $('#playIcon').innerHTML='<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>';
+  const bars=$$('#wave i');
+  waveTimer=setInterval(()=>bars.forEach(b=>b.style.height=(5+Math.random()*22)+'px'),110);
+  const tr=$('#transcript');
+  briefTimer=setInterval(()=>{
+    briefPos+=2;
+    tr.innerHTML=BRIEF.slice(0,briefPos)+'<span class="caret"></span>';
+    if(briefPos>=BRIEF.length){briefPos=BRIEF.length;stopBrief(true);tr.textContent=BRIEF;}
+  },28);
+};
+
+/* lead counters */
+let leads={c:1184,dm:861,ph:203};
+function renderLeads(){$('#lc1').textContent=leads.c.toLocaleString('az-AZ').replace(/,/g,' ');$('#lc2').textContent=leads.dm.toLocaleString('az-AZ').replace(/,/g,' ');$('#lc3').textContent=leads.ph;}
+setInterval(()=>{
+  const add=1+Math.floor(Math.random()*3);leads.c+=add;
+  if(Math.random()<.8)leads.dm+=add;
+  if(Math.random()<.3){leads.ph+=1;$('#lc3').animate([{color:'#3ecf8e',transform:'scale(1.15)'},{color:'inherit',transform:'none'}],{duration:600});}
+  renderLeads();
+},2200);
+
+/* media kit */
+$('#openKit').onclick=()=>openSheet(`
+  <h4>Shukran Soltanov · Media Kit</h4>
+  <p class="meta">Actor, sportsman, model · Bakı · avtomatik yenilənir</p>
+  <div class="stat-grid">
+    <div><span>İzləyici</span><b>3,5M</b></div>
+    <div><span>Orta reels baxışı</span><b>1,1M</b></div>
+    <div><span>Engagement</span><b>4,8%</b></div>
+    <div><span>Auditoriya</span><b>18–34</b></div>
+  </div>
+  <div class="kv"><span>Ən güclü sahə</span><b>Avto, Əmlak</b></div>
+  <div class="kv"><span>Ən yaxşı paylaşım vaxtı</span><b>20:00–22:00</b></div>
+  <div class="kv"><span>Keçmiş əməkdaşlıqlar</span><b>40+ brend</b></div>
+  <div class="brands"><span>Riviera Residence</span><span>Harbour Residence</span><span>Araz</span><span>Chaidan</span><span>Hünkar</span></div>
+  <button class="btn btn-gold" id="copyKit">Linki kopyala</button>
+  <button class="btn btn-ghost" data-act="close">Bağla</button>
+`);
+document.addEventListener('click',e=>{
+  if(e.target.id==='copyKit'){closeSheet();toast('Media Kit linki kopyalandı');}
+});
+
+/* ---------- DEALS ---------- */
+let activeStage='all';
+function renderDeals(){
+  const tabs=[{id:'all',name:'Hamısı'}].concat(STAGES);
+  $('#stageTabs').innerHTML=tabs.map(s=>{
+    const n=s.id==='all'?deals.length:deals.filter(d=>d.stage===s.id).length;
+    return `<button class="tab ${activeStage===s.id?'on':''}" data-stage-tab="${s.id}">${s.name}<em>${n}</em></button>`;
+  }).join('');
+  const list=deals.filter(d=>activeStage==='all'||d.stage===activeStage);
+  $('#dealList').innerHTML=list.length?list.map(dealCard).join(''):'<div class="empty">Bu mərhələdə reklam yoxdur</div>';
+}
+function dealCard(d){
+  const st=STAGES.find(s=>s.id===d.stage);const idx=STAGES.indexOf(st);
+  return `<button class="deal" data-deal="${d.id}">
+    <div class="deal-top"><b>${d.brand}</b><span class="pill ${st.pill}">${st.name}</span></div>
+    <p>${d.cat} · ${d.deliver}</p>
+    <div class="deal-foot"><b>${fmt(d.price)}</b>${d.score?`<span class="ai-score">AI uyğunluq ${d.score}</span>`:`<span style="color:${d.paid?'var(--green)':'var(--muted)'}">${d.paid?'Ödənilib':'Ödəniş gözlənilir'}</span>`}</div>
+    <div class="progress"><i style="width:${(idx+1)/STAGES.length*100}%"></i></div>
+  </button>`;
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-stage-tab]');
+  if(t){activeStage=t.dataset.stageTab;renderDeals();}
+  const d=e.target.closest('[data-deal]');
+  if(d){openDeal(+d.dataset.deal);}
+});
+function openDeal(id){
+  const d=deals.find(x=>x.id===id);const st=STAGES.find(s=>s.id===d.stage);
+  let ai='', actions='';
+  if(d.stage==='sorgu'){
+    const rec=Math.round(d.price*(d.score>85?1.25:1.1)/500)*500;
+    ai=`<div class="ai-box"><b>AI tövsiyəsi · uyğunluq ${d.score}/100</b><br>${d.why}<br>Tövsiyə olunan qiymət: <b>${fmt(rec)}</b></div>`;
+    actions=`<button class="btn btn-gold" data-act="accept" data-id="${d.id}">Qəbul et və təklif göndər</button><button class="btn btn-ghost" data-act="close">Sonra bax</button>`;
+  } else if(d.stage==='paylasildi'){
+    ai=`<div class="ai-box"><b>Nəticə · ${d.views} baxış</b><br>Brendə nəticə hesabatı 48 saat tamam olanda avtomatik gedəcək. İndi də göndərə bilərsən.</div>`;
+    actions=`<button class="btn btn-gold" data-act="report" data-id="${d.id}">Hesabatı indi göndər</button>`+(d.paid?'':`<button class="btn btn-ghost" data-act="remind" data-id="${d.id}">Ödəniş xatırlatması göndər</button>`);
+  } else if(d.stage==='hesabat'){
+    ai=`<div class="ai-box"><b>Hesabat göndərilib</b><br>${d.views} baxış · lead botu ilə 203 nömrə toplanıb. Developer təkrar əməkdaşlıq üçün yaxşı namizəddir.</div>`;
+    actions=`<button class="btn btn-ghost" data-act="close">Bağla</button>`;
+  } else {
+    actions=`<button class="btn btn-gold" data-act="next" data-id="${d.id}">Növbəti mərhələyə keçir</button>`;
+  }
+  openSheet(`<h4>${d.brand}</h4><p class="meta">${d.cat} · <span class="pill ${st.pill}">${st.name}</span></p>
+    <div class="kv"><span>Format</span><b>${d.deliver}</b></div>
+    <div class="kv"><span>Məbləğ</span><b>${fmt(d.price)}</b></div>
+    <div class="kv"><span>Ödəniş</span><b style="color:${d.paid?'var(--green)':'var(--gold)'}">${d.paid?'Ödənilib':'Gözlənilir'}</b></div>
+    <div class="kv"><span>Qeyd</span><b style="max-width:60%;text-align:right">${d.note}</b></div>
+    ${ai}${actions}`);
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-act]');if(!a)return;
+  const d=deals.find(x=>x.id===+a.dataset.id);
+  const act=a.dataset.act;closeSheet();
+  if(act==='accept'){d.stage='muqavile';d.note='Təklif və müqavilə layihəsi göndərildi';toast(d.brand+': təklif göndərildi');}
+  if(act==='report'){d.stage='hesabat';toast('Hesabat '+d.brand+'-ə göndərildi');}
+  if(act==='remind'){toast('Ödəniş xatırlatması göndərildi');}
+  if(act==='next'){const i=STAGES.findIndex(s=>s.id===d.stage);d.stage=STAGES[Math.min(i+1,STAGES.length-1)].id;toast(d.brand+': '+STAGES.find(s=>s.id===d.stage).name);}
+  refreshAll();
+});
+
+/* ---------- CALENDAR ---------- */
+let selDay=0;
+function renderCal(){
+  let h='';
+  for(let i=0;i<7;i++){
+    const dt=dayOffset(i);const has=events.some(e=>e.d===i);
+    h+=`<button class="day ${i===selDay?'on':''} ${has?'has':''}" data-day="${i}"><span>${wdays[dt.getDay()]}</span><b>${dt.getDate()}</b><i></i></button>`;
+  }
+  $('#days').innerHTML=h;
+  const list=events.filter(e=>e.d===selDay).sort((a,b)=>a.t.localeCompare(b.t));
+  const conflict = list.length>1 && list.some((e,i)=>i>0 && toMin(e.t)-toMin(list[i-1].t)<60);
+  $('#conflict').innerHTML = conflict ? `<div class="warn"><span>!</span><div><b>Üst-üstə düşmə.</b> ${list[0].title} və ${list[1].title} arasında 1 saatdan az vaxt var. AI təklifi: Telekom görüşünü 15:00-a keçirmək.<br><button class="pill p-red" style="margin-top:8px" id="fixConflict">Avtomatik düzəlt</button></div></div>` : '';
+  $('#calList').innerHTML=list.length?list.map(e=>evRow(e)).join(''):'<div class="empty">Bu gün boşdur</div>';
+}
+function toMin(t){const [h,m]=t.split(':').map(Number);return h*60+m;}
+document.addEventListener('click',e=>{
+  const d=e.target.closest('[data-day]');if(d){selDay=+d.dataset.day;renderCal();}
+  if(e.target.id==='fixConflict'){const ev=events.find(x=>x.title==='Telekom görüşü');if(ev){ev.t='15:00';}renderCal();toast('Görüş 15:00-a keçirildi, tərəfə bildiriş getdi');}
+});
+
+/* ---------- FINANCE ---------- */
+const income6=[{m:-5,v:31000},{m:-4,v:28500},{m:-3,v:36000},{m:-2,v:33500},{m:-1,v:38000}];
+function renderFin(){
+  const cur=deals.filter(d=>d.paid).reduce((a,d)=>a+d.price,0)+21500;
+  const data=income6.map(x=>({label:months[(now.getMonth()+12+x.m)%12].slice(0,3),v:x.v})).concat([{label:months[now.getMonth()].slice(0,3),v:cur,cur:true}]);
+  $('#finTotal').textContent=fmt(data.reduce((a,x)=>a+x.v,0));
+  const max=Math.max(...data.map(x=>x.v));const W=340,H=170,pad=24,bw=34,gap=(W-bw*data.length)/(data.length+1);
+  let s='';
+  [0,.5,1].forEach(f=>{const y=pad+(H-pad*2)*(1-f);s+=`<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#2a2a30" stroke-dasharray="3 4"/>`;});
+  data.forEach((x,i)=>{
+    const h=(H-pad*2)*x.v/max;const xx=gap+i*(bw+gap);const y=H-pad-h;
+    s+=`<rect x="${xx}" y="${y}" width="${bw}" height="${h}" rx="7" fill="${x.cur?'#e7b54a':'#3a3a42'}"><animate attributeName="height" from="0" to="${h}" dur=".6s" fill="freeze"/><animate attributeName="y" from="${H-pad}" to="${y}" dur=".6s" fill="freeze"/></rect>`;
+    s+=`<text x="${xx+bw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="#9a9aa3">${x.label}</text>`;
+    if(x.cur) s+=`<text x="${xx+bw/2}" y="${y-6}" text-anchor="middle" font-size="11" font-weight="700" fill="#e7b54a">${Math.round(x.v/1000)}K</text>`;
+  });
+  $('#barChart').innerHTML=s;
+  const byCat={};deals.filter(d=>d.stage!=='sorgu').forEach(d=>byCat[d.cat]=(byCat[d.cat]||0)+d.price);
+  const tot=Object.values(byCat).reduce((a,b)=>a+b,0);
+  $('#catLegend').innerHTML=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="leg"><span class="sw" style="background:${CAT[k].col}"></span><span class="nm">${k}</span><span class="bar"><i style="width:${v/tot*100}%;background:${CAT[k].col}"></i></span><b>${fmt(v)}</b></div>`).join('');
+  const pend=deals.filter(d=>!d.paid && d.stage!=='sorgu');
+  $('#payList').innerHTML=pend.length?pend.map(d=>`<button class="row" data-deal="${d.id}"><div class="ic ${CAT[d.cat].c}">${d.brand.slice(0,2).toUpperCase()}</div><div class="body"><b>${d.brand}</b><span>${STAGES.find(s=>s.id===d.stage).name} mərhələsi</span></div><b style="font-size:14px">${fmt(d.price)}</b></button>`).join(''):'<div class="empty">Gözlənilən ödəniş yoxdur</div>';
+}
+
+/* ---------- AI CHAT ---------- */
+const chat=$('#chat');
+const CHIPS=['Bu gün nə işim var?','Bu ay nə qədər qazandım?','Market üçün sketç ssenarisi ver','Ən yaxşı təklif hansıdır?'];
+$('#chips').innerHTML=CHIPS.map(c=>`<button class="chip">${c}</button>`).join('');
+$('#chips').onclick=e=>{const c=e.target.closest('.chip');if(c)send(c.textContent);};
+function addMsg(html,who){const m=document.createElement('div');m.className='msg '+who;m.innerHTML=html;chat.appendChild(m);scrollChat();return m;}
+function scrollChat(){window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});}
+function aiWelcome(){
+  addMsg('Salam, Şükran. Mən sənin biznes köməkçinəm. Reklamlar, təqvim, ödənişlər, ssenarilər, hamısı məndədir. Səsli mesaj yaz, qalanını mən edim.','ai');
+}
+function aiReply(html,delay=900){
+  const t=document.createElement('div');t.className='msg ai typing';t.innerHTML='<i></i><i></i><i></i>';chat.appendChild(t);scrollChat();
+  return new Promise(r=>setTimeout(()=>{t.remove();r(addMsg(html,'ai'));},delay));
+}
+function send(text,voice){
+  if(!text.trim())return;
+  const vHtml = voice?`<div class="voice"><span class="mini">${Array.from({length:18},()=>`<i style="height:${4+Math.random()*12}px"></i>`).join('')}</span>0:06</div>`:'';
+  addMsg(vHtml+text,'me');
+  $('#chatInput').value='';
+  respond(text.toLowerCase());
+}
+function respond(q){
+  if(q.includes('chaidan')||q.includes('çəkiliş qoy')||q.includes('cekilis qoy')){
+    const d=deals.find(x=>x.brand==='Chaidan Baku');
+    aiReply(`Oldu. Hamısını etdim:<div class="action"><div>Təqvim: Çərşənbə 16:00 · Chaidan çəkilişi</div><div>Chaidan-a təsdiq mesajı göndərildi</div><div>Reklam: 2 story + 1 reels · 2 500 ₼</div><div>Ödəniş xatırlatması çəkilişdən 1 gün əvvələ qoyuldu</div></div>`,1400).then(()=>{
+      if(!events.some(e=>e.title==='Chaidan · çəkiliş')) events.push({d:WED,t:'16:00',title:'Chaidan · çəkiliş',sub:'2 story + 1 reels · AI ilə əlavə edildi',cat:'Restoran',isNew:true});
+      if(d){d.stage='cekilis';d.note='AI köməkçi ilə planlandı';}
+      refreshAll();
+      setTimeout(()=>notify('Shuker OS','Chaidan çəkilişi təqvimə əlavə olundu',()=>{selDay=WED;go('cal');}),900);
+    });
+    return;
+  }
+  if(q.includes('qazan')||q.includes('gəlir')||q.includes('pul')){
+    const cur=deals.filter(d=>d.paid).reduce((a,d)=>a+d.price,0)+21500;
+    const pend=deals.filter(d=>!d.paid&&['paylasildi','cekilis','hesabat'].includes(d.stage));
+    aiReply(`Bu ay daxil olan: <b>${fmt(cur)}</b>, keçən aydan 18% çox.<br>Gözlənilən: <b>${fmt(pend.reduce((a,d)=>a+d.price,0))}</b> (${pend.map(d=>d.brand).join(', ')}).<br>Ən gəlirli sahə: <b>Əmlak</b>. Ödəniş xatırlatmalarını göndərim?`);
+    return;
+  }
+  if(q.includes('ssenari')||q.includes('sketç')||q.includes('sketc')){
+    aiReply(`<b>Sketç: "Market növbəsi"</b> · 30 saniyə · sənin yumor üslubunda<pre>
+0–3 san · Hook: Şükran kassada, arxasında 10 nəfər. "Bircə çörək alacaqdım..."
+3–10 san · Qarşıdakı xala səbətdən bir-bir 47 məhsul çıxarır, hər birini kassirlə müzakirə edir.
+10–18 san · Şükran saata baxır, idman hərəkətləri edir, növbədə "məşq" edir.
+18–25 san · Xala: "Bala, 15 manata iPhone udursan e burda!" Şükranın üz ifadəsi dəyişir.
+25–30 san · Şükran 15 səbət götürüb qaçır. CTA: brend loqosu + kampaniya.</pre>Daha 2 variant hazırlayım?`,1600);
+    return;
+  }
+  if(q.includes('təklif')||q.includes('teklif')){
+    const best=deals.filter(d=>d.stage==='sorgu').sort((a,b)=>b.score-a.score)[0];
+    if(!best){aiReply('Hazırda cavab gözləyən yeni təklif yoxdur.');return;}
+    aiReply(`Ən uyğunu: <b>${best.brand}</b>, uyğunluq ${best.score}/100.<br>${best.why}<br>Qəbul edib müqavilə layihəsini göndərim?`);
+    return;
+  }
+  if(q.includes('bu gün')||q.includes('bugün')||q.includes('iş')||q.includes('plan')){
+    const list=events.filter(e=>e.d===0).sort((a,b)=>a.t.localeCompare(b.t));
+    aiReply('Bu gün:<div class="action">'+list.map(e=>`<div>${e.t} · ${e.title}</div>`).join('')+'</div>Çəkilişdən 1 saat əvvəl xatırladacam.');
+    return;
+  }
+  aiReply('Bunu real versiyada edə biləcəm. Demoda bunları sına: "Bu gün nə işim var?", "Bu ay nə qədər qazandım?" və ya mikrofona basıb səsli mesaj yaz.');
+}
+$('#chatForm').onsubmit=e=>{e.preventDefault();send($('#chatInput').value);};
+let recording=false;
+$('#micBtn').onclick=()=>{
+  const m=$('#micBtn');
+  if(recording)return;
+  recording=true;m.classList.add('rec');$('#chatInput').placeholder='Dinləyirəm…';
+  setTimeout(()=>{
+    m.classList.remove('rec');recording=false;$('#chatInput').placeholder='Yaz və ya mikrofona bas…';
+    send('Chaidan-la çərşənbə saat 4-də çəkiliş qoy, 2 story bir reels, qiymət 2500',true);
+  },2200);
+};
+
+/* ---------- INIT ---------- */
+function refreshAll(){renderKpis();renderToday();renderOffers();if(current==='deals')renderDeals();if(current==='cal')renderCal();if(current==='fin')renderFin();}
+$('#avatarBtn').onclick=()=>notify('Yeni reklam təklifi','Avto salon · 2 reels · AI uyğunluq 92',()=>openDeal(6));
+greet();renderLeads();refreshAll();
+setTimeout(()=>notify('Yeni reklam təklifi','Avto salon · 2 reels · AI uyğunluq 92',()=>openDeal(6)),3500);
+})();
+</script>
+</body>
+</html>
