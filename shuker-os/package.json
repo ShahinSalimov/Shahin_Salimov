@@ -1,0 +1,15 @@
+{
+  "name": "shuker-os",
+  "version": "1.0.0",
+  "description": "Şəxsi biznes idarəetmə sistemi: Telegram AI köməkçi, reklam paneli, təqvim, maliyyə, lead botu",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --no-warnings src/index.js",
+    "test": "node --no-warnings --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  }
+}

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shuker OS</title>
+<meta name="theme-color" content="#0b0b0d">
+<style>
+:root{--bg:#0b0b0d;--surface:#151518;--surface-2:#1d1d21;--line:#2a2a30;--text:#f4f4f5;--muted:#9a9aa3;--dim:#6b6b74;--gold:#e7b54a;--gold-soft:rgba(231,181,74,.14);--green:#3ecf8e;--green-soft:rgba(62,207,142,.14);--red:#ff6b6b;--red-soft:rgba(255,107,107,.14);--blue:#6aa8ff;--blue-soft:rgba(106,168,255,.14);--violet:#b28dff;--violet-soft:rgba(178,141,255,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;display:flex;justify-content:center}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+.app{width:100%;max-width:520px;min-height:100vh;padding-bottom:90px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#f2c766,#b7832a);color:#1a1205;display:grid;place-items:center;font-weight:800}
+.brand b{font-size:16px;display:block}.brand span{font-size:12px;color:var(--muted)}
+main{padding:0 16px}
+h2{font-size:22px;font-weight:800;margin:4px 0 2px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.st{display:flex;justify-content:space-between;align-items:center;margin:20px 0 8px}
+.st h3{font-size:15px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi span{font-size:12px;color:var(--muted);display:block}.kpi b{font-size:20px;display:block;margin-top:4px;font-variant-numeric:tabular-nums}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;width:100%;text-align:left}
+.row .t{font-size:12px;font-weight:700;color:var(--gold);min-width:44px}
+.row .b{flex:1;min-width:0}.row .b b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.row .b span{font-size:12px;color:var(--muted)}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.p-sorgu{background:var(--violet-soft);color:var(--violet)}.p-muqavile{background:var(--blue-soft);color:var(--blue)}.p-cekilis{background:var(--gold-soft);color:var(--gold)}.p-paylasildi,.p-hesabat{background:var(--green-soft);color:var(--green)}.p-imtina{background:var(--red-soft);color:var(--red)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.tab{padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab.on{background:var(--text);color:var(--bg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 14px;border-radius:12px;font-weight:700;font-size:14px}
+.btn-gold{background:var(--gold);color:#1a1205}.btn-ghost{background:var(--surface-2)}.btn-red{background:var(--red-soft);color:var(--red)}
+.w100{width:100%}
+form.f{display:flex;flex-direction:column;gap:10px}
+label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:5px}
+input,select,textarea{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{min-height:80px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.empty{color:var(--dim);font-size:13px;text-align:center;padding:18px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 0;text-align:center;font-size:11px;color:var(--muted)}
+.day b{display:block;font-size:15px;color:var(--text)}.day.on{background:var(--gold);border-color:var(--gold)}.day.on,.day.on b{color:#1a1205}
+.bar{display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0}.bar .n{width:90px}.bar .tr{flex:1;height:7px;background:var(--surface-2);border-radius:4px;overflow:hidden}.bar .tr i{display:block;height:100%;background:var(--gold)}.bar b{width:80px;text-align:right;font-variant-numeric:tabular-nums}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:rgba(17,17,20,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+nav button{font-size:11px;font-weight:600;color:var(--dim);padding:6px 0}nav button.on{color:var(--gold)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:10}.scrim.show{display:block}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:520px;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--line);padding:16px 16px calc(20px + env(safe-area-inset-bottom));z-index:11;max-height:88vh;overflow-y:auto;display:none}
+.sheet.show{display:block}.sheet h4{font-size:18px;margin-bottom:12px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:13px;font-weight:600;z-index:20;display:none;max-width:calc(100% - 32px)}
+.toast.show{display:block}
+.login{max-width:360px;margin:18vh auto 0;padding:0 16px}
+.warn{background:var(--red-soft);color:#ffc9c9;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.hidden{display:none!important}
+small.m{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+  <section id="login" class="login hidden">
+    <div class="brand" style="margin-bottom:20px"><div class="logo">S</div><div><b>Shuker OS</b><span>Panelə giriş</span></div></div>
+    <form class="f" id="loginForm">
+      <label>Şifrə<input type="password" id="pw" autocomplete="current-password" required></label>
+      <button class="btn btn-gold w100" type="submit">Daxil ol</button>
+      <small class="m" id="loginErr"></small>
+    </form>
+  </section>
+
+  <div id="shell" class="hidden">
+    <header>
+      <div class="brand"><div class="logo">S</div><div><b>Shuker OS</b><span id="roleLabel"></span></div></div>
+      <button class="btn btn-ghost" id="addBtn">+ Əlavə et</button>
+    </header>
+    <main id="view"></main>
+    <nav id="nav">
+      <button data-v="home" class="on">Əsas</button>
+      <button data-v="deals">Reklamlar</button>
+      <button data-v="cal">Təqvim</button>
+      <button data-v="fin" id="navFin">Maliyyə</button>
+      <button data-v="more">Digər</button>
+    </nav>
+  </div>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = (n) => (Number(n) || 0).toLocaleString('az-AZ').replace(/,/g, ' ') + ' ₼';
+const STAGES = [['sorgu','Sorğu'],['muqavile','Müqavilə'],['cekilis','Çəkiliş'],['paylasildi','Paylaşıldı'],['hesabat','Hesabat'],['imtina','İmtina']];
+const stageName = (s) => (STAGES.find((x) => x[0] === s) || [s, s])[1];
+const WD = ['B','Be','Ça','Ç','Ca','C','Ş'];
+let me = null, view = 'home', stageFilter = 'all', calDay = null;
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { credentials: 'same-origin', headers: { 'content-type': 'application/json' }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  if (res.status === 401) { showLogin(); throw new Error('Giriş tələb olunur'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.error) throw new Error(data.error || 'Xəta');
+  return data;
+}
+let tt; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 2600); }
+function sheet(html) { $('#sheet').innerHTML = html; $('#sheet').classList.add('show'); $('#scrim').classList.add('show'); }
+function closeSheet() { $('#sheet').classList.remove('show'); $('#scrim').classList.remove('show'); }
+$('#scrim').onclick = closeSheet;
+const formData = (form) => Object.fromEntries([...new FormData(form).entries()].filter(([, v]) => v !== ''));
+
+function showLogin() { $('#login').classList.remove('hidden'); $('#shell').classList.add('hidden'); }
+$('#loginForm').onsubmit = async (e) => {
+  e.preventDefault(); $('#loginErr').textContent = '';
+  try { await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); $('#pw').value = ''; boot(); }
+  catch (err) { $('#loginErr').textContent = err.message; }
+};
+
+async function boot() {
+  try { me = await api('/api/me'); } catch { return; }
+  $('#login').classList.add('hidden'); $('#shell').classList.remove('hidden');
+  $('#roleLabel').textContent = me.role === 'owner' ? me.ownerName : 'Komanda';
+  $('#navFin').classList.toggle('hidden', !me.finance);
+  $('#nav').style.gridTemplateColumns = `repeat(${me.finance ? 5 : 4},1fr)`;
+  go(view);
+}
+$('#nav').onclick = (e) => { const b = e.target.closest('[data-v]'); if (b) go(b.dataset.v); };
+function go(v) {
+  view = v;
+  document.querySelectorAll('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.v === v));
+  ({ home, deals, cal, fin, more })[v]().catch((e) => { $('#view').innerHTML = `<div class="warn">${esc(e.message)}</div>`; });
+}
+
+const evRow = (e) => `<div class="row"><span class="t">${esc(e.start_local.slice(11))}</span><div class="b"><b>${esc(e.title)}</b><span>${esc(e.location || '')}${e.duration_min ? ' · ' + e.duration_min + ' dəq' : ''}</span></div><button class="pill p-cekilis" data-edit-ev="${e.id}">Dəyiş</button></div>`;
+const dealRow = (d) => `<button class="row" data-deal="${d.id}"><div class="b"><b>${esc(d.brand)}</b><span>${esc(d.category)}${d.deliverables ? ' · ' + esc(d.deliverables) : ''}${d.price != null && me.finance ? ' · ' + money(d.price) : ''}</span></div><span class="pill p-${esc(d.stage)}">${esc(stageName(d.stage))}</span></button>`;
+
+async function home() {
+  const s = await api('/api/summary');
+  $('#view').innerHTML = `
+    <h2>Salam${me.role === 'owner' ? ', ' + esc(me.ownerName) : ''}</h2><p class="sub">${esc(s.today.weekday)}, ${esc(s.today.date)}</p>
+    <div class="kpis">
+      ${s.finance ? `<div class="card kpi"><span>Bu ay daxil olan</span><b>${money(s.finance.paid.total)}</b></div><div class="card kpi"><span>Gözlənilən ödəniş</span><b>${money(s.finance.pending.total)}</b></div>` : ''}
+      <div class="card kpi"><span>Aktiv reklamlar</span><b>${s.active}</b></div>
+      <div class="card kpi"><span>Yeni təkliflər</span><b>${s.offers.length}</b></div>
+      <div class="card kpi"><span>Lead (24 saat)</span><b>${s.leads24h.comments} / ${s.leads24h.phones}</b><small class="m">şərh / nömrə</small></div>
+      <div class="card kpi"><span>Açıq tapşırıqlar</span><b>${s.tasks.length}</b></div>
+    </div>
+    <div class="st"><h3>Bu gün</h3></div>
+    <div class="list">${s.events.length ? s.events.map(evRow).join('') : '<div class="empty">Bu gün təqvimdə iş yoxdur</div>'}</div>
+    <div class="st"><h3>Yeni təkliflər</h3></div>
+    <div class="list">${s.offers.length ? s.offers.map(dealRow).join('') : '<div class="empty">Cavab gözləyən təklif yoxdur</div>'}</div>
+    <div class="st"><h3>Tapşırıqlar</h3></div>
+    <div class="list">${s.tasks.length ? s.tasks.map((t) => `<div class="row"><div class="b"><b>#${t.id} ${esc(t.title.split('\n')[0])}</b><span>${esc(t.assignee || '')}</span></div><button class="pill p-paylasildi" data-done="${t.id}">Bitdi</button></div>`).join('') : '<div class="empty">Açıq tapşırıq yoxdur</div>'}</div>`;
+}
+
+async function deals() {
+  const { deals: list } = await api('/api/deals' + (stageFilter !== 'all' ? '?stage=' + stageFilter : ''));
+  $('#view').innerHTML = `<h2>Reklamlar</h2><p class="sub">Bütün əməkdaşlıqlar</p>
+    <div class="tabs">${[['all','Hamısı'], ...STAGES].map(([k, n]) => `<button class="tab ${stageFilter === k ? 'on' : ''}" data-stage="${k}">${n}</button>`).join('')}</div>
+    <div class="list">${list.length ? list.map(dealRow).join('') : '<div class="empty">Reklam yoxdur</div>'}</div>`;
+}
+
+function localDate(d) { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Baku', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d); }
+async function cal() {
+  const today = localDate(new Date());
+  if (!calDay) calDay = today;
+  const days = [...Array(7)].map((_, i) => { const d = new Date(Date.now() + i * 864e5); return { iso: localDate(d), wd: WD[d.getDay()], n: d.getDate() }; });
+  const { events } = await api(`/api/events?from=${calDay}&to=${calDay}`);
+  $('#view').innerHTML = `<h2>Təqvim</h2><p class="sub">Çəkilişlər, paylaşımlar, görüşlər</p>
+    <div class="days">${days.map((d) => `<button class="day ${d.iso === calDay ? 'on' : ''}" data-day="${d.iso}">${d.wd}<b>${d.n}</b></button>`).join('')}</div>
+    <div class="list">${events.length ? events.map(evRow).join('') : '<div class="empty">Bu gün boşdur</div>'}</div>`;
+}
+
+async function fin() {
+  const f = await api('/api/finance');
+  const max = Math.max(1, ...f.monthly.map((m) => m.total));
+  const catMax = Math.max(1, ...f.byCategory.map((c) => c.total));
+  $('#view').innerHTML = `<h2>Maliyyə</h2><p class="sub">${esc(f.month)}</p>
+    <div class="kpis"><div class="card kpi"><span>Bu ay daxil olan</span><b>${money(f.paid.total)}</b><small class="m">${f.paid.count} ödəniş</small></div>
+    <div class="card kpi"><span>Gözlənilən</span><b>${money(f.pending.total)}</b><small class="m">${f.pending.count} reklam</small></div></div>
+    <div class="st"><h3>Son aylar</h3></div><div class="card">${f.monthly.length ? f.monthly.map((m) => `<div class="bar"><span class="n">${esc(m.month)}</span><span class="tr"><i style="width:${m.total / max * 100}%"></i></span><b>${money(m.total)}</b></div>`).join('') : '<div class="empty">Hələ ödəniş qeyd olunmayıb</div>'}</div>
+    <div class="st"><h3>Sahələr üzrə (bu ay)</h3></div><div class="card">${f.byCategory.length ? f.byCategory.map((c) => `<div class="bar"><span class="n">${esc(c.category)}</span><span class="tr"><i style="width:${c.total / catMax * 100}%"></i></span><b>${money(c.total)}</b></div>`).join('') : '<div class="empty">Bu ay ödəniş yoxdur</div>'}</div>
+    <div class="st"><h3>Gözlənilən ödənişlər</h3></div>
+    <div class="list">${f.pendingDeals.length ? f.pendingDeals.map((d) => `<button class="row" data-deal="${d.id}"><div class="b"><b>${esc(d.brand)}</b><span>${esc(stageName(d.stage))}${d.due_date ? ' · son tarix ' + esc(d.due_date) : ''}</span></div><b>${money(d.price)}</b></button>`).join('') : '<div class="empty">Gözlənilən ödəniş yoxdur</div>'}</div>`;
+}
+
+async function more() {
+  const [{ campaigns }, settings] = await Promise.all([api('/api/campaigns'), api('/api/settings')]);
+  const st = settings.settings;
+  $('#view').innerHTML = `<h2>Lead kampaniyaları</h2><p class="sub">Şərhdə açar söz → DM → nömrə</p>
+    <div class="list">${campaigns.length ? campaigns.map((c) => `<div class="card"><div class="row" style="border:0;padding:0;background:none"><div class="b"><b>${esc(c.keyword)} ${c.title ? '· ' + esc(c.title) : ''}</b><span>${c.comments} şərh · ${c.dms} DM · ${c.phones} nömrə</span></div><button class="pill ${c.active ? 'p-paylasildi' : 'p-imtina'}" data-camp-toggle="${c.id}" data-active="${c.active}">${c.active ? 'Aktiv' : 'Dayandırılıb'}</button></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-ghost" data-leads="${c.id}">Lead-lər</button><a class="btn btn-ghost" href="/api/leads.csv?campaign=${c.id}">CSV</a></div></div>`).join('') : '<div class="empty">Kampaniya yoxdur</div>'}</div>
+    <button class="btn btn-gold w100" style="margin-top:10px" id="newCamp">Yeni kampaniya</button>
+    ${me.role === 'owner' ? `<div class="st"><h3>Media Kit</h3><a class="pill p-cekilis" href="/mediakit" target="_blank" rel="noopener">Bax</a></div>
+    <form class="f card" id="mkForm">
+      <label>Ad<input name="mk_name" value="${esc(st.mk_name || '')}"></label>
+      <label>Qısa təsvir<input name="mk_tagline" value="${esc(st.mk_tagline || '')}"></label>
+      <div class="grid2"><label>İzləyici<input name="mk_followers" value="${esc(st.mk_followers || '')}"></label><label>Orta reels baxışı<input name="mk_avg_views" value="${esc(st.mk_avg_views || '')}"></label></div>
+      <div class="grid2"><label>Engagement<input name="mk_engagement" value="${esc(st.mk_engagement || '')}"></label><label>Auditoriya<input name="mk_audience" value="${esc(st.mk_audience || '')}"></label></div>
+      <label>Güclü sahələr<input name="mk_categories" value="${esc(st.mk_categories || '')}"></label>
+      <label>Əlaqə<input name="mk_contact" value="${esc(st.mk_contact || '')}"></label>
+      <button class="btn btn-gold" type="submit">Yadda saxla</button>
+    </form>` : ''}
+    <button class="btn btn-red w100" style="margin-top:20px" id="logout">Çıxış</button>`;
+}
+
+// --- formalar ---
+function dealForm(d = {}) {
+  const fin = me.finance;
+  sheet(`<h4>${d.id ? esc(d.brand) : 'Yeni reklam / təklif'}</h4>
+    <form class="f" id="dealForm" data-id="${d.id || ''}">
+      <label>Brend<input name="brand" value="${esc(d.brand || '')}" ${d.id ? 'disabled' : 'required'}></label>
+      <div class="grid2"><label>Sahə<input name="category" value="${esc(d.category || '')}" ${d.id ? 'disabled' : 'required'} placeholder="Əmlak, Restoran..."></label>
+      <label>Mərhələ<select name="stage">${STAGES.map(([k, n]) => `<option value="${k}" ${(d.stage || 'sorgu') === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
+      <label>Format<input name="deliverables" value="${esc(d.deliverables || '')}" placeholder="1 reels + 2 story"></label>
+      ${fin ? `<div class="grid2"><label>Məbləğ (₼)<input name="price" type="number" step="1" value="${d.price ?? ''}"></label><label>Ödəniş son tarixi<input name="due_date" type="date" value="${esc(d.due_date || '')}"></label></div>
+      <label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="paid" style="width:auto" ${d.paid ? 'checked' : ''}> Ödənilib</label>` : ''}
+      ${!d.id ? '<label>Əlaqə<input name="contact"></label>' : ''}
+      <label>Paylaşım vaxtı<input name="publish_at" type="datetime-local" value="${d.publish_at ? esc(new Date(d.publish_at).toLocaleString('sv-SE', { timeZone: 'Asia/Baku' }).slice(0, 16).replace(' ', 'T')) : ''}"></label>
+      <label>Instagram media ID (hesabat üçün)<input name="ig_media_id" value="${esc(d.ig_media_id || '')}"></label>
+      <label>Qeyd<textarea name="notes">${esc(d.notes || '')}</textarea></label>
+      <button class="btn btn-gold" type="submit">Yadda saxla</button>
+    </form>`);
+}
+function eventForm(e = {}) {
+  sheet(`<h4>${e.id ? 'Hadisəni dəyiş' : 'Yeni hadisə'}</h4>
+    <form class="f" id="eventForm" data-id="${e.id || ''}">
+      <label>Başlıq<input name="title" value="${esc(e.title || '')}" required></label>
+      <div class="grid2"><label>Vaxt<input name="start_local" type="datetime-local" value="${esc((e.start_local || '').replace(' ', 'T'))}" required></label>
+      <label>Müddət (dəq)<input name="duration_min" type="number" value="${e.duration_min || 60}"></label></div>
+      <label>Yer<input name="location" value="${esc(e.location || '')}"></label>
+      <button class="btn btn-gold" type="submit">Yadda saxla</button>
+      ${e.id ? '<button class="btn btn-red" type="button" id="delEv">Sil</button>' : ''}
+    </form>`);
+}
+function campaignForm() {
+  sheet(`<h4>Yeni lead kampaniyası</h4><form class="f" id="campForm">
+    <label>Açar söz (şərhdə yazılacaq)<input name="keyword" required placeholder="RIVIERA"></label>
+    <label>Ad<input name="title" placeholder="Riviera Residence"></label>
+    <label>DM mətni<textarea name="dm_text" required placeholder="Salam! Riviera Residence haqqında broşür: ..."></textarea></label>
+    <label>Lead-lərin gedəcəyi Telegram chat ID (boş qalsa komanda çatına)<input name="forward_chat_id"></label>
+    <button class="btn btn-gold" type="submit">Yarat</button></form>`);
+}
+
+document.addEventListener('click', async (e) => {
+  const t = e.target;
+  try {
+    const st = t.closest('[data-stage]'); if (st) { stageFilter = st.dataset.stage; return deals(); }
+    const dy = t.closest('[data-day]'); if (dy) { calDay = dy.dataset.day; return cal(); }
+    const dl = t.closest('[data-deal]'); if (dl) { const { deals: all } = await api('/api/deals'); return dealForm(all.find((x) => x.id === Number(dl.dataset.deal)) || {}); }
+    const ev = t.closest('[data-edit-ev]'); if (ev) { const { events } = await api(`/api/events?from=${calDay || localDate(new Date())}&to=${localDate(new Date(Date.now() + 30 * 864e5))}`); return eventForm(events.find((x) => x.id === Number(ev.dataset.editEv)) || {}); }
+    const dn = t.closest('[data-done]'); if (dn) { await api(`/api/tasks/${dn.dataset.done}/done`, { method: 'POST' }); toast('Tapşırıq bitdi'); return home(); }
+    const ct = t.closest('[data-camp-toggle]'); if (ct) { await api(`/api/campaigns/${ct.dataset.campToggle}`, { method: 'PATCH', body: { active: ct.dataset.active !== '1' } }); return more(); }
+    const ld = t.closest('[data-leads]'); if (ld) {
+      const { leads } = await api(`/api/leads?campaign=${ld.dataset.leads}`);
+      return sheet(`<h4>Lead-lər</h4><div class="list">${leads.length ? leads.map((l) => `<div class="row"><div class="b"><b>${esc(l.name || l.username || l.ig_user_id)}</b><span>${esc(l.phone || 'nömrə yoxdur')} · ${esc(l.status)}</span></div></div>`).join('') : '<div class="empty">Lead yoxdur</div>'}</div>`);
+    }
+    if (t.id === 'newCamp') return campaignForm();
+    if (t.id === 'delEv') { const id = $('#eventForm').dataset.id; await api(`/api/events/${id}`, { method: 'DELETE' }); closeSheet(); toast('Silindi'); return go(view); }
+    if (t.id === 'logout') { await api('/api/logout', { method: 'POST' }); return showLogin(); }
+    if (t.id === 'addBtn') {
+      return sheet(`<h4>Nə əlavə edək?</h4><div class="list"><button class="btn btn-ghost w100" id="addDeal">Reklam / təklif</button><button class="btn btn-ghost w100" id="addEv">Təqvim hadisəsi</button><button class="btn btn-ghost w100" id="addTask">Tapşırıq</button></div>`);
+    }
+    if (t.id === 'addDeal') return dealForm();
+    if (t.id === 'addEv') return eventForm();
+    if (t.id === 'addTask') return sheet(`<h4>Yeni tapşırıq</h4><form class="f" id="taskForm"><label>Tapşırıq<textarea name="title" required></textarea></label><label>Kimə<input name="assignee"></label><button class="btn btn-gold" type="submit">Göndər</button></form>`);
+  } catch (err) { toast(err.message); }
+});
+
+document.addEventListener('submit', async (e) => {
+  const f = e.target; if (f.id === 'loginForm') return;
+  e.preventDefault();
+  try {
+    if (f.id === 'dealForm') {
+      const d = formData(f);
+      if (d.price !== undefined) d.price = Number(d.price);
+      if (me.finance) d.paid = f.querySelector('[name=paid]').checked;
+      if (d.publish_at) d.publish_at = d.publish_at.replace('T', ' ');
+      if (f.dataset.id) { delete d.brand; delete d.category; delete d.contact; await api(`/api/deals/${f.dataset.id}`, { method: 'PATCH', body: d }); }
+      else {
+        const paid = d.paid; delete d.paid; delete d.publish_at; delete d.ig_media_id;
+        const out = await api('/api/deals', { method: 'POST', body: d });
+        if (paid) await api(`/api/deals/${out.created.id}`, { method: 'PATCH', body: { paid: true } });
+      }
+      toast('Yadda saxlanıldı');
+    }
+    if (f.id === 'eventForm') {
+      const d = formData(f); d.start_local = d.start_local.replace('T', ' '); d.duration_min = Number(d.duration_min || 60);
+      const out = f.dataset.id ? await api(`/api/events/${f.dataset.id}`, { method: 'PATCH', body: d }) : await api('/api/events', { method: 'POST', body: d });
+      toast(out.conflicts && out.conflicts.length ? `Diqqət: üst-üstə düşür: ${out.conflicts.map((c) => c.title).join(', ')}` : 'Yadda saxlanıldı');
+    }
+    if (f.id === 'taskForm') { await api('/api/tasks', { method: 'POST', body: formData(f) }); toast('Tapşırıq göndərildi'); }
+    if (f.id === 'campForm') { await api('/api/campaigns', { method: 'POST', body: formData(f) }); toast('Kampaniya yaradıldı'); }
+    if (f.id === 'mkForm') { await api('/api/settings', { method: 'PUT', body: formData(f) }); toast('Media Kit yeniləndi'); return; }
+    closeSheet(); go(view);
+  } catch (err) { toast(err.message); }
+});
+
+boot().catch(() => showLogin());
+})();
+</script>
+</body>
+</html>

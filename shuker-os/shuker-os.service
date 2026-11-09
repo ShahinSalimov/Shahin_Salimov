@@ -1,0 +1,15 @@
+# systemd xidməti: /etc/systemd/system/shuker-os.service
+[Unit]
+Description=Shuker OS
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/shuker-os
+ExecStart=/usr/bin/node --no-warnings src/index.js
+Restart=always
+RestartSec=5
+User=shuker
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
