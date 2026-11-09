@@ -24,7 +24,10 @@ export function readConfig(env = process.env) {
     dbPath: env.DB_PATH || './data/shuker.db',
     timezone: env.TIMEZONE || 'Asia/Baku',
     tzOffset: env.TZ_OFFSET || '+04:00',
+    appName: env.APP_NAME || 'Shuker OS',
     ownerName: env.OWNER_NAME || 'Şükran',
+    // AI-a sahibi təqdim etmək üçün: kimdir, nə ilə məşğuldur
+    ownerDescription: env.OWNER_DESCRIPTION || 'bloger, aktyor və idmançı',
     // Maliyyəni kim görür: none = yalnız sahib, manager = sahib + menecerlər
     financeAccess: env.TEAM_FINANCE_ACCESS === 'manager' ? 'manager' : 'none',
 

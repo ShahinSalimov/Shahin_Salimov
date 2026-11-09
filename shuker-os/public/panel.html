@@ -64,7 +64,7 @@ small.m{color:var(--muted);font-size:12px}
 <body>
 <div class="app">
   <section id="login" class="login hidden">
-    <div class="brand" style="margin-bottom:20px"><div class="logo">S</div><div><b>Shuker OS</b><span>Panelə giriş</span></div></div>
+    <div class="brand" style="margin-bottom:20px"><div class="logo appLetter">S</div><div><b class="appName">Shuker OS</b><span>Panelə giriş</span></div></div>
     <form class="f" id="loginForm">
       <label>Şifrə<input type="password" id="pw" autocomplete="current-password" required></label>
       <button class="btn btn-gold w100" type="submit">Daxil ol</button>
@@ -74,7 +74,7 @@ small.m{color:var(--muted);font-size:12px}
 
   <div id="shell" class="hidden">
     <header>
-      <div class="brand"><div class="logo">S</div><div><b>Shuker OS</b><span id="roleLabel"></span></div></div>
+      <div class="brand"><div class="logo appLetter">S</div><div><b class="appName">Shuker OS</b><span id="roleLabel"></span></div></div>
       <button class="btn btn-ghost" id="addBtn">+ Əlavə et</button>
     </header>
     <main id="view"></main>
@@ -114,6 +114,13 @@ function closeSheet() { $('#sheet').classList.remove('show'); $('#scrim').classL
 $('#scrim').onclick = closeSheet;
 const formData = (form) => Object.fromEntries([...new FormData(form).entries()].filter(([, v]) => v !== ''));
 
+function setApp(name) {
+  if (!name) return;
+  document.title = name;
+  document.querySelectorAll('.appName').forEach((e) => { e.textContent = name; });
+  document.querySelectorAll('.appLetter').forEach((e) => { e.textContent = name.trim()[0].toUpperCase(); });
+}
+fetch('/api/app').then((r) => r.json()).then((d) => setApp(d.appName)).catch(() => {});
 function showLogin() { $('#login').classList.remove('hidden'); $('#shell').classList.add('hidden'); }
 $('#loginForm').onsubmit = async (e) => {
   e.preventDefault(); $('#loginErr').textContent = '';

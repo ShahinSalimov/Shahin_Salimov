@@ -89,6 +89,7 @@ ${s.mk_contact ? `<h2>Əlaqə</h2><p>${esc(s.mk_contact)}</p>` : ''}
     const method = req.method;
 
     if (p === '/health') return send(res, 200, { ok: true });
+    if (p === '/api/app') return send(res, 200, { appName: config.appName });
     if (p === '/') return send(res, 302, '', { location: '/panel' });
     if (p === '/panel' && method === 'GET') {
       return send(res, 200, fs.readFileSync(path.join(PUBLIC, 'panel.html')), { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
@@ -137,7 +138,7 @@ ${s.mk_contact ? `<h2>Əlaqə</h2><p>${esc(s.mk_contact)}</p>` : ''}
     const fin = canSeeFinance(user.role, config.financeAccess);
 
     if (p === '/api/logout' && method === 'POST') { db.deleteSession(s.token); return send(res, 200, { ok: true }, { 'set-cookie': 'sos=; Path=/; Max-Age=0' }); }
-    if (p === '/api/me') return send(res, 200, { role: s.role, finance: fin, ownerName: config.ownerName });
+    if (p === '/api/me') return send(res, 200, { role: s.role, finance: fin, ownerName: config.ownerName, appName: config.appName });
 
     if (p === '/api/summary' && method === 'GET') {
       const today = time.parts();

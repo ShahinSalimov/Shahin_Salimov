@@ -19,6 +19,10 @@ Bu, işləyən sistemdir, demo deyil. Kod hazırdır və testlərdən keçib. İ
 | **Canlı Media Kit** | `/mediakit` səhifəsi: izləyici, baxış, brendlər. İzləyici sayı Instagram-dan gündəlik yenilənir |
 | **Veb panel** | `/panel`, telefon üçün. İki giriş: sahib (hər şey) və komanda (maliyyəsiz) |
 
+## Başqa şəxs üçün uyğunlaşdırma
+
+Kod dəyişmir, yalnız `.env` faylı dəyişir: `APP_NAME`, `OWNER_NAME`, `OWNER_DESCRIPTION`, Telegram ID-ləri və hesab açarları. Hazır profil nümunəsi: `profiles/sahin.env.example`. Hər şəxs üçün ayrıca server (və ya ayrıca `DB_PATH` və `PORT`) istifadə edin ki, məlumatlar qarışmasın.
+
 ## Rollar
 
 | Rol | Kimdir | Nə edə bilər |

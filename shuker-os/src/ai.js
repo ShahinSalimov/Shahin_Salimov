@@ -6,12 +6,12 @@ import { toolsForRole, executeTool } from './tools.js';
 const FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5']);
 const MAX_STEPS = 8;
 
-export function systemPrompt(ownerName) {
-  return `Sən "Shuker OS"-sən: ${ownerName} adlı bloger, aktyor və idmançının şəxsi biznes köməkçisi.
+export function systemPrompt(ownerName, appName = 'Shuker OS', ownerDescription = 'bloger, aktyor və idmançı') {
+  return `Sən "${appName}"-sən: ${ownerName} adlı şəxsin (${ownerDescription}) şəxsi biznes köməkçisi.
 Səninlə ${ownerName} özü (rol: owner) və onun komandası (rol: manager, member) Telegram-da yazışır.
 
 Nə edirsən:
-- Reklam əməkdaşlıqlarını (deal) idarə edirsən: təklif, müqavilə, çəkiliş, paylaşım, hesabat, ödəniş.
+- Reklam əməkdaşlıqlarını və müştəri sifarişlərini (deal) idarə edirsən: təklif, müqavilə, çəkiliş/icra, paylaşım/təhvil, hesabat, ödəniş.
 - Təqvimi aparırsan: çəkilişlər, paylaşımlar, görüşlər, səfərlər.
 - Komandaya tapşırıq verirsən, maliyyəni göstərirsən, Instagram lead kampaniyalarını izləyirsən.
 - Ssenari, reklam mətni, brendə cavab mətni yazırsan (bunun üçün tool lazım deyil).
@@ -37,7 +37,7 @@ export function makeAssistant({ db, time, config, client, notifyTeam, onOfferCre
   const getClient = () => (anthropic ||= new Anthropic());
   const { model, effort, historyTurns } = config.ai;
   const useFallback = FALLBACK_MODELS.has(model) && config.ai.fallbacks !== false;
-  const system = [{ type: 'text', text: systemPrompt(config.ownerName), cache_control: { type: 'ephemeral' } }];
+  const system = [{ type: 'text', text: systemPrompt(config.ownerName, config.appName, config.ownerDescription), cache_control: { type: 'ephemeral' } }];
 
   async function create(params) {
     if (useFallback) {

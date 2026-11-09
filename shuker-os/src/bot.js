@@ -1,7 +1,7 @@
 // Telegram bot məntiqi: əmrlər, mətn və səsli mesajlar, düymələr.
 import { STAGE_NAMES } from './db.js';
 
-const HELP = `Shuker OS köməkçisi. Mənə adi dildə yazın və ya səsli mesaj göndərin. Nümunələr:
+const helpText = (appName) => `${appName} köməkçisi. Mənə adi dildə yazın və ya səsli mesaj göndərin. Nümunələr:
 • Chaidan-la çərşənbə saat 4-də çəkiliş qoy, 2 story bir reels, 2500
 • Bu gün nə işim var?
 • Bu ay nə qədər qazandım?
@@ -61,8 +61,8 @@ export function makeBot({ db, time, config, tg, assistant, voice, scheduler, not
 
   async function handleCommand(chatId, user, cmd) {
     switch (cmd) {
-      case '/start': return tg.sendMessage(chatId, `Salam, ${user.name}. ${HELP}`);
-      case '/komek': case '/help': return tg.sendMessage(chatId, HELP);
+      case '/start': return tg.sendMessage(chatId, `Salam, ${user.name}. ${helpText(config.appName)}`);
+      case '/komek': case '/help': return tg.sendMessage(chatId, helpText(config.appName));
       case '/id': return tg.sendMessage(chatId, `Telegram ID: ${user.id}`);
       case '/bugun': return tg.sendMessage(chatId, await todayText());
       case '/yeni': db.clearHistory(chatId); return tg.sendMessage(chatId, 'Söhbət sıfırlandı.');

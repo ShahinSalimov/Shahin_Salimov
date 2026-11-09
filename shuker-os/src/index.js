@@ -48,7 +48,7 @@ const scheduler = makeScheduler({ db, time, config, assistant, notify, voice, in
 bot = makeBot({ db, time, config, tg, assistant, voice, scheduler, notify, logger });
 const server = makeServer({ db, time, config, instagram, notifyTeam: notify.team, onOfferCreated, logger });
 
-server.listen(config.port, () => logger.log(`Shuker OS işləyir: http://localhost:${config.port}/panel`));
+server.listen(config.port, () => logger.log(`${config.appName} işləyir: http://localhost:${config.port}/panel`));
 // İlk quraşdırma gündüz olsa, brifinq dərhal yox, növbəti səhər getsin
 if (!db.getSetting('last_brief_date') && time.parts().time >= config.schedule.briefTime) db.setSetting('last_brief_date', time.parts().date);
 scheduler.start();
