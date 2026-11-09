@@ -165,6 +165,7 @@ export function makeBot({ db, time, config, tg, assistant, voice, scheduler, not
   }
 
   let running = false;
+  let badTokenLogged = false;
   async function poll() {
     running = true;
     let offset = Number(db.getSetting('tg_offset', 0));
@@ -177,6 +178,15 @@ export function makeBot({ db, time, config, tg, assistant, voice, scheduler, not
           await handleUpdate(u);
         }
       } catch (e) {
+        // Səhv token: Telegram "Not Found" və ya "Unauthorized" qaytarır
+        if (/Not Found|Unauthorized/i.test(e.message)) {
+          if (!badTokenLogged) {
+            logger.error('TELEGRAM_BOT_TOKEN səhvdir. .env faylında tokeni yoxlayın: format 123456789:ABC..., boşluq, dırnaq və nümunə mətn olmamalıdır. Düzəltdikdən sonra sistemi yenidən başladın.');
+            badTokenLogged = true;
+          }
+          await new Promise((r) => setTimeout(r, 60000));
+          continue;
+        }
         logger.error('Telegram bağlantı xətası:', e.message);
         await new Promise((r) => setTimeout(r, 5000));
       }

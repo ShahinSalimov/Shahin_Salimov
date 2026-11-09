@@ -8,7 +8,7 @@ export function loadEnvFile(file = path.resolve(process.cwd(), '.env')) {
   for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (!m || line.trim().startsWith('#')) continue;
-    let v = m[2];
+    let v = m[2].trim(); // sondakı boşluqlar tokeni pozmasın
     if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
     if (process.env[m[1]] === undefined) process.env[m[1]] = v;
   }
