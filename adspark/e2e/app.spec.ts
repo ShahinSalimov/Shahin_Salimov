@@ -102,16 +102,19 @@ test('full workflow: concepts → campaign → storyboard → voiceover → soci
 test('my campaigns: rename, duplicate, delete', async ({ page }) => {
   await createCampaign(page);
   await page.goto('/app/campaigns');
-  const first = (await page.locator('main a p.font-medium').first().textContent())!.trim();
+  const first = (await page.locator('main article h3 a').first().textContent())!.trim();
   await page.getByRole('button', { name: `Rename ${first}` }).click();
   await page.getByLabel('Campaign name').fill('Renamed campaign');
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText('Renamed campaign', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Duplicate Renamed campaign' }).click();
-  await expect(page.locator('main a p', { hasText: 'Renamed campaign (copy)' })).toBeVisible();
+  await expect(page.locator('main article h3', { hasText: 'Renamed campaign (copy)' })).toBeVisible();
   await page.getByRole('button', { name: 'Delete Renamed campaign (copy)' }).click();
   await page.getByRole('button', { name: 'Delete permanently' }).click();
-  await expect(page.locator('main a p', { hasText: 'Renamed campaign (copy)' })).toHaveCount(0);
+  await expect(page.locator('main article h3', { hasText: 'Renamed campaign (copy)' })).toHaveCount(0);
+  // List layout shows the same campaigns
+  await page.getByRole('button', { name: 'List view' }).click();
+  await expect(page.locator('main a p', { hasText: 'Renamed campaign' })).toHaveCount(1);
 });
 
 test('brand kit saves and prefills a campaign', async ({ page }) => {
@@ -148,4 +151,37 @@ test('mobile layout has working navigation @mobile', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Your brand profiles' })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow).toBe(false);
+});
+
+test('every navigation link reaches a real page', async ({ page }) => {
+  const errors = trackConsole(page);
+  const sidebar = [
+    ['Overview', 'Welcome to AdSpark'],
+    ['New Campaign', 'Tell us about your product'],
+    ['My Campaigns', 'Saved campaigns'],
+    ['Storyboard Studio', 'Choose a storyboard'],
+    ['Brand Kit', 'Your brand profiles'],
+    ['Settings', 'Settings'],
+  ] as const;
+  await page.goto('/app');
+  for (const [link, heading] of sidebar) {
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: link }).click();
+    await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: link })).toHaveAttribute('aria-current', 'page');
+  }
+  await page.getByRole('link', { name: 'Pricing' }).first().click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Simple monthly editions' })).toBeVisible();
+  await page.getByRole('link', { name: 'AdSpark home' }).click();
+  await page.getByRole('link', { name: 'How it works' }).click();
+  await expect(page.locator('#how')).toBeInViewport();
+  await page.getByRole('link', { name: 'Open app' }).click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to AdSpark' })).toBeVisible();
+
+  // Skip link is the first focusable element and moves focus to the content
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#main')).toBeFocused();
+  expect(errors).toEqual([]);
 });

@@ -31,6 +31,9 @@ const PREVIEW: { shot: ShotType; label: string; t: string }[] = [
 export default function Landing() {
   return (
     <div className="relative overflow-x-hidden">
+      <a href="#content" className="skip-link">
+        Skip to content
+      </a>
       <div className="bg-grid pointer-events-none absolute inset-x-0 top-0 h-[720px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden />
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" aria-hidden />
 
@@ -45,9 +48,9 @@ export default function Landing() {
         </nav>
       </header>
 
-      <main>
+      <main id="content" tabIndex={-1} className="outline-none">
         <section className="relative mx-auto max-w-7xl px-4 pb-20 pt-12 md:px-8 md:pt-20">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="animate-fade-up mx-auto max-w-3xl text-center">
             <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs font-medium text-[#c4b8ff]">
               <Sparkles className="size-3.5" aria-hidden /> Campaign planning for small teams and creators
             </p>
@@ -67,7 +70,7 @@ export default function Landing() {
             <p className="mt-4 text-xs text-muted">No account. Your projects stay in this browser.</p>
           </div>
 
-          <div className="relative mx-auto mt-16 max-w-5xl">
+          <div className="animate-fade-up relative mx-auto mt-16 max-w-5xl [animation-delay:120ms]">
             <div className="card overflow-hidden p-2 shadow-[0_40px_120px_-40px_rgba(128,101,246,0.55)]">
               <div className="rounded-xl border border-line/70 bg-bg/70 p-4 md:p-6">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -97,7 +100,7 @@ export default function Landing() {
           <h2 className="text-center text-3xl font-bold md:text-4xl">From brief to campaign in four steps</h2>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s) => (
-              <div key={s.n} className="card p-6">
+              <div key={s.n} className="card p-6 transition-colors hover:border-primary/40">
                 <span className="font-display text-sm font-bold text-gradient">{s.n}</span>
                 <h3 className="mt-3 text-lg font-semibold">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{s.text}</p>
@@ -113,7 +116,7 @@ export default function Landing() {
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="card group p-6 transition-colors hover:border-primary/40">
+              <div key={title} className="card group p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/25 to-secondary/15 text-[#c4b8ff]">
                   <Icon className="size-5" aria-hidden />
                 </div>

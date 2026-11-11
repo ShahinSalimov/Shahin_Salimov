@@ -1,12 +1,15 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Copy, FileJson, FolderOpen, Pencil, Search, Sparkles, Trash2, Upload } from 'lucide-react';
+import { Copy, FileJson, FolderOpen, LayoutGrid, List, Pencil, Search, Sparkles, Trash2, Upload } from 'lucide-react';
 import { useApp } from '../store/app';
 import { PLATFORMS, type Campaign } from '../lib/schemas';
 import { createProjectFile, ImportError, MAX_IMPORT_BYTES, parseImport } from '../lib/backup';
 import { downloadText, safeFileName } from '../lib/export/download';
-import { Badge, Button, ButtonLink, Card, ConfirmModal, EmptyState, IconButton, Modal, PageHeader, TextField } from '../components/ui';
-import { campaignHref, campaignStage, relativeTime } from './Dashboard';
+import { Badge, Button, ButtonLink, Card, ConfirmModal, EmptyState, IconButton, Modal, PageHeader, TextField, cx } from '../components/ui';
+import { campaignHref, campaignStage, relativeTime } from '../lib/campaignMeta';
+import { CampaignCard } from '../components/CampaignCard';
+
+const VIEW_KEY = 'adspark:campaigns-view';
 
 export default function Campaigns() {
   const campaigns = useApp((s) => s.campaigns);
@@ -24,6 +27,50 @@ export default function Campaigns() {
   const [renaming, setRenaming] = useState<Campaign | null>(null);
   const [newName, setNewName] = useState('');
   const [deleting, setDeleting] = useState<Campaign | null>(null);
+  const [view, setViewState] = useState<'grid' | 'list'>(() => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+  const setView = (v: 'grid' | 'list') => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* preference only */
+    }
+  };
+
+  const actionsFor = (c: Campaign) => (
+    <>
+      <IconButton
+        label={`Rename ${c.name}`}
+        onClick={() => {
+          setNewName(c.name);
+          setRenaming(c);
+        }}
+      >
+        <Pencil className="size-4" />
+      </IconButton>
+      <IconButton
+        label={`Duplicate ${c.name}`}
+        onClick={() => {
+          const copy = duplicate(c.id);
+          if (copy) toast('success', `Created “${copy.name}”.`);
+        }}
+      >
+        <Copy className="size-4" />
+      </IconButton>
+      <IconButton label={`Export ${c.name} as JSON`} onClick={() => downloadText(JSON.stringify(createProjectFile(c), null, 2), safeFileName(c.name, 'adspark.json'), 'application/json')}>
+        <FileJson className="size-4" />
+      </IconButton>
+      <IconButton label={`Delete ${c.name}`} className="hover:text-danger" onClick={() => setDeleting(c)}>
+        <Trash2 className="size-4" />
+      </IconButton>
+    </>
+  );
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -97,10 +144,30 @@ export default function Campaigns() {
               <option value="created">Newest</option>
               <option value="name">Name A–Z</option>
             </select>
+            <div role="group" aria-label="Layout" className="flex shrink-0 rounded-xl border border-line bg-surface p-1">
+              {(['grid', 'list'] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  aria-label={v === 'grid' ? 'Card view' : 'List view'}
+                  onClick={() => setView(v)}
+                  className={cx('flex size-8 items-center justify-center rounded-lg transition-colors', view === v ? 'bg-elevated text-ink' : 'text-muted hover:text-ink')}
+                >
+                  {v === 'grid' ? <LayoutGrid className="size-4" /> : <List className="size-4" />}
+                </button>
+              ))}
+            </div>
           </div>
 
           {list.length === 0 ? (
             <Card className="px-6 py-10 text-center text-sm text-muted">No campaigns match your filters.</Card>
+          ) : view === 'grid' ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {list.map((c) => (
+                <CampaignCard key={c.id} c={c} actions={actionsFor(c)} />
+              ))}
+            </div>
           ) : (
             <Card className="divide-y divide-line/70">
               {list.map((c) => {
@@ -117,30 +184,7 @@ export default function Campaigns() {
                       <Badge tone={stage.tone} className="mr-2">
                         {stage.label}
                       </Badge>
-                      <IconButton
-                        label={`Rename ${c.name}`}
-                        onClick={() => {
-                          setNewName(c.name);
-                          setRenaming(c);
-                        }}
-                      >
-                        <Pencil className="size-4" />
-                      </IconButton>
-                      <IconButton
-                        label={`Duplicate ${c.name}`}
-                        onClick={() => {
-                          const copy = duplicate(c.id);
-                          if (copy) toast('success', `Created “${copy.name}”.`);
-                        }}
-                      >
-                        <Copy className="size-4" />
-                      </IconButton>
-                      <IconButton label={`Export ${c.name} as JSON`} onClick={() => downloadText(JSON.stringify(createProjectFile(c), null, 2), safeFileName(c.name, 'adspark.json'), 'application/json')}>
-                        <FileJson className="size-4" />
-                      </IconButton>
-                      <IconButton label={`Delete ${c.name}`} className="hover:text-danger" onClick={() => setDeleting(c)}>
-                        <Trash2 className="size-4" />
-                      </IconButton>
+                      {actionsFor(c)}
                       <Button size="sm" variant="secondary" className="ml-1" onClick={() => navigate(campaignHref(c))}>
                         Open
                       </Button>

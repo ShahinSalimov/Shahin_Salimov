@@ -114,7 +114,7 @@ export function Toaster() {
           key={t.id}
           role={t.kind === 'error' ? 'alert' : 'status'}
           className={cx(
-            'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border bg-elevated px-4 py-3 text-sm shadow-2xl',
+            'animate-toast-in pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border bg-elevated px-4 py-3 text-sm shadow-2xl',
             t.kind === 'error' ? 'border-danger/40' : t.kind === 'success' ? 'border-success/40' : 'border-line',
           )}
         >
@@ -145,14 +145,17 @@ export function AppLayout() {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <aside className="no-print sticky top-0 hidden h-dvh border-r border-line/70 bg-surface/60 lg:block">
         <Sidebar />
       </aside>
 
       {open ? (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r border-line bg-surface">
+          <div className="animate-fade-in absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
+          <div className="animate-slide-in-left absolute inset-y-0 left-0 w-72 max-w-[85vw] border-r border-line bg-surface">
             <IconButton label="Close navigation" className="absolute right-3 top-4" onClick={() => setOpen(false)}>
               <X className="size-5" />
             </IconButton>
@@ -176,7 +179,7 @@ export function AppLayout() {
             </ButtonLink>
           </div>
         </div>
-        <main id="main" className="mx-auto w-full max-w-7xl px-4 py-8 md:px-8">
+        <main id="main" tabIndex={-1} className="mx-auto w-full outline-none max-w-7xl px-4 py-8 md:px-8">
           {loadError ? (
             <div role="alert" className="mb-6 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
               Local storage is unavailable: {loadError} Campaigns cannot be saved in this browser session (private browsing can cause this).
@@ -187,7 +190,9 @@ export function AppLayout() {
               {skipped} stored record(s) were damaged or from an incompatible version and were skipped. Your other data loaded normally.
             </div>
           ) : null}
-          <Outlet />
+          <div key={location.pathname} className="animate-fade-up">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

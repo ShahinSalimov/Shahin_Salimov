@@ -61,6 +61,54 @@
   }
 }
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+@utility animate-slide-in-left {
+  animation: slide-in-left 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-toast-in {
+  animation: toast-in 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+dialog[open] {
+  animation: pop-in 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+dialog[open]::backdrop {
+  animation: fade-in 0.2s ease-out;
+}
+
+.skip-link {
+  @apply sr-only;
+}
+.skip-link:focus {
+  @apply not-sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;

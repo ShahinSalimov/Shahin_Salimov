@@ -1,37 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clapperboard, Cpu, FolderOpen, Lightbulb, Palette, Sparkles, Film, Clock } from 'lucide-react';
 import { useApp } from '../store/app';
-import { Badge, ButtonLink, Card, EmptyState, PageHeader } from '../components/ui';
-import type { Campaign } from '../lib/schemas';
-
-export function campaignHref(c: Campaign) {
-  return c.scenes.length ? `/app/campaigns/${c.id}` : `/app/campaigns/${c.id}/concepts`;
-}
-
-export function campaignStage(c: Campaign): { label: string; tone: 'success' | 'warning' | 'default' } {
-  if (c.scenes.length) return { label: 'Full campaign', tone: 'success' };
-  if (c.concepts.length) return { label: 'Choosing concept', tone: 'warning' };
-  return { label: 'Draft', tone: 'default' };
-}
-
-export function relativeTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const min = Math.round(diff / 60000);
-  if (min < 1) return 'just now';
-  if (min < 60) return `${min} min ago`;
-  const h = Math.round(min / 60);
-  if (h < 24) return `${h} h ago`;
-  const d = Math.round(h / 24);
-  if (d < 30) return `${d} d ago`;
-  return new Date(ts).toLocaleDateString();
-}
+import { ButtonLink, Card, EmptyState, PageHeader } from '../components/ui';
+import { CampaignCard } from '../components/CampaignCard';
 
 export default function Dashboard() {
   const campaigns = useApp((s) => s.campaigns);
   const brands = useApp((s) => s.brands);
   const ai = useApp((s) => s.ai);
   const status = useApp((s) => s.aiStatus);
-  const recent = campaigns.slice(0, 5);
+  const recent = campaigns.slice(0, 4);
   const full = campaigns.filter((c) => c.scenes.length).length;
   const seconds = campaigns.reduce((a, c) => a + c.scenes.reduce((x, s) => x + s.duration, 0), 0);
   const usingAi = ai.enabled && ai.consentAt && status?.enabled;
@@ -88,27 +66,11 @@ export default function Dashboard() {
               action={<ButtonLink to="/app/new">Create your first campaign</ButtonLink>}
             />
           ) : (
-            <Card className="divide-y divide-line/70">
-              {recent.map((c) => {
-                const stage = campaignStage(c);
-                return (
-                  <Link key={c.id} to={campaignHref(c)} className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02]">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-elevated font-display font-bold text-[#b9abff]">
-                      {c.input.productName.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{c.name}</p>
-                      <p className="truncate text-xs text-muted">
-                        {c.input.platform} · {c.input.duration}s · {c.input.style} · {relativeTime(c.updatedAt)}
-                      </p>
-                    </div>
-                    <Badge tone={stage.tone} className="hidden sm:inline-flex">
-                      {stage.label}
-                    </Badge>
-                  </Link>
-                );
-              })}
-            </Card>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {recent.map((c) => (
+                <CampaignCard key={c.id} c={c} />
+              ))}
+            </div>
           )}
         </section>
 
