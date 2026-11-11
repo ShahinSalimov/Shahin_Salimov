@@ -1,0 +1,12 @@
+AdSofff — version history
+
+1.1.0 (November 2026)
+- New name: AdSofff (formerly AdSpark). Old backup files still import.
+- Offline single-file edition: open AdSofff.html, no installation needed.
+- 4-step campaign brief with progress, review step and auto-saved drafts.
+- Concepts adapted to your product category; clear "Demo Generation · not AI" labels.
+- Scripts for 15/30/45/60 seconds; drag-and-drop storyboard; per-scene voiceover timing.
+- Built-in sample campaign; improved PDF report; mobile and tablet layout fixes.
+
+1.0.0 (November 2026)
+- First release.
