@@ -32,6 +32,14 @@ describe('IndexedDB storage', () => {
     expect((await db.listCampaigns()).items.map((x) => x.id)).toEqual(['b']);
     await db.setSetting('ai', { enabled: true });
     expect(await db.getSetting('ai')).toEqual({ enabled: true });
+    const brand = { id: 'b1', name: 'Nar', logo: null, colors: ['#8065F6'], tone: 'Warm', audience: '', description: '', website: '', contact: '', createdAt: 1, updatedAt: 1 } as const;
+    await db.putBrand({ ...brand, colors: [...brand.colors] });
+    await db.putBrand({ ...brand, id: 'b2', name: 'Bad', website: 'javascript:x', colors: [] });
+    const brands = await db.listBrands();
+    expect(brands.items.map((b) => b.name)).toEqual(['Nar']);
+    expect(brands.skipped).toBe(1);
+    await db.deleteBrand('b1');
+    expect((await db.listBrands()).items).toHaveLength(0);
     await db.clearAll();
     expect((await db.listCampaigns()).items).toHaveLength(0);
   });

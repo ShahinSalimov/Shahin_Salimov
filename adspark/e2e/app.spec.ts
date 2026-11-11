@@ -349,3 +349,53 @@ test('voiceover and social: copy, edit, regenerate and hashtags', async ({ page,
   await expect(page.getByLabel('TikTok caption')).not.toHaveValue('Edited TikTok caption');
   expect(errors).toEqual([]);
 });
+
+test('backup, delete all data, restore, and reject invalid imports', async ({ page }) => {
+  const errors = trackConsole(page);
+  await createCampaign(page);
+  await page.getByRole('button', { name: 'Create Full Campaign' }).first().click();
+  await page.goto('/app/brand');
+  await page.getByRole('button', { name: 'New brand profile' }).click();
+  await page.getByLabel('Brand name').fill('Backup Brand');
+  await page.getByRole('button', { name: 'Save brand' }).click();
+  await expect(page.getByText('Brand “Backup Brand” saved.')).toBeVisible();
+
+  await page.goto('/app/settings');
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download backup' }).click()]);
+  const backupPath = (await download.path())!;
+  const backup = JSON.parse(readFileSync(backupPath, 'utf8'));
+  expect(backup.campaigns.length).toBeGreaterThan(0);
+  expect(backup.brands.map((b: { name: string }) => b.name)).toContain('Backup Brand');
+
+  await page.getByRole('button', { name: 'Delete all data' }).click();
+  await page.getByRole('button', { name: 'Delete everything' }).click();
+  await expect(page.getByText('0 campaign(s) and 0 brand profile(s)')).toBeVisible();
+
+  await page.locator('#restore-file').setInputFiles(backupPath);
+  await expect(page.getByText(/Restored \d+ campaign\(s\) and 1 brand profile\(s\)/)).toBeVisible();
+  await page.goto('/app/campaigns');
+  await expect(page.locator('main article')).toHaveCount(backup.campaigns.length);
+  // Reopen a restored campaign: its full content is intact
+  await page.locator('main article h3 a').first().click();
+  await expect(page.getByText(/scenes · 30s of 30s/)).toBeVisible();
+
+  // Invalid files are rejected with a clear message
+  await page.goto('/app/campaigns');
+  await page.locator('#import-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{oops') });
+  await expect(page.getByText('The file is not valid JSON.')).toBeVisible();
+  await page.locator('#import-file').setInputFiles({ name: 'other.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') });
+  await expect(page.getByText('This is not an AdSpark backup or project file.')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('brand kit rejects unsafe logo files', async ({ page }) => {
+  await page.goto('/app/brand');
+  await page.getByRole('button', { name: 'New brand profile' }).click();
+  await page.locator('#logo-input').setInputFiles({ name: 'logo.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg onload="alert(1)"/>') });
+  await expect(page.getByText('Use a PNG, JPEG or WebP image. SVG files are not accepted.')).toBeVisible();
+  await page.locator('#logo-input').setInputFiles({ name: 'fake.png', mimeType: 'image/png', buffer: Buffer.from('not really a png') });
+  await expect(page.getByText('This file is not a valid PNG, JPEG or WebP image.')).toBeVisible();
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+  await page.locator('#logo-input').setInputFiles({ name: 'ok.png', mimeType: 'image/png', buffer: png });
+  await expect(page.getByRole('img', { name: /logo/ })).toBeVisible();
+});
