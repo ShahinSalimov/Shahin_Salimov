@@ -264,7 +264,7 @@ test('every navigation link reaches a real page', async ({ page }) => {
   await page.getByRole('link', { name: 'Pricing' }).first().click();
   await expect(page.getByRole('heading', { level: 1, name: 'Simple monthly editions' })).toBeVisible();
   await page.getByRole('link', { name: 'AdSpark home' }).click();
-  await page.getByRole('link', { name: 'How it works' }).click();
+  await page.getByRole('button', { name: 'How it works' }).click();
   await expect(page.locator('#how')).toBeInViewport();
   await page.getByRole('link', { name: 'Open app' }).click();
   await expect(page).toHaveURL(/\/app$/);

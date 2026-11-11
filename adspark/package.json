@@ -19,7 +19,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
-    "export-demo": "tsx scripts/export-demo.ts"
+    "export-demo": "tsx scripts/export-demo.ts",
+    "build:standalone": "tsc -b && node scripts/build-standalone.mjs",
+    "build:gumroad": "node scripts/build-gumroad.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
@@ -52,6 +54,7 @@
     "typescript": "5.9",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8",
+    "vite-plugin-singlefile": "^2.3.4",
     "vitest": "^5.1.0"
   },
   "overrides": {

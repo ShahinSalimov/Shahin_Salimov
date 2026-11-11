@@ -3,6 +3,8 @@
 ## 1.1.0 — 2026-11-11
 
 ### Added
+- Offline single-file edition (`npm run build:standalone`): opens from `AdSpark.html` without Node.js, server or internet; hash routing, no sales pages.
+- Gumroad buyer package builder with START-HERE guide (EN/AZ), end-user license and sample files.
 - Four-step New Campaign brief with progress bar, inline validation, review step and local draft persistence.
 - Category profiles (setting, hero shot, key moment, suited ad structures) in Demo Generation.
 - Script regeneration for 15/30/45/60 s from the editor; drag-and-drop storyboard reordering.

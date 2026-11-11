@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { db } from '../lib/db';
+import { STANDALONE } from '../lib/edition';
 import type { Brand, Campaign, CampaignInput, Concept } from '../lib/schemas';
 import { newSeed, uid } from '../lib/engine/util';
 import { createRemoteProvider, fetchAiStatus, localProvider, type AiStatus, type GenerationProvider } from '../lib/ai/provider';
@@ -93,11 +94,24 @@ export const useApp = create<AppState>((set, get) => {
       .catch(() => set({ saveState: 'error' }));
   };
 
+  /**
+   * Leading + trailing debounce: the first change is written immediately (so a
+   * generated script survives an instant reload or tab close), and bursts of
+   * edits such as typing are coalesced into one trailing write.
+   */
   const persistSoon = (c: Campaign) => {
+    const existing = timers.get(c.id);
+    if (!existing) {
+      persistNow(c);
+      timers.set(
+        c.id,
+        setTimeout(() => flushOne(c.id, set), 250),
+      );
+      return;
+    }
     pending.set(c.id, c);
     set({ saveState: 'saving' });
-    const existing = timers.get(c.id);
-    if (existing) clearTimeout(existing);
+    clearTimeout(existing);
     timers.set(
       c.id,
       setTimeout(() => flushOne(c.id, set), 250),
@@ -133,7 +147,8 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     async refreshAiStatus() {
-      const status = await fetchAiStatus();
+      // The offline single-file edition has no server to ask.
+      const status = STANDALONE ? { enabled: false, reason: 'This offline edition has no AI server.' } : await fetchAiStatus();
       set({ aiStatus: status });
       return status;
     },

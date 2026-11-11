@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Cpu, Database, Download, RefreshCw, ShieldCheck, Trash2, Upload, CircleCheck, CircleSlash } from 'lucide-react';
 import { useApp } from '../store/app';
+import { STANDALONE } from '../lib/edition';
 import { createBackup, ImportError, MAX_IMPORT_BYTES, parseImport } from '../lib/backup';
 import { downloadText } from '../lib/export/download';
 import { Badge, Button, Card, ConfirmModal, PageHeader } from '../components/ui';
@@ -58,6 +59,12 @@ export default function SettingsPage() {
             Optional AI generation needs the AdSpark server running with your own provider key (see INSTALLATION.md). Keys stay on the server and are never sent to the browser.
           </p>
 
+          {STANDALONE ? (
+            <p className="mt-5 rounded-xl border border-line/70 bg-bg/50 p-4 text-sm text-muted">
+              This is the offline edition: everything runs in this browser and nothing is sent anywhere. Connecting an AI provider needs the AdSpark server
+              (developer setup), which is not part of this edition.
+            </p>
+          ) : (
           <div className="mt-5 rounded-xl border border-line/70 bg-bg/50 p-4">
             <div className="flex flex-wrap items-center gap-3">
               {available ? <CircleCheck className="size-4 text-success" aria-hidden /> : <CircleSlash className="size-4 text-muted" aria-hidden />}
@@ -113,6 +120,7 @@ export default function SettingsPage() {
               )
             ) : null}
           </div>
+          )}
         </Card>
 
         <Card as="section" className="scroll-mt-20 p-6">

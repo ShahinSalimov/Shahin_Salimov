@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Clapperboard, Cpu, FolderOpen, LayoutDashboard, Menu, Palette, Plus, Settings, Sparkles, X, CircleCheck, TriangleAlert, Info, LoaderCircle } from 'lucide-react';
 import { useApp } from '../store/app';
+import { STANDALONE } from '../lib/edition';
 import { ButtonLink, cx, IconButton } from './ui';
 
 export function Logo({ className }: { className?: string }) {
@@ -66,7 +67,7 @@ function SaveIndicator() {
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col gap-6 p-4">
-      <Link to="/" className="px-2 pt-1" onClick={onNavigate} aria-label="AdSpark home">
+      <Link to={STANDALONE ? '/app' : '/'} className="px-2 pt-1" onClick={onNavigate} aria-label="AdSpark home">
         <Logo />
       </Link>
       <ButtonLink to="/app/new" onClick={onNavigate} icon={<Sparkles className="size-4" />} className="w-full">
@@ -94,9 +95,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="mt-auto flex flex-col gap-3">
         <EngineBadge />
         <div className="flex gap-3 px-1 text-xs text-muted">
-          <Link to="/pricing" className="hover:text-ink" onClick={onNavigate}>
-            Pricing
-          </Link>
+          {STANDALONE ? null : (
+            <Link to="/pricing" className="hover:text-ink" onClick={onNavigate}>
+              Pricing
+            </Link>
+          )}
           <Link to="/app/settings#privacy" className="hover:text-ink" onClick={onNavigate}>
             Privacy
           </Link>

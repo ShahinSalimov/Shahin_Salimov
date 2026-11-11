@@ -2,9 +2,9 @@
   "app": "AdSpark",
   "kind": "campaign",
   "version": 1,
-  "exportedAt": 1794428316771,
+  "exportedAt": 1794430314781,
   "campaign": {
-    "id": "cmp_1645cf0962794b0c",
+    "id": "cmp_1cbbd1913a4b42a1",
     "name": "Sample: Bloom Bakery morning launch",
     "createdAt": 1794355200000,
     "updatedAt": 1794355200000,
@@ -26,7 +26,7 @@
     },
     "concepts": [
       {
-        "id": "c_e03bfd58c1664b7b",
+        "id": "c_cb089ee984de4664",
         "archetype": "productHero",
         "title": "Close-Up Craft",
         "mainIdea": "Let the product speak: slow, tactile close-ups of Bloom Bakery that reveal quality one detail at a time. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
@@ -40,7 +40,7 @@
         "saved": false
       },
       {
-        "id": "c_0a857a1a24c34070",
+        "id": "c_71cac4165e0f4ec8",
         "archetype": "emotionalStory",
         "title": "The Moment That Matters",
         "mainIdea": "A short human story where Bloom Bakery is present in a meaningful moment, told with restraint and warmth. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
@@ -54,7 +54,7 @@
         "saved": false
       },
       {
-        "id": "c_8e5f10f451cf4d9f",
+        "id": "c_5dc3987af3044938",
         "archetype": "behindScenes",
         "title": "Behind the Process",
         "mainIdea": "Show the people, preparation and care behind Bloom Bakery so the audience understands why it is worth it. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
@@ -68,7 +68,7 @@
         "saved": true
       },
       {
-        "id": "c_5fc2062b18084609",
+        "id": "c_31ada97d48a54724",
         "archetype": "transformation",
         "title": "Before & After",
         "mainIdea": "Build a clear visual contrast between life before and after Bloom Bakery, using one match-cut as the turning point. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
@@ -82,7 +82,7 @@
         "saved": false
       },
       {
-        "id": "c_790cf7ac2cd64b0e",
+        "id": "c_394ec0384dd74bc1",
         "archetype": "comparison",
         "title": "Old Way vs. New Way",
         "mainIdea": "Split the story into the old way and the Bloom Bakery way, side by side, so the difference is obvious without exaggeration. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
@@ -96,10 +96,10 @@
         "saved": false
       }
     ],
-    "selectedConceptId": "c_8e5f10f451cf4d9f",
+    "selectedConceptId": "c_5dc3987af3044938",
     "scenes": [
       {
-        "id": "s_0cfb13a253b44480",
+        "id": "s_39e40363a9784403",
         "duration": 4,
         "beat": "hook",
         "shot": "close",
@@ -112,7 +112,7 @@
         "transition": "Quick whip-pan cut."
       },
       {
-        "id": "s_8bac64d9513345aa",
+        "id": "s_fe308bec8cd540ab",
         "duration": 6,
         "beat": "bts",
         "shot": "medium",
@@ -125,7 +125,7 @@
         "transition": "Whip-pan cut."
       },
       {
-        "id": "s_8348a0b46a8b468b",
+        "id": "s_ec6a88087b1c4d4f",
         "duration": 5,
         "beat": "bts",
         "shot": "medium",
@@ -138,7 +138,7 @@
         "transition": "Cut on action."
       },
       {
-        "id": "s_6d5a297fe0f34092",
+        "id": "s_be178f5f3ea44126",
         "duration": 5,
         "beat": "detail",
         "shot": "close",
@@ -151,7 +151,7 @@
         "transition": "Focus-pull transition."
       },
       {
-        "id": "s_1787c626cbb5428a",
+        "id": "s_1f17585cc5ea428b",
         "duration": 5,
         "beat": "benefit",
         "shot": "medium",
@@ -164,7 +164,7 @@
         "transition": "Slide transition in the text direction."
       },
       {
-        "id": "s_011229c5c7c64909",
+        "id": "s_b9d27af7073943f2",
         "duration": 5,
         "beat": "cta",
         "shot": "text",

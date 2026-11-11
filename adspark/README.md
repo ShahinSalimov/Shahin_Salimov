@@ -37,6 +37,8 @@ Open http://localhost:5173 and click **Open a sample campaign** to see a finishe
 | `npm test` | Unit and integration tests (Vitest) |
 | `npm run test:e2e` | Browser tests (Playwright; run `npm run build` first) |
 | `npm run export-demo` | Regenerate the sample exports in `docs/demo/` |
+| `npm run build:standalone` | Build the offline single-file edition (`dist-standalone/index.html`) |
+| `npm run build:gumroad` | Build the buyer package `gumroad/dist/AdSpark-v<version>.zip` (see `gumroad/UPLOAD-CHECKLIST.md`) |
 
 ## Screenshots
 

@@ -2,11 +2,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { viteSingleFile } from 'vite-plugin-singlefile';
 
 const apiPort = Number(process.env.ADSPARK_SERVER_PORT ?? 8787);
+// `npm run build:standalone` produces one offline HTML file with every asset inlined.
+const standalone = process.env.VITE_STANDALONE === '1';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), ...(standalone ? [viteSingleFile({ removeViteModuleLoader: true })] : [])],
+  base: standalone ? './' : '/',
   server: {
     port: 5173,
     proxy: {
@@ -26,9 +30,9 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    chunkSizeWarningLimit: 900,
-  },
+  build: standalone
+    ? { outDir: 'dist-standalone', assetsInlineLimit: 100_000_000, chunkSizeWarningLimit: 10_000, cssCodeSplit: false }
+    : { chunkSizeWarningLimit: 900 },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'server/**/*.test.ts'],

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AdSpark — Start here</title>
+<style>
+  :root { --bg:#0B1020; --surface:#121A2B; --elev:#19243A; --line:#253049; --p:#8065F6; --s:#36B8E8; --ok:#2FCF97; --warn:#F5B84A; --ink:#F5F7FF; --muted:#929DB4; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:860px; margin:0 auto; padding:40px 20px 64px; }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .logo { width:44px; height:44px; }
+  h1 { font-size:30px; line-height:1.15; margin:0; letter-spacing:-0.02em; }
+  h2 { font-size:20px; margin:36px 0 12px; }
+  .grad { background:linear-gradient(90deg,#a995ff,var(--p),var(--s)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin:14px 0; }
+  .steps { counter-reset:s; list-style:none; padding:0; margin:0; }
+  .steps li { counter-increment:s; position:relative; padding:4px 0 10px 44px; }
+  .steps li::before { content:counter(s); position:absolute; left:0; top:2px; width:28px; height:28px; border-radius:9px; background:var(--p); color:#fff; font-weight:700; display:grid; place-items:center; font-size:14px; }
+  code, kbd { background:var(--elev); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:.92em; }
+  .muted { color:var(--muted); }
+  .note { border-left:3px solid var(--warn); }
+  .ok { border-left:3px solid var(--ok); }
+  ul { padding-left:20px; }
+  a { color:var(--s); }
+  .lang { display:flex; gap:8px; margin:6px 0 0; }
+  .lang a { text-decoration:none; padding:4px 12px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:14px; }
+  hr { border:0; border-top:1px solid var(--line); margin:48px 0; }
+  table { width:100%; border-collapse:collapse; font-size:15px; }
+  td { border-top:1px solid var(--line); padding:9px 6px; vertical-align:top; }
+  td:first-child { color:var(--muted); width:38%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8065F6"/><stop offset="1" stop-color="#36B8E8"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="#19243A"/><path d="M36 8 16 36h14l-4 20 22-30H34z" fill="url(#g)"/></svg>
+    <div>
+      <h1>Welcome to <span class="grad">AdSpark</span></h1>
+      <div class="lang"><a href="#en">English</a><a href="#az">Azərbaycanca</a></div>
+    </div>
+  </header>
+
+  <section id="en">
+    <div class="card ok">
+      <strong>Open <code>AdSpark.html</code> to start.</strong> No installation, no account, no internet needed.
+      Best in <strong>Microsoft Edge</strong> or <strong>Google Chrome</strong>.
+    </div>
+
+    <h2>Get started in 2 minutes</h2>
+    <ol class="steps">
+      <li>Unzip the download to a folder you keep, for example <code>Documents\AdSpark</code>.</li>
+      <li>Double-click <code>AdSpark.html</code>. If Windows asks which app to use, choose Edge or Chrome.</li>
+      <li>Click <strong>Open a sample campaign</strong> to see a finished campaign: concepts, script, storyboard, voiceover and captions.</li>
+      <li>Click <strong>Create Campaign</strong>, fill in the 4-step brief and generate your own five concepts.</li>
+      <li>Pick a concept, click <strong>Create Full Campaign</strong>, edit anything, then export as <strong>PDF</strong>, <strong>TXT</strong> or <strong>JSON</strong>.</li>
+    </ol>
+
+    <h2>What's in this folder</h2>
+    <table>
+      <tr><td>AdSpark.html</td><td>The app. Everything is inside this one file.</td></tr>
+      <tr><td>START-HERE.html</td><td>This guide.</td></tr>
+      <tr><td>Sample Campaign/</td><td>Example PDF report, TXT script and JSON project file (importable in the app).</td></tr>
+      <tr><td>LICENSE.txt</td><td>Your license terms.</td></tr>
+      <tr><td>CHANGELOG.txt</td><td>Version history.</td></tr>
+    </table>
+
+    <h2>Your data and backups</h2>
+    <div class="card note">
+      Campaigns are saved automatically <strong>inside your browser</strong> on this computer. Nothing is uploaded anywhere.
+      <ul>
+        <li>Use the same browser to see your campaigns again. Another browser starts empty.</li>
+        <li>Private/incognito windows delete data when closed, so use a normal window.</li>
+        <li>Clearing browser “site data” also deletes campaigns. Keep backups: <strong>Settings → Download backup</strong>. Restore with <strong>Restore from file</strong>.</li>
+        <li>Moving to a new computer: download a backup, copy it with AdSpark.html, then restore.</li>
+      </ul>
+    </div>
+
+    <h2>Good to know</h2>
+    <ul>
+      <li><strong>How content is created:</strong> AdSpark uses a built-in library of proven ad structures (problem–solution, before &amp; after, behind the scenes and more), adapted to your category, style, language and brief. It is <strong>not an AI model</strong> and the app labels it “Demo Generation · not AI”. Always review and edit before production.</li>
+      <li><strong>Languages:</strong> hooks, voiceover, on-screen text and captions in English, Azerbaijani, Turkish or Russian. Production notes (camera, visuals) are in English.</li>
+      <li><strong>Not included:</strong> audio/voice generation, video rendering, automatic posting to social networks.</li>
+      <li><strong>Storyboard frames</strong> are simple sketches by shot type, a planning aid, not generated images.</li>
+    </ul>
+
+    <h2>Troubleshooting</h2>
+    <table>
+      <tr><td>Blank page or a storage warning</td><td>Open AdSpark.html in Edge or Chrome (not in a private window).</td></tr>
+      <tr><td>My campaigns are gone</td><td>Check you are in the same browser. Restore your latest backup in Settings.</td></tr>
+      <tr><td>PDF letters look wrong</td><td>Update your browser to the latest version.</td></tr>
+      <tr><td>Something else</td><td>Reply to your Gumroad purchase receipt email with a short description and a screenshot.</td></tr>
+    </table>
+
+    <h2>License in short</h2>
+    <p class="muted">One license = one person. Use AdSpark for your own business and for client work, as often as you like. Everything you create is yours. Do not share, resell or publish the AdSpark file itself. Full terms in LICENSE.txt.</p>
+  </section>
+
+  <hr />
+
+  <section id="az" lang="az">
+    <div class="card ok">
+      <strong>Başlamaq üçün <code>AdSpark.html</code> faylını açın.</strong> Quraşdırma, hesab və internet lazım deyil.
+      Ən yaxşı <strong>Microsoft Edge</strong> və ya <strong>Google Chrome</strong>-da işləyir.
+    </div>
+
+    <h2>2 dəqiqəyə başlayın</h2>
+    <ol class="steps">
+      <li>Yüklədiyiniz ZIP-i saxlayacağınız qovluğa açın, məsələn <code>Documents\AdSpark</code>.</li>
+      <li><code>AdSpark.html</code> faylına iki dəfə klikləyin. Windows proqram soruşsa, Edge və ya Chrome seçin.</li>
+      <li><strong>Open a sample campaign</strong> düyməsi ilə hazır nümunə kampaniyaya baxın: konseptlər, skript, storyboard, voiceover və mətnlər.</li>
+      <li><strong>Create Campaign</strong> düyməsini basın, 4 addımlı brief-i doldurun və öz 5 konseptinizi yaradın.</li>
+      <li>Konsepti seçin, <strong>Create Full Campaign</strong> basın, istədiyinizi redaktə edin, sonra <strong>PDF</strong>, <strong>TXT</strong> və ya <strong>JSON</strong> kimi yükləyin.</li>
+    </ol>
+
+    <h2>Məlumatlarınız və backup</h2>
+    <div class="card note">
+      Kampaniyalar bu kompüterdə <strong>brauzerinizin içində</strong> avtomatik saxlanılır. Heç nə internetə göndərilmir.
+      <ul>
+        <li>Kampaniyalarınızı görmək üçün eyni brauzerdən istifadə edin. Başqa brauzer boş açılır.</li>
+        <li>Gizli (incognito) pəncərə bağlananda məlumatları silir, adi pəncərədən istifadə edin.</li>
+        <li>Brauzerin “site data” təmizlənməsi kampaniyaları da silir. Backup saxlayın: <strong>Settings → Download backup</strong>. Bərpa: <strong>Restore from file</strong>.</li>
+        <li>Yeni kompüterə keçid: backup yükləyin, AdSpark.html ilə birlikdə köçürün və bərpa edin.</li>
+      </ul>
+    </div>
+
+    <h2>Bilməli olduqlarınız</h2>
+    <ul>
+      <li><strong>Məzmun necə yaranır:</strong> AdSpark sınaqdan keçmiş reklam strukturlarından ibarət daxili kitabxanadan istifadə edir və onları kateqoriyanıza, üslubunuza, dilinizə və brief-inizə uyğunlaşdırır. Bu, <strong>süni intellekt modeli deyil</strong>, tətbiq bunu “Demo Generation · not AI” kimi göstərir. İstehsaldan əvvəl mətnləri yoxlayıb redaktə edin.</li>
+      <li><strong>Dillər:</strong> hook, voiceover, ekran mətni və caption-lar ingilis, Azərbaycan, türk və ya rus dilində. İstehsal qeydləri (kamera, vizual) ingiliscədir.</li>
+      <li><strong>Daxil deyil:</strong> səs yaratmaq, video render, sosial şəbəkələrə avtomatik paylaşım.</li>
+    </ul>
+
+    <h2>Lisenziya qısaca</h2>
+    <p class="muted">Bir lisenziya = bir nəfər. AdSpark-dan öz biznesiniz və müştəri işləri üçün istədiyiniz qədər istifadə edin. Yaratdığınız hər şey sizindir. AdSpark faylının özünü paylaşmayın, yenidən satmayın və yayımlamayın. Tam şərtlər LICENSE.txt faylındadır.</p>
+    <p class="muted">Dəstək: Gumroad alış qəbzinizə cavab yazın.</p>
+  </section>
+</div>
+</body>
+</html>

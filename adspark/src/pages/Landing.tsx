@@ -42,7 +42,9 @@ export default function Landing() {
           <Logo />
         </Link>
         <nav aria-label="Site" className="flex items-center gap-2 sm:gap-5">
-          <a href="#how" className="hidden text-sm text-muted hover:text-ink sm:inline">How it works</a>
+          <button type="button" onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })} className="hidden text-sm text-muted hover:text-ink sm:inline">
+            How it works
+          </button>
           <Link to="/pricing" className="text-sm text-muted hover:text-ink">Pricing</Link>
           <ButtonLink to="/app" size="sm" variant="secondary">Open app</ButtonLink>
         </nav>

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { STANDALONE } from './lib/edition';
 import { AppLayout, Toaster } from './components/Layout';
 import { Spinner } from './components/ui';
 import { useApp } from './store/app';
@@ -95,8 +96,9 @@ export default function App() {
       <ScrollToTop />
       <Suspense fallback={<div className="flex justify-center py-20"><Spinner /></div>}>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/pricing" element={<Pricing />} />
+          {/* The standalone edition is for buyers: open straight into the app, no sales pages. */}
+          <Route path="/" element={STANDALONE ? <Navigate to="/app" replace /> : <Landing />} />
+          <Route path="/pricing" element={STANDALONE ? <Navigate to="/app" replace /> : <Pricing />} />
           <Route path="/app/campaigns/:id/print" element={<Gate><PrintView /></Gate>} />
           <Route path="/app" element={<AppLayout />}>
             <Route index element={<Gate><Dashboard /></Gate>} />
