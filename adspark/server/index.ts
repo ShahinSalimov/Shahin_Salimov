@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from './config';
-import { createProvider, extractJson, ProviderError } from './providers';
+import { createProvider, ProviderError } from './providers';
 import { DailyLimiter } from './limits';
 import { buildPrompt, requestSchema, responseSchemas } from './tasks';
 
@@ -24,7 +24,7 @@ const provider = createProvider(cfg);
 const limiter = new DailyLimiter(cfg.limitPerClient, cfg.limitTotal);
 const DIST = join(ROOT, 'dist');
 const MAX_BODY = 64 * 1024;
-const TIMEOUT_MS = 60_000;
+const TIMEOUT_MS = 60_000; // hard cap per request, on top of the SDK timeout
 
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
@@ -56,17 +56,20 @@ function sameOrigin(req: IncomingMessage): boolean {
 async function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolveBody, reject) => {
     let size = 0;
+    let tooLarge = false;
     const chunks: Buffer[] = [];
     req.on('data', (c: Buffer) => {
       size += c.length;
       if (size > MAX_BODY) {
-        reject(new ProviderError('Request body is too large.', 413));
-        req.destroy();
+        tooLarge = true;
+        chunks.length = 0;
+        // Drain politely so the client receives a 413; cut off only abusive uploads.
+        if (size > 1024 * 1024) req.destroy();
         return;
       }
       chunks.push(c);
     });
-    req.on('end', () => resolveBody(Buffer.concat(chunks).toString('utf8')));
+    req.on('end', () => (tooLarge ? reject(new ProviderError('Request body is too large.', 413)) : resolveBody(Buffer.concat(chunks).toString('utf8'))));
     req.on('error', reject);
   });
 }
@@ -75,6 +78,8 @@ async function handleGenerate(req: IncomingMessage, res: ServerResponse) {
   if (!provider) return send(res, 503, { error: cfg.problem ?? 'AI is not configured.' });
   if (!sameOrigin(req)) return send(res, 403, { error: 'Cross-origin requests are not allowed.' });
   if (!(req.headers['content-type'] ?? '').includes('application/json')) return send(res, 415, { error: 'Expected application/json.' });
+  // The browser only sends this header after the user accepted the data notice in Settings.
+  if (req.headers['x-adspark-consent'] !== 'granted') return send(res, 403, { error: 'AI generation needs your consent in Settings first.' });
 
   let json: unknown;
   try {
@@ -92,8 +97,9 @@ async function handleGenerate(req: IncomingMessage, res: ServerResponse) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const { system, user } = buildPrompt(parsed.data);
-    const text = await provider.completeJson(system, user, controller.signal);
-    const result = responseSchemas[parsed.data.task].safeParse(extractJson(text));
+    const output = await provider.generate(parsed.data.task, system, user, controller.signal);
+    // Second validation pass with the app's stricter limits before anything reaches the browser.
+    const result = responseSchemas[parsed.data.task].safeParse(output);
     if (!result.success) return send(res, 502, { error: 'The AI response did not match the expected format. Try again or use the local engine.' });
     send(res, 200, result.data);
   } catch (e) {

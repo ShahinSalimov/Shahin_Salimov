@@ -70,7 +70,7 @@ async function callAi<T>(task: string, body: Record<string, unknown>, schema: z.
   try {
     res = await fetch('/api/ai/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-AdSpark-Consent': 'granted' },
       body: JSON.stringify({ task, ...body }),
     });
   } catch {
