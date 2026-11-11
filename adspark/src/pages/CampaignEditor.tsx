@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Check, Lightbulb, Pencil, Plus, X, ChevronDown } from 'lucide-react';
+import { Check, Lightbulb, Pencil, Plus, X, ChevronDown, RefreshCw } from 'lucide-react';
 import { useApp, useCampaign } from '../store/app';
-import { fitDurations, aspectRatio } from '../lib/engine/generate';
+import { fitDurations, aspectRatio, SCENE_COUNT } from '../lib/engine/generate';
+import { newSeed } from '../lib/engine/util';
+import { DURATIONS, type Duration } from '../lib/schemas';
 import { blankScene, insertAfter, patchScene } from '../lib/scenes';
 import { formatTime } from '../lib/engine/util';
 import { selectedConcept } from '../lib/export/txt';
-import { Badge, Button, ButtonLink, Card, EmptyState, IconButton, PageHeader } from '../components/ui';
-import { CampaignMissing, CampaignNav, ExportMenu, GeneratorBadge } from '../components/campaign';
+import { Badge, Button, ButtonLink, Card, ConfirmModal, EmptyState, IconButton, PageHeader, SelectField } from '../components/ui';
+import { CampaignMissing, CampaignNav, ExportMenu, GenerationError, GeneratorBadge, useGeneration } from '../components/campaign';
 import { DurationSummary, SceneFields } from '../components/scene';
 import type { Campaign } from '../lib/schemas';
 
@@ -53,6 +55,56 @@ export function CampaignTitle({ c }: { c: Campaign }) {
         <X className="size-4" />
       </IconButton>
     </form>
+  );
+}
+
+/** Lets the user regenerate the script for any supported length (15/30/45/60 s). */
+function ScriptLength({ c }: { c: Campaign }) {
+  const update = useApp((s) => s.updateCampaign);
+  const toast = useApp((s) => s.toast);
+  const gen = useGeneration();
+  const [duration, setDuration] = useState<Duration>(c.input.duration);
+  const [confirm, setConfirm] = useState(false);
+  const concept = selectedConcept(c);
+  const run = () =>
+    gen.run('script', async (p) => {
+      if (!concept) return;
+      const input = { ...c.input, duration };
+      const seed = newSeed();
+      const scenes = await p.scenes(input, concept, seed);
+      const voiceover = await p.voiceover(input, concept, scenes, seed);
+      update(c.id, (x) => ({ ...x, input, scenes, voiceover: { ...voiceover, language: x.voiceover?.language ?? voiceover.language, tone: x.voiceover?.tone ?? voiceover.tone }, generator: p.info }));
+      toast('success', `New ${duration}-second script with ${scenes.length} scenes.`);
+    });
+  return (
+    <Card className="p-5">
+      <h2 className="font-semibold">Script length</h2>
+      <p className="mt-1 text-sm text-muted">Regenerate the script and storyboard for another video length. Scene timings always add up exactly.</p>
+      <div className="mt-4 flex items-end gap-2">
+        <SelectField
+          className="flex-1"
+          label="Video duration"
+          value={String(duration)}
+          onChange={(e) => setDuration(Number(e.target.value) as Duration)}
+          options={DURATIONS.map((d) => ({ value: String(d), label: `${d}s · ${SCENE_COUNT[d]} scenes` }))}
+        />
+        <Button variant="secondary" icon={<RefreshCw className="size-4" />} loading={gen.busy === 'script'} onClick={() => setConfirm(true)} disabled={!concept}>
+          Regenerate
+        </Button>
+      </div>
+      <div className="mt-3">
+        <GenerationError error={gen.error} onLocal={gen.retryLocal} onDismiss={gen.clearError} />
+      </div>
+      <ConfirmModal
+        open={confirm}
+        danger={false}
+        title={`Regenerate the ${duration}-second script?`}
+        message="The current scenes, storyboard and voiceover are replaced. Social captions and concepts stay as they are. Duplicate the campaign first to keep this version."
+        confirmLabel="Regenerate script"
+        onClose={() => setConfirm(false)}
+        onConfirm={run}
+      />
+    </Card>
   );
 }
 
@@ -135,6 +187,7 @@ export default function CampaignEditor() {
         </section>
 
         <aside className="flex flex-col gap-4">
+          <ScriptLength key={c.input.duration} c={c} />
           {concept ? (
             <Card className="p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-secondary">Selected concept</p>

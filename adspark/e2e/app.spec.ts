@@ -274,3 +274,41 @@ test('every navigation link reaches a real page', async ({ page }) => {
   await expect(page.locator('#main')).toBeFocused();
   expect(errors).toEqual([]);
 });
+
+test('script regenerates for every duration and storyboard supports drag reordering', async ({ page }) => {
+  const errors = trackConsole(page);
+  await createCampaign(page);
+  await page.getByRole('button', { name: 'Create Full Campaign' }).first().click();
+  await expect(page.getByText('6 scenes · 30s of 30s')).toBeVisible();
+
+  for (const [d, n] of [[15, 4], [45, 7], [60, 8], [30, 6]] as const) {
+    await page.getByLabel('Video duration').selectOption(String(d));
+    await page.getByRole('button', { name: 'Regenerate', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Regenerate script' }).click();
+    await expect(page.getByText(`${n} scenes · ${d}s of ${d}s`)).toBeVisible();
+  }
+  // Voiceover follows the new timings
+  await page.getByRole('link', { name: 'Voiceover', exact: true }).click();
+  await expect(page.getByLabel('Voiceover script')).toHaveValue(/–0:30\]/);
+
+  await page.getByRole('link', { name: 'Storyboard', exact: true }).click();
+  const cards = page.locator('main ol > li[draggable="true"]');
+  await expect(cards).toHaveCount(6);
+  const firstBefore = await cards.nth(0).locator('p.line-clamp-3').textContent();
+  await cards.nth(0).dragTo(cards.nth(2));
+  await expect(cards.nth(0).locator('p.line-clamp-3')).not.toHaveText(firstBefore!);
+  await expect(cards.nth(2).locator('p.line-clamp-3')).toHaveText(firstBefore!);
+  await expect(page.getByText('6 scenes · 30s of 30s')).toBeVisible();
+
+  // Add and edit a scene, then fit timing
+  await page.getByRole('button', { name: 'Add scene' }).click();
+  await expect(cards).toHaveCount(7);
+  await page.getByRole('button', { name: 'Edit scene 7' }).click();
+  await page.getByRole('dialog').getByLabel('On-screen text').fill('Custom end card');
+  await page.getByRole('dialog').getByLabel('Duration (seconds)').fill('5');
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(page.getByText('7 scenes · 35s of 30s')).toBeVisible();
+  await page.getByRole('button', { name: 'Fit to 30s' }).click();
+  await expect(page.getByText('7 scenes · 30s of 30s')).toBeVisible();
+  expect(errors).toEqual([]);
+});

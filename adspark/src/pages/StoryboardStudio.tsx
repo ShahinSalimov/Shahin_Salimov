@@ -6,7 +6,7 @@ import { STORYBOARD_STYLES, type Campaign, type StoryboardStyle } from '../lib/s
 import { blankScene, duplicateAt, insertAfter, move, patchScene, removeAt, totalDuration } from '../lib/scenes';
 import { fitDurations } from '../lib/engine/generate';
 import { formatTime } from '../lib/engine/util';
-import { Button, ButtonLink, Card, ConfirmModal, EmptyState, IconButton, Modal, PageHeader, Tabs } from '../components/ui';
+import { Button, ButtonLink, Card, ConfirmModal, EmptyState, IconButton, Modal, PageHeader, Tabs, cx } from '../components/ui';
 import { CampaignMissing, CampaignNav, ExportMenu } from '../components/campaign';
 import { DurationSummary, SceneFields, SHOT_OPTIONS } from '../components/scene';
 import { StoryboardFrame } from '../components/StoryboardFrame';
@@ -122,6 +122,8 @@ export default function StoryboardStudio() {
   const [editing, setEditing] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [preview, setPreview] = useState(false);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
 
   if (!c) return <CampaignMissing />;
   const setScenes = (fn: (s: Campaign['scenes']) => Campaign['scenes']) => update(c.id, (x) => ({ ...x, scenes: fn(x.scenes) }));
@@ -180,7 +182,7 @@ export default function StoryboardStudio() {
         </div>
       </div>
       <p className="mb-5 flex items-center gap-2 text-xs text-muted">
-        <Info className="size-3.5" aria-hidden /> Frames are simple illustrative sketches chosen by shot type. They are not generated images or video frames.
+        <Info className="size-3.5" aria-hidden /> Frames are simple illustrative sketches chosen by shot type, not generated images or video. Drag cards or use the arrow buttons to reorder.
       </p>
 
       <ol className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -188,8 +190,33 @@ export default function StoryboardStudio() {
           const start = t;
           t += s.duration;
           return (
-            <li key={s.id}>
-              <Card as="article" className="flex h-full flex-col overflow-hidden">
+            <li
+              key={s.id}
+              draggable
+              onDragStart={(e) => {
+                setDragFrom(i);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(i));
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (dragOver !== i) setDragOver(i);
+              }}
+              onDragLeave={() => setDragOver((d) => (d === i ? null : d))}
+              onDrop={(e) => {
+                e.preventDefault();
+                const from = dragFrom ?? Number(e.dataTransfer.getData('text/plain'));
+                if (Number.isInteger(from)) setScenes((x) => move(x, from, i));
+                setDragFrom(null);
+                setDragOver(null);
+              }}
+              onDragEnd={() => {
+                setDragFrom(null);
+                setDragOver(null);
+              }}
+              className={cx('rounded-2xl transition-all', dragFrom === i && 'opacity-50', dragOver === i && dragFrom !== i && 'ring-2 ring-secondary ring-offset-2 ring-offset-bg')}
+            >
+              <Card as="article" className="flex h-full cursor-grab flex-col overflow-hidden active:cursor-grabbing">
                 <button type="button" className="block text-left" onClick={() => setEditing(s.id)} aria-label={`Edit scene ${i + 1}`}>
                   <StoryboardFrame shot={s.shot} style={c.storyboardStyle} text={s.onScreenText} number={i + 1} className="block w-full" />
                 </button>
