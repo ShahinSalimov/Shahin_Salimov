@@ -85,3 +85,15 @@ describe('image sniffing', () => {
     expect(sniffImageType(new TextEncoder().encode('<svg onload=alert(1)>'))).toBeNull();
   });
 });
+
+describe('demo campaign', async () => {
+  const { buildDemoCampaign } = await import('./demoCampaign');
+  it('is a complete, valid, clearly labelled sample', () => {
+    const d = buildDemoCampaign(1);
+    expect(d.name.startsWith('Sample:')).toBe(true);
+    expect(d.concepts).toHaveLength(5);
+    expect(d.scenes.reduce((a, s) => a + s.duration, 0)).toBe(30);
+    expect(d.voiceover && d.social && d.selectedConceptId).toBeTruthy();
+    expect(d.generator.engine).toBe('local');
+  });
+});

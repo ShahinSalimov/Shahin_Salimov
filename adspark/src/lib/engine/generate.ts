@@ -52,6 +52,12 @@ interface Vars {
   benefits: string[];
 }
 
+/** Ends user-supplied text with a full stop so it never runs into the next sentence. */
+export function sentence(text: string): string {
+  const t = text.trim();
+  return !t || /[.!?…:]$/.test(t) ? t : `${t}.`;
+}
+
 function varsFrom(input: CampaignInput): Vars {
   const benefits = parseList(input.benefits);
   return {
@@ -98,7 +104,7 @@ function buildConcept(input: CampaignInput, id: ArchetypeId, rng: Rng): Concept 
     audience: v.audience,
     angle: a.angle,
     emotionalTrigger: a.trigger,
-    hook: fill(rng.pick(pack.hooks[id]), t),
+    hook: sentence(fill(rng.pick(pack.hooks[id]), t)),
     message: fill(pack.messages[id], t),
     cta: v.cta,
     visualDirection: `${STYLE_LOOK[input.style]} Setting: ${profile.setting}. Hero shot: ${profile.hero}. Frame for ${aspectRatio(input.platform)}.`,
@@ -239,7 +245,7 @@ const PROD: Record<BeatId, BeatProduction> = {
   bts: {
     shot: 'medium',
     weight: 1.2,
-    visual: ['Behind the scenes in {setting}: team members preparing {product}.', 'Hands at work during the preparation or delivery process.'],
+    visual: ['Behind the scenes in {setting}: the {product} team at work.', 'Hands at work during the preparation or delivery process.'],
     camera: ['Handheld documentary-style medium shot.', 'Close-up on hands, steady gimbal.'],
     action: ['Team member works carefully, glances up at camera.', 'Process step completed with visible care.'],
     sfx: ['Authentic work sounds from the location.', 'Ambient sound with a light music bed.'],
@@ -330,7 +336,7 @@ export function generateScenes(input: CampaignInput, concept: Concept, seed: num
         onScreenText = shorten(concept.hook, 42);
         break;
       case 'problem':
-        voiceover = fill(pack.vo.problem[variant], vars);
+        voiceover = sentence(fill(pack.vo.problem[variant], vars));
         onScreenText = shorten(v.problem);
         break;
       case 'reveal':
@@ -442,14 +448,17 @@ export function generateSocial(input: CampaignInput, concept: Concept, seed: num
     ...benefits.map((b) => `• ${b}`),
     '',
     [priceLine, `${v.cta}.`].filter(Boolean).join(' '),
-    s.linkInBio,
+    // Skip "link in bio" when the CTA already points to a link.
+    /link|bio|ссылк|bağlantı/i.test(v.cta) ? '' : s.linkInBio,
     '',
     s.commentPrompt,
     '',
     tags(allTags.slice(0, 8)).join(' '),
-  ].join('\n');
+  ]
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n');
 
-  const tiktok = [shorten(concept.hook, 90), s.tiktokTail, tags([productTag, ...rng.shuffle(categoryTags).slice(0, 3), 'fyp']).join(' ')].join(' ');
+  const tiktok = [sentence(shorten(concept.hook, 90)), s.tiktokTail, tags([productTag, ...rng.shuffle(categoryTags).slice(0, 3), 'fyp']).join(' ')].join(' ');
 
   const shortTitle = shorten(`${v.product}: ${stripEnd(concept.message.replace(v.product, '').trim()) || concept.title}`, 60);
 

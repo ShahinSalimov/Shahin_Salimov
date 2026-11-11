@@ -1,0 +1,212 @@
+{
+  "app": "AdSpark",
+  "kind": "campaign",
+  "version": 1,
+  "exportedAt": 1794428316771,
+  "campaign": {
+    "id": "cmp_1645cf0962794b0c",
+    "name": "Sample: Bloom Bakery morning launch",
+    "createdAt": 1794355200000,
+    "updatedAt": 1794355200000,
+    "input": {
+      "productName": "Bloom Bakery",
+      "description": "A neighbourhood bakery making sourdough bread and pastries every morning from organic flour, with same-day local delivery.",
+      "category": "Restaurant",
+      "price": "",
+      "benefits": "Baked fresh every morning\nOrganic flour, no preservatives\nDelivered to your door the same day",
+      "audience": "busy families and young professionals in the city",
+      "problem": "Supermarket bread goes stale in a day and tastes like nothing",
+      "goal": "Drive sales",
+      "language": "English",
+      "platform": "Instagram Reels",
+      "duration": 30,
+      "tone": "Warm",
+      "style": "Cinematic",
+      "cta": "Order today in the link"
+    },
+    "concepts": [
+      {
+        "id": "c_e03bfd58c1664b7b",
+        "archetype": "productHero",
+        "title": "Close-Up Craft",
+        "mainIdea": "Let the product speak: slow, tactile close-ups of Bloom Bakery that reveal quality one detail at a time. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
+        "audience": "busy families and young professionals in the city",
+        "angle": "Product as hero: sensory detail and texture over explanation.",
+        "emotionalTrigger": "Desire",
+        "hook": "Take a closer look.",
+        "message": "Bloom Bakery is crafted down to the last detail.",
+        "cta": "Order today in the link",
+        "visualDirection": "Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.",
+        "saved": false
+      },
+      {
+        "id": "c_0a857a1a24c34070",
+        "archetype": "emotionalStory",
+        "title": "The Moment That Matters",
+        "mainIdea": "A short human story where Bloom Bakery is present in a meaningful moment, told with restraint and warmth. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
+        "audience": "busy families and young professionals in the city",
+        "angle": "Emotional storytelling: the feeling comes first, the product supports the story.",
+        "emotionalTrigger": "Warmth and nostalgia",
+        "hook": "It is the small moments we remember.",
+        "message": "Bloom Bakery is there for the moments that matter.",
+        "cta": "Order today in the link",
+        "visualDirection": "Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.",
+        "saved": false
+      },
+      {
+        "id": "c_8e5f10f451cf4d9f",
+        "archetype": "behindScenes",
+        "title": "Behind the Process",
+        "mainIdea": "Show the people, preparation and care behind Bloom Bakery so the audience understands why it is worth it. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
+        "audience": "busy families and young professionals in the city",
+        "angle": "Authenticity: transparency about how it is made or delivered builds credibility.",
+        "emotionalTrigger": "Trust and pride",
+        "hook": "Let us show you how it is really made.",
+        "message": "Real care goes into every Bloom Bakery experience.",
+        "cta": "Order today in the link",
+        "visualDirection": "Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.",
+        "saved": true
+      },
+      {
+        "id": "c_5fc2062b18084609",
+        "archetype": "transformation",
+        "title": "Before & After",
+        "mainIdea": "Build a clear visual contrast between life before and after Bloom Bakery, using one match-cut as the turning point. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
+        "audience": "busy families and young professionals in the city",
+        "angle": "Transformation: the result is the hero, the product is the bridge.",
+        "emotionalTrigger": "Aspiration",
+        "hook": "Watch what changes in just a few seconds.",
+        "message": "Bloom Bakery turns the before into an after you can feel.",
+        "cta": "Order today in the link",
+        "visualDirection": "Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.",
+        "saved": false
+      },
+      {
+        "id": "c_790cf7ac2cd64b0e",
+        "archetype": "comparison",
+        "title": "Old Way vs. New Way",
+        "mainIdea": "Split the story into the old way and the Bloom Bakery way, side by side, so the difference is obvious without exaggeration. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.",
+        "audience": "busy families and young professionals in the city",
+        "angle": "Comparison: contrast with a generic alternative, never with a named competitor.",
+        "emotionalTrigger": "Smart-choice satisfaction",
+        "hook": "Same goal. Two very different ways.",
+        "message": "Bloom Bakery is the smarter way to get it done.",
+        "cta": "Order today in the link",
+        "visualDirection": "Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.",
+        "saved": false
+      }
+    ],
+    "selectedConceptId": "c_8e5f10f451cf4d9f",
+    "scenes": [
+      {
+        "id": "s_0cfb13a253b44480",
+        "duration": 4,
+        "beat": "hook",
+        "shot": "close",
+        "visual": "Bold first frame in the restaurant kitchen and dining tables with the subject facing camera and the key prop clearly visible.",
+        "camera": "Static close-up, subject looks straight into the lens.",
+        "action": "Subject turns to camera and starts talking immediately.",
+        "onScreenText": "Let us show you how it is really made",
+        "voiceover": "Let us show you how it is really made.",
+        "sfx": "Subtle riser under the opening line.",
+        "transition": "Quick whip-pan cut."
+      },
+      {
+        "id": "s_8bac64d9513345aa",
+        "duration": 6,
+        "beat": "bts",
+        "shot": "medium",
+        "visual": "Hands at work during the preparation or delivery process.",
+        "camera": "Close-up on hands, steady gimbal.",
+        "action": "Process step completed with visible care.",
+        "onScreenText": "How it is made",
+        "voiceover": "Real people, real work, every single time.",
+        "sfx": "Ambient sound with a light music bed.",
+        "transition": "Whip-pan cut."
+      },
+      {
+        "id": "s_8348a0b46a8b468b",
+        "duration": 5,
+        "beat": "bts",
+        "shot": "medium",
+        "visual": "Behind the scenes in the restaurant kitchen and dining tables: the Bloom Bakery team at work.",
+        "camera": "Handheld documentary-style medium shot.",
+        "action": "Team member works carefully, glances up at camera.",
+        "onScreenText": "Behind the scenes",
+        "voiceover": "This is what happens behind the scenes.",
+        "sfx": "Authentic work sounds from the location.",
+        "transition": "Cut on action."
+      },
+      {
+        "id": "s_6d5a297fe0f34092",
+        "duration": 5,
+        "beat": "detail",
+        "shot": "close",
+        "visual": "Extreme close-up of the most distinctive detail of Bloom Bakery.",
+        "camera": "Close-up with a slow focus pull from foreground to product.",
+        "action": "Product rotates slowly on a turntable.",
+        "onScreenText": "Crafted with care",
+        "voiceover": "Look closer. Quality you can see.",
+        "sfx": "Quiet, airy ambience.",
+        "transition": "Focus-pull transition."
+      },
+      {
+        "id": "s_1787c626cbb5428a",
+        "duration": 5,
+        "beat": "benefit",
+        "shot": "medium",
+        "visual": "Subject enjoying the result, product visible in the frame.",
+        "camera": "Static medium shot, subject centered.",
+        "action": "Subject points to or interacts with the result.",
+        "onScreenText": "Baked fresh every morning",
+        "voiceover": "And the best part? Baked fresh every morning.",
+        "sfx": "Soft pop accent on the on-screen text.",
+        "transition": "Slide transition in the text direction."
+      },
+      {
+        "id": "s_011229c5c7c64909",
+        "duration": 5,
+        "beat": "cta",
+        "shot": "text",
+        "visual": "End card: logo, product and the call to action, large and readable.",
+        "camera": "Static centered frame, held long enough to read.",
+        "action": "Logo and CTA text appear; hold the frame.",
+        "onScreenText": "Order today in the link",
+        "voiceover": "Real care goes into every Bloom Bakery experience. Order today in the link.",
+        "sfx": "Music resolves to the final note.",
+        "transition": "End on the frame (no transition)."
+      }
+    ],
+    "voiceover": {
+      "text": "[0:00–0:04] Let us show you how it is really made.\n\n[0:04–0:10] Real people, real work, every single time.\n\n[0:10–0:15] This is what happens behind the scenes.\n\n[0:15–0:20] Look closer. Quality you can see.\n\n[0:20–0:25] And the best part? Baked fresh every morning.\n\n[0:25–0:30] Real care goes into every Bloom Bakery experience. Order today in the link.",
+      "language": "English",
+      "tone": "Warm"
+    },
+    "social": {
+      "instagram": "Let us show you how it is really made.\n\nReal care goes into every Bloom Bakery experience.\n\nWhy you will love it:\n• Baked fresh every morning\n• Organic flour, no preservatives\n• Delivered to your door the same day\n\nOrder today in the link.\n\nTell us in the comments: would you try it?\n\n#BloomBakery #foodie #restaurant #foodlover #eatlocal #reels",
+      "tiktok": "Let us show you how it is really made. Would you try it? #BloomBakery #foodie #restaurant #eatlocal #fyp",
+      "youtubeShorts": "Bloom Bakery: Real care goes into every experience\n\nReal care goes into every Bloom Bakery experience.\nBaked fresh every morning · Organic flour, no preservatives · Delivered to your door the same day\n\nOrder today in the link. Subscribe for more.\n\n#shorts #BloomBakery #foodie #restaurant",
+      "facebook": "Discover Bloom Bakery\n\nLet us show you how it is really made.\n\nReal care goes into every Bloom Bakery experience.\n\nWhy you will love it:\n• Baked fresh every morning\n• Organic flour, no preservatives\n• Delivered to your door the same day\n\nOrder today in the link.\n\n#BloomBakery #foodie",
+      "hashtags": [
+        "#BloomBakery",
+        "#foodie",
+        "#restaurant",
+        "#foodlover",
+        "#eatlocal",
+        "#reels"
+      ],
+      "shortTitle": "Bloom Bakery: Real care goes into every experience",
+      "ctas": [
+        "Order today in the link",
+        "Send us a message to learn more",
+        "Save this post for later",
+        "Learn more"
+      ]
+    },
+    "storyboardStyle": "Warm",
+    "generator": {
+      "engine": "local"
+    },
+    "seed": 20261111
+  }
+}

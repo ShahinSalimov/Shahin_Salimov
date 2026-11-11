@@ -40,6 +40,7 @@ interface AppState {
   duplicateCampaign(id: string): Campaign | null;
   deleteCampaign(id: string): Promise<void>;
   importData(campaigns: Campaign[], brands: Brand[]): Promise<{ campaigns: number; brands: number }>;
+  addDemoCampaign(): Promise<Campaign>;
 
   saveBrand(brand: Brand): Promise<void>;
   deleteBrand(id: string): Promise<void>;
@@ -234,6 +235,13 @@ export const useApp = create<AppState>((set, get) => {
         brands: [...get().brands, ...incomingBrands],
       });
       return { campaigns: incoming.length, brands: incomingBrands.length };
+    },
+
+    async addDemoCampaign() {
+      const { buildDemoCampaign } = await import('../lib/demoCampaign');
+      const demo = buildDemoCampaign();
+      await get().importData([demo], []);
+      return demo;
     },
 
     async saveBrand(brand) {

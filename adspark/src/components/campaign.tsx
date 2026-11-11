@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Download, FileJson, FileText, Printer, SearchX, TriangleAlert, Lightbulb, ScrollText, Clapperboard, Mic, Share2 } from 'lucide-react';
 import { useApp } from '../store/app';
@@ -39,7 +39,7 @@ export function CampaignNav({ c }: { c: Campaign }) {
     { to: `/app/campaigns/${c.id}/social`, label: 'Social', icon: Share2, enabled: built },
   ];
   return (
-    <nav aria-label="Campaign sections" className="no-print mb-6 flex max-w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1">
+    <nav aria-label="Campaign sections" className="no-print mb-6 grid grid-cols-5 gap-1 rounded-xl border border-line bg-surface p-1 sm:flex sm:max-w-full">
       {items.map(({ to, label, icon: Icon, enabled, end }) =>
         enabled ? (
           <NavLink
@@ -47,14 +47,21 @@ export function CampaignNav({ c }: { c: Campaign }) {
             to={to}
             end={end}
             className={({ isActive }) =>
-              cx('inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors', isActive ? 'bg-elevated text-ink' : 'text-muted hover:text-ink')
+              cx(
+                'flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-[11px] font-medium transition-colors sm:flex-row sm:gap-2 sm:px-3 sm:text-sm',
+                isActive ? 'bg-elevated text-ink' : 'text-muted hover:text-ink',
+              )
             }
           >
             <Icon className="size-4" aria-hidden />
             {label}
           </NavLink>
         ) : (
-          <span key={to} className="inline-flex cursor-not-allowed items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-muted/40" title="Choose a concept and create the full campaign first">
+          <span
+            key={to}
+            className="flex min-w-0 cursor-not-allowed flex-col items-center gap-1 rounded-lg px-1 py-1.5 text-[11px] text-muted/40 sm:flex-row sm:gap-2 sm:px-3 sm:text-sm"
+            title="Choose a concept and create the full campaign first"
+          >
             <Icon className="size-4" aria-hidden />
             {label}
           </span>
@@ -114,7 +121,7 @@ export function useGeneration() {
   const [error, setError] = useState<string | null>(null);
   const last = useRef<{ key: string; task: (p: GenerationProvider) => Promise<void> } | null>(null);
 
-  const exec = async (key: string, task: (p: GenerationProvider) => Promise<void>, p: GenerationProvider) => {
+  const exec = useCallback(async (key: string, task: (p: GenerationProvider) => Promise<void>, p: GenerationProvider) => {
     last.current = { key, task };
     setBusy(key);
     setError(null);
@@ -125,15 +132,13 @@ export function useGeneration() {
     } finally {
       setBusy(null);
     }
-  };
+  }, []);
 
-  return {
-    busy,
-    error,
-    run: (key: string, task: (p: GenerationProvider) => Promise<void>) => exec(key, task, provider()),
-    retryLocal: () => (last.current ? exec(last.current.key, last.current.task, localProvider) : Promise.resolve()),
-    clearError: () => setError(null),
-  };
+  const run = useCallback((key: string, task: (p: GenerationProvider) => Promise<void>) => exec(key, task, provider()), [exec, provider]);
+  const retryLocal = useCallback(() => (last.current ? exec(last.current.key, last.current.task, localProvider) : Promise.resolve()), [exec]);
+  const clearError = useCallback(() => setError(null), []);
+
+  return { busy, error, run, retryLocal, clearError };
 }
 
 export function GenerationError({ error, onLocal, onDismiss }: { error: string | null; onLocal: () => void; onDismiss: () => void }) {

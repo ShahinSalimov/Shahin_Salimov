@@ -1,11 +1,13 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Clapperboard, Cpu, FolderOpen, Lightbulb, Palette, Sparkles, Film, Clock } from 'lucide-react';
 import { useApp } from '../store/app';
-import { ButtonLink, Card, EmptyState, PageHeader } from '../components/ui';
+import { Button, ButtonLink, Card, EmptyState, PageHeader } from '../components/ui';
 import { CampaignCard } from '../components/CampaignCard';
 
 export default function Dashboard() {
   const campaigns = useApp((s) => s.campaigns);
+  const addDemo = useApp((s) => s.addDemoCampaign);
+  const navigate = useNavigate();
   const brands = useApp((s) => s.brands);
   const ai = useApp((s) => s.ai);
   const status = useApp((s) => s.aiStatus);
@@ -63,7 +65,20 @@ export default function Dashboard() {
               icon={<Sparkles className="size-6" />}
               title="No campaigns yet"
               description="Describe a product and AdSpark will draft five advertising concepts for it."
-              action={<ButtonLink to="/app/new">Create your first campaign</ButtonLink>}
+              action={
+                <div className="flex flex-wrap justify-center gap-2">
+                  <ButtonLink to="/app/new">Create your first campaign</ButtonLink>
+                  <Button
+                    variant="secondary"
+                    onClick={async () => {
+                      const demo = await addDemo();
+                      navigate(`/app/campaigns/${demo.id}`);
+                    }}
+                  >
+                    Open a sample campaign
+                  </Button>
+                </div>
+              }
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">

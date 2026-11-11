@@ -39,8 +39,11 @@ export function uid(prefix = ''): string {
 
 /** Splits a free-text benefit list (lines, commas, semicolons, bullets) into clean items. */
 export function parseList(raw: string): string[] {
+  // One benefit per line wins; commas only separate items when everything is on a single line.
+  const multiLine = /\r?\n/.test(raw.trim());
+  const splitter = multiLine ? /\r?\n|;|•|·/ : /;|,|•|·/;
   return raw
-    .split(/\r?\n|;|,|•|·/)
+    .split(splitter)
     .map((s) => s.replace(/^[\s\-*–—\d.)]+/, '').trim())
     .filter((s) => s.length > 1)
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))

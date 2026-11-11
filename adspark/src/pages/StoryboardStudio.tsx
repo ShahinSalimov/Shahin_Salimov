@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Copy, Pencil, Play, Pause, Plus, Trash2, SkipBack, SkipForward, Clapperboard, Info } from 'lucide-react';
 import { useApp, useCampaign } from '../store/app';
@@ -24,9 +24,15 @@ function Preview({ c, open, onClose }: { c: Campaign; open: boolean; onClose: ()
     }
   }, [open]);
 
+  // Latest position, read when playback (re)starts without restarting the timer on every tick.
+  const elapsedRef = useRef(0);
+  useEffect(() => {
+    elapsedRef.current = elapsed;
+  }, [elapsed]);
+
   useEffect(() => {
     if (!playing) return;
-    const started = performance.now() - elapsed * 1000;
+    const started = performance.now() - elapsedRef.current * 1000;
     const timer = setInterval(() => {
       const e = (performance.now() - started) / 1000;
       if (e >= total) {
@@ -35,7 +41,6 @@ function Preview({ c, open, onClose }: { c: Campaign; open: boolean; onClose: ()
       } else setElapsed(e);
     }, 100);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, total]);
 
   let acc = 0;

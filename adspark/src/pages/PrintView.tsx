@@ -10,9 +10,9 @@ import { CampaignMissing } from '../components/campaign';
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="grid grid-cols-[150px_1fr] gap-3 py-1.5 text-sm">
+    <div className="grid gap-1 py-1.5 text-sm sm:grid-cols-[150px_1fr] sm:gap-3 print:grid-cols-[150px_1fr] print:gap-3">
       <dt className="font-semibold text-neutral-500">{k}</dt>
-      <dd className="whitespace-pre-wrap">{v}</dd>
+      <dd className="min-w-0 whitespace-pre-wrap break-words">{v}</dd>
     </div>
   );
 }
@@ -40,7 +40,7 @@ export default function PrintView() {
 
   return (
     <div className="min-h-dvh bg-neutral-100 py-8 print:bg-white print:py-0">
-      <div className="no-print mx-auto mb-6 flex max-w-[820px] items-center justify-between px-4">
+      <div className="no-print mx-auto mb-6 flex max-w-[820px] flex-wrap items-center justify-between gap-3 px-4">
         <Link to={`/app/campaigns/${c.id}`} className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-black">
           <ArrowLeft className="size-4" /> Back to campaign
         </Link>
@@ -49,10 +49,10 @@ export default function PrintView() {
         </button>
       </div>
 
-      <article className="mx-auto max-w-[820px] bg-white px-10 py-10 text-neutral-900 shadow-sm print:max-w-none print:px-0 print:py-0 print:shadow-none">
+      <article className="mx-auto max-w-[820px] bg-white px-5 py-8 text-neutral-900 sm:px-10 sm:py-10 shadow-sm print:max-w-none print:px-0 print:py-0 print:shadow-none">
         <header className="border-b-4 border-[#8065F6] pb-5">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6c4ff0]">AdSpark campaign report</p>
-          <h1 className="mt-2 text-3xl font-extrabold">{c.name}</h1>
+          <h1 className="mt-2 break-words text-2xl font-extrabold sm:text-3xl">{c.name}</h1>
           <p className="mt-1 text-sm text-neutral-600">
             {brand?.name ?? c.input.productName} · {c.input.platform} ({aspectRatio(c.input.platform)}) · {c.input.duration}s · {c.input.language}
           </p>
@@ -93,7 +93,7 @@ export default function PrintView() {
                 const start = t;
                 t += s.duration;
                 return (
-                  <div key={s.id} className="grid break-inside-avoid grid-cols-[200px_1fr] gap-4 rounded-lg border border-neutral-200 p-3">
+                  <div key={s.id} className="grid break-inside-avoid gap-4 rounded-lg border border-neutral-200 p-3 sm:grid-cols-[200px_1fr] print:grid-cols-[200px_1fr]">
                     <div>
                       <StoryboardFrame shot={s.shot} style={c.storyboardStyle} number={i + 1} text={s.onScreenText} className="block w-full rounded border border-neutral-200" />
                       <p className="mt-1 text-xs text-neutral-500">

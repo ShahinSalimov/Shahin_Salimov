@@ -1,0 +1,154 @@
+ADSPARK CAMPAIGN: Sample: Bloom Bakery morning launch
+Brand: Bloom Bakery
+Product: Bloom Bakery | Category: Restaurant
+Platform: Instagram Reels (9:16 vertical) | Duration: 30s | Language: English
+Style: Cinematic | Tone: Warm | Goal: Drive sales
+Generated with: Demo Generation: AdSpark local template engine (not AI)
+
+CONCEPT
+=======
+
+Title: Behind the Process
+Main idea: Show the people, preparation and care behind Bloom Bakery so the audience understands why it is worth it. Build it around the first bite, and feature the lead benefit: Baked fresh every morning.
+Target audience: busy families and young professionals in the city
+Angle: Authenticity: transparency about how it is made or delivered builds credibility.
+Emotional trigger: Trust and pride
+Hook: Let us show you how it is really made.
+Main message: Real care goes into every Bloom Bakery experience.
+Call to action: Order today in the link
+Visual direction: Cinematic look: controlled contrast, shallow depth of field, motivated practical lighting and a restrained color grade. Setting: the restaurant kitchen and dining tables. Hero shot: steam rising from a freshly plated dish and hands breaking it open. Frame for 9:16 vertical.
+
+VIDEO SCRIPT
+============
+
+Scene 1 [0:00–0:04, 4s]
+  Visual: Bold first frame in the restaurant kitchen and dining tables with the subject facing camera and the key prop clearly visible.
+  Camera: Static close-up, subject looks straight into the lens.
+  Action: Subject turns to camera and starts talking immediately.
+  On-screen text: Let us show you how it is really made
+  Voiceover: Let us show you how it is really made.
+  Sound: Subtle riser under the opening line.
+  Transition: Quick whip-pan cut.
+
+Scene 2 [0:04–0:10, 6s]
+  Visual: Hands at work during the preparation or delivery process.
+  Camera: Close-up on hands, steady gimbal.
+  Action: Process step completed with visible care.
+  On-screen text: How it is made
+  Voiceover: Real people, real work, every single time.
+  Sound: Ambient sound with a light music bed.
+  Transition: Whip-pan cut.
+
+Scene 3 [0:10–0:15, 5s]
+  Visual: Behind the scenes in the restaurant kitchen and dining tables: the Bloom Bakery team at work.
+  Camera: Handheld documentary-style medium shot.
+  Action: Team member works carefully, glances up at camera.
+  On-screen text: Behind the scenes
+  Voiceover: This is what happens behind the scenes.
+  Sound: Authentic work sounds from the location.
+  Transition: Cut on action.
+
+Scene 4 [0:15–0:20, 5s]
+  Visual: Extreme close-up of the most distinctive detail of Bloom Bakery.
+  Camera: Close-up with a slow focus pull from foreground to product.
+  Action: Product rotates slowly on a turntable.
+  On-screen text: Crafted with care
+  Voiceover: Look closer. Quality you can see.
+  Sound: Quiet, airy ambience.
+  Transition: Focus-pull transition.
+
+Scene 5 [0:20–0:25, 5s]
+  Visual: Subject enjoying the result, product visible in the frame.
+  Camera: Static medium shot, subject centered.
+  Action: Subject points to or interacts with the result.
+  On-screen text: Baked fresh every morning
+  Voiceover: And the best part? Baked fresh every morning.
+  Sound: Soft pop accent on the on-screen text.
+  Transition: Slide transition in the text direction.
+
+Scene 6 [0:25–0:30, 5s]
+  Visual: End card: logo, product and the call to action, large and readable.
+  Camera: Static centered frame, held long enough to read.
+  Action: Logo and CTA text appear; hold the frame.
+  On-screen text: Order today in the link
+  Voiceover: Real care goes into every Bloom Bakery experience. Order today in the link.
+  Sound: Music resolves to the final note.
+  Transition: End on the frame (no transition).
+
+Total: 30s
+
+VOICEOVER
+=========
+
+Language: English | Tone: Warm
+
+[0:00–0:04] Let us show you how it is really made.
+
+[0:04–0:10] Real people, real work, every single time.
+
+[0:10–0:15] This is what happens behind the scenes.
+
+[0:15–0:20] Look closer. Quality you can see.
+
+[0:20–0:25] And the best part? Baked fresh every morning.
+
+[0:25–0:30] Real care goes into every Bloom Bakery experience. Order today in the link.
+
+SOCIAL MEDIA CONTENT
+====================
+
+Short title: Bloom Bakery: Real care goes into every experience
+
+-- Instagram caption --
+Let us show you how it is really made.
+
+Real care goes into every Bloom Bakery experience.
+
+Why you will love it:
+• Baked fresh every morning
+• Organic flour, no preservatives
+• Delivered to your door the same day
+
+Order today in the link.
+
+Tell us in the comments: would you try it?
+
+#BloomBakery #foodie #restaurant #foodlover #eatlocal #reels
+
+-- TikTok caption --
+Let us show you how it is really made. Would you try it? #BloomBakery #foodie #restaurant #eatlocal #fyp
+
+-- YouTube Shorts description --
+Bloom Bakery: Real care goes into every experience
+
+Real care goes into every Bloom Bakery experience.
+Baked fresh every morning · Organic flour, no preservatives · Delivered to your door the same day
+
+Order today in the link. Subscribe for more.
+
+#shorts #BloomBakery #foodie #restaurant
+
+-- Facebook promotional text --
+Discover Bloom Bakery
+
+Let us show you how it is really made.
+
+Real care goes into every Bloom Bakery experience.
+
+Why you will love it:
+• Baked fresh every morning
+• Organic flour, no preservatives
+• Delivered to your door the same day
+
+Order today in the link.
+
+#BloomBakery #foodie
+
+-- Hashtags --
+#BloomBakery #foodie #restaurant #foodlover #eatlocal #reels
+
+-- CTA suggestions --
+- Order today in the link
+- Send us a message to learn more
+- Save this post for later
+- Learn more

@@ -39,6 +39,13 @@ test('optional AI provider: consent gate, AI generation through the proxy, exact
   await page.getByRole('link', { name: 'Social', exact: true }).click();
   await expect(page.getByLabel('Instagram caption')).toHaveValue('AI Instagram caption');
 
+  // PDF export works under the production server's Content-Security-Policy.
+  const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'PDF', exact: true }).click()]);
+  expect(pdf.suggestedFilename()).toMatch(/\.pdf$/);
+  const headers = (await request.get(`${APP}/`)).headers();
+  expect(headers['content-security-policy']).toContain("default-src 'self'");
+  expect(headers['x-frame-options']).toBe('DENY');
+
   // Turning AI off returns to Demo Generation without touching saved work.
   await page.goto(`${APP}/app/settings`);
   await page.getByRole('button', { name: 'Turn off AI' }).click();

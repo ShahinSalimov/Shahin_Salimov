@@ -1,3 +1,4 @@
+import { bytesToBase64 } from './base64';
 export const MAX_LOGO_BYTES = 500 * 1024;
 const ALLOWED = ['image/png', 'image/jpeg', 'image/webp'] as const;
 
@@ -16,12 +17,6 @@ export function sniffImageType(bytes: Uint8Array): (typeof ALLOWED)[number] | nu
   return null;
 }
 
-function toBase64(bytes: Uint8Array): string {
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  return btoa(binary);
-}
 
 /** Validates an uploaded logo (type, size, real content) and returns a safe data URL. SVG is rejected because it can carry scripts. */
 export async function readLogo(file: File): Promise<string> {
@@ -30,5 +25,5 @@ export async function readLogo(file: File): Promise<string> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const real = sniffImageType(bytes);
   if (!real) throw new FileValidationError('This file is not a valid PNG, JPEG or WebP image.');
-  return `data:${real};base64,${toBase64(bytes)}`;
+  return `data:${real};base64,${bytesToBase64(bytes)}`;
 }

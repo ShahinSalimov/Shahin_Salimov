@@ -1,7 +1,5 @@
 import type { Brand, Campaign } from '../schemas';
 import { buildReport, type Report } from './report';
-import regularFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans.ttf?url';
-import boldFontUrl from 'dejavu-fonts-ttf/ttf/DejaVuSans-Bold.ttf?url';
 
 export interface PdfFonts {
   regular: string; // base64 TTF
@@ -10,24 +8,6 @@ export interface PdfFonts {
 
 export class PdfExportError extends Error {}
 
-function toBase64(buf: Uint8Array): string {
-  let binary = '';
-  const chunk = 0x8000;
-  for (let i = 0; i < buf.length; i += chunk) binary += String.fromCharCode(...buf.subarray(i, i + chunk));
-  return btoa(binary);
-}
-
-// DejaVu Sans covers Latin (incl. Azerbaijani/Turkish letters) and Cyrillic,
-// which jsPDF's built-in Helvetica cannot render. Loaded only when a PDF is requested.
-async function loadBrowserFonts(): Promise<PdfFonts> {
-  const load = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new PdfExportError('The PDF font could not be loaded.');
-    return toBase64(new Uint8Array(await res.arrayBuffer()));
-  };
-  const [regular, bold] = await Promise.all([load(regularFontUrl), load(boldFontUrl)]);
-  return { regular, bold };
-}
 
 type RGB = readonly [number, number, number];
 const COLORS = {
@@ -116,7 +96,12 @@ export async function renderReportPdf(report: Report, fonts: PdfFonts): Promise<
     } else if (b.kind === 'tags') {
       para(b.text, { size: 10, color: COLORS.primary });
     } else {
-      ensure(80);
+      // Keep a scene on one page when it fits: measure before drawing.
+      doc.setFont('DejaVu', 'normal');
+      doc.setFontSize(10);
+      const blockH =
+        34 + b.fields.reduce((h, [, v]) => h + 7.5 * 1.4 + 1 + (doc.splitTextToSize(v || '—', contentW - 10) as string[]).length * 14 + 6, 0);
+      ensure(Math.min(blockH, pageH - margin * 2 - 40));
       doc.setFillColor(...COLORS.soft);
       doc.roundedRect(margin, y, contentW, 22, 4, 4, 'F');
       doc.setFont('DejaVu', 'bold');
@@ -148,5 +133,7 @@ export async function renderReportPdf(report: Report, fonts: PdfFonts): Promise<
 }
 
 export async function campaignToPdf(c: Campaign, brand?: Brand | null, fonts?: PdfFonts): Promise<Blob> {
-  return renderReportPdf(buildReport(c, brand), fonts ?? (await loadBrowserFonts()));
+  // Browser-only font loader is imported lazily so Node scripts and tests can render with their own fonts.
+  const resolved = fonts ?? (await (await import('./pdfFonts')).loadBrowserFonts());
+  return renderReportPdf(buildReport(c, brand), resolved);
 }

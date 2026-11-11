@@ -204,6 +204,25 @@ describe('social platform conventions', () => {
   });
 });
 
+describe('copy quality', () => {
+  it('never runs user text into the next sentence', () => {
+    for (const language of LANGUAGES) {
+      const input = { ...base, language, problem: 'Bread goes stale in a day' };
+      for (const c of generateConcepts(input, 3)) expect(c.hook).toMatch(/[.!?…:]$/);
+      const s = generateSocial(input, { ...generateConcepts(input, 3)[0], hook: 'Sound familiar? Bread goes stale' }, 3);
+      expect(s.tiktok).toContain('Bread goes stale.');
+    }
+  });
+  it('keeps product names uninflected in Azerbaijani, Turkish and Russian templates', () => {
+    for (const language of ['Azerbaijani', 'Turkish'] as const) {
+      const text = JSON.stringify(generateConcepts({ ...base, language }, 1, 11));
+      expect(text).not.toMatch(/Bloom Bakery (arxasında|arkasında|sınamaq|denemek|bu qədər xoşuma|bu kadar hoşuma)/);
+    }
+    const ru = JSON.stringify(generateConcepts({ ...base, language: 'Russian' }, 1, 11));
+    expect(ru).not.toMatch(/не ожидал|Попробовал бы/);
+  });
+});
+
 describe('reading time', () => {
   it('uses language-specific speaking rates', () => {
     const text = Array.from({ length: 130 }, () => 'word').join(' ');
@@ -215,7 +234,9 @@ describe('reading time', () => {
 
 describe('utils', () => {
   it('parses benefit lists from lines, commas and bullets', () => {
-    expect(parseList('- fast\n• cheap, reliable; 4) local')).toEqual(['Fast', 'Cheap', 'Reliable', 'Local']);
+    expect(parseList('- fast\n• cheap, reliable; 4) local')).toEqual(['Fast', 'Cheap, reliable', 'Local']);
+    expect(parseList('fast, cheap, reliable')).toEqual(['Fast', 'Cheap', 'Reliable']);
+    expect(parseList('Organic flour, no preservatives\nSame-day delivery')).toEqual(['Organic flour, no preservatives', 'Same-day delivery']);
   });
   it('shortens at a word boundary', () => {
     expect(shorten('Supermarket bread goes stale in a single day', 20)).toBe('Supermarket bread…');

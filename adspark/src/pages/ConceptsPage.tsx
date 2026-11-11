@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Eye, Pencil, RefreshCw, Star, Sparkles, Quote, Target, Heart, Info } from 'lucide-react';
 import { useApp, useCampaign } from '../store/app';
@@ -148,19 +148,22 @@ export default function ConceptsPage() {
   const [confirm, setConfirm] = useState<Concept | null>(null);
   const autoRan = useRef(false);
 
-  const generateAll = (campaign: Campaign) =>
-    gen.run('all', async (p) => {
-      const concepts = await regenerateConcepts(campaign, p);
-      update(campaign.id, (x) => ({ ...x, concepts, generator: p.info }));
-    });
+  const { run } = gen;
+  const generateAll = useCallback(
+    (campaign: Campaign) =>
+      run('all', async (p) => {
+        const concepts = await regenerateConcepts(campaign, p);
+        update(campaign.id, (x) => ({ ...x, concepts, generator: p.info }));
+      }),
+    [run, update],
+  );
 
   useEffect(() => {
     if (c && c.concepts.length === 0 && !autoRan.current) {
       autoRan.current = true;
       void generateAll(c);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [c?.id]);
+  }, [c, generateAll]);
 
   if (!c) return <CampaignMissing />;
 

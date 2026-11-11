@@ -18,6 +18,7 @@ export default function Campaigns() {
   const rename = useApp((s) => s.renameCampaign);
   const importData = useApp((s) => s.importData);
   const toast = useApp((s) => s.toast);
+  const addDemo = useApp((s) => s.addDemoCampaign);
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -105,6 +106,9 @@ export default function Campaigns() {
         actions={
           <>
             <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" id="import-file" onChange={(e) => onImport(e.target.files?.[0])} />
+            <Button variant="ghost" onClick={async () => { await addDemo(); toast('success', 'Sample campaign added.'); }}>
+              Add sample campaign
+            </Button>
             <Button variant="secondary" icon={<Upload className="size-4" />} onClick={() => fileRef.current?.click()}>
               Import JSON
             </Button>

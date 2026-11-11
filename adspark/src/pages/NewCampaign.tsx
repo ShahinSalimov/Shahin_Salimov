@@ -5,6 +5,7 @@ import { useApp } from '../store/app';
 import { Button, Card, ConfirmModal, PageHeader, SelectField, TextArea, TextField, cx } from '../components/ui';
 import { CATEGORIES, DURATIONS, GOALS, LANGUAGES, PLATFORMS, STYLES, TONES } from '../lib/schemas';
 import { aspectRatio } from '../lib/engine/generate';
+import { parseList } from '../lib/engine/util';
 import {
   DEFAULTS,
   LIMITS,
@@ -252,7 +253,7 @@ export default function NewCampaign() {
   );
 
   const brandName = brands.find((b) => b.id === form.brandId)?.name;
-  const benefits = form.benefits.split(/\n|,|;/).map((b) => b.trim()).filter(Boolean);
+  const benefits = parseList(form.benefits);
 
   return (
     <>
