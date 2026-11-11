@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Eye, Pencil, RefreshCw, Star, Sparkles, Quote, Target, Heart } from 'lucide-react';
+import { Eye, Pencil, RefreshCw, Star, Sparkles, Quote, Target, Heart, Info } from 'lucide-react';
 import { useApp, useCampaign } from '../store/app';
 import type { Campaign, Concept } from '../lib/schemas';
 import { conceptSchema } from '../lib/schemas';
@@ -188,6 +188,15 @@ export default function ConceptsPage() {
         }
       />
       <CampaignNav c={c} />
+      {c.generator.engine === 'local' && c.concepts.length ? (
+        <p className="mb-5 flex gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-ink/85" role="note">
+          <Info className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+          <span>
+            <strong className="font-semibold">Demo Generation.</strong> These concepts come from AdSpark’s local template library, adapted to your category, style and
+            brief. No AI model was used. Review and edit them before production.
+          </span>
+        </p>
+      ) : null}
       <GenerationError error={gen.error} onLocal={gen.retryLocal} onDismiss={gen.clearError} />
 
       {c.concepts.length === 0 ? (

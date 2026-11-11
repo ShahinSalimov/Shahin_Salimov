@@ -13,7 +13,7 @@ export function selectedConcept(c: Campaign) {
 export function generatorLabel(c: Campaign): string {
   return c.generator.engine === 'ai'
     ? `AI provider (${c.generator.provider ?? 'unknown'}${c.generator.model ? `, ${c.generator.model}` : ''})`
-    : 'AdSpark local template engine (not AI)';
+    : 'Demo Generation: AdSpark local template engine (not AI)';
 }
 
 export function campaignToText(c: Campaign, brand?: Brand | null): string {

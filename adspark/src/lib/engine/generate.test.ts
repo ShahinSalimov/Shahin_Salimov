@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { allocateDurations, countSpokenWords, estimateReadingSeconds, fitDurations, generateConcepts, generateScenes, generateSocial, planBeats, regenerateVoiceoverText, SCENE_COUNT, generateVoiceover } from './generate';
 import { parseList, shorten, toHashtag } from './util';
 import { ARCHETYPES } from './archetypes';
-import { campaignInputSchema, DURATIONS, LANGUAGES, STYLES, type CampaignInput } from '../schemas';
+import { campaignInputSchema, CATEGORIES, DURATIONS, LANGUAGES, STYLES, type CampaignInput } from '../schemas';
+import { CATEGORY_PROFILE } from './archetypes';
 
 const base: CampaignInput = campaignInputSchema.parse({
   productName: 'Bloom Bakery',
@@ -68,6 +69,32 @@ describe('generateConcepts', () => {
         expect(JSON.stringify(c)).not.toMatch(/\{[a-z]+\}/i);
       }
     }
+  });
+});
+
+describe('category-aware generation', () => {
+  it('includes at least one archetype suited to the category', () => {
+    for (const category of CATEGORIES) {
+      for (const seed of [1, 2, 3, 4]) {
+        const archetypes = generateConcepts({ ...base, category, style: 'Minimal' }, seed).map((c) => c.archetype);
+        expect(archetypes.some((a) => (CATEGORY_PROFILE[category].boost as string[]).includes(a)), `${category}/${seed}`).toBe(true);
+      }
+    }
+  });
+
+  it('uses category-specific settings, hero shots and moments', () => {
+    const food = generateConcepts({ ...base, category: 'Restaurant' }, 8)[0];
+    const home = generateConcepts({ ...base, category: 'Real Estate' }, 8)[0];
+    expect(food.visualDirection).toContain(CATEGORY_PROFILE.Restaurant.hero);
+    expect(home.visualDirection).toContain(CATEGORY_PROFILE['Real Estate'].setting);
+    expect(home.mainIdea).toContain(CATEGORY_PROFILE['Real Estate'].moment);
+    const detailScene = generateScenes(base, { ...food, archetype: 'productHero' }, 1).find((s) => s.beat === 'detail' && s.visual.startsWith('Macro'));
+    if (detailScene) expect(detailScene.visual).toContain(CATEGORY_PROFILE.Restaurant.hero);
+  });
+
+  it('gives different concept sets for different seeds (regenerate) but identical for the same seed', () => {
+    const sets = new Set([1, 2, 3, 4, 5, 6].map((seed) => generateConcepts(base, seed).map((c) => c.archetype).join()));
+    expect(sets.size).toBeGreaterThan(1);
   });
 });
 

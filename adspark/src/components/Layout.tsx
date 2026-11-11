@@ -44,7 +44,7 @@ function EngineBadge() {
     >
       <Cpu className="size-3.5 shrink-0" aria-hidden />
       <span className="min-w-0 truncate">
-        Engine: <span className="font-medium text-ink">{usingAi ? `AI · ${status?.provider}` : 'Local templates'}</span>
+        Engine: <span className="font-medium text-ink">{usingAi ? `AI · ${status?.provider}` : 'Demo Generation'}</span>
       </span>
     </Link>
   );

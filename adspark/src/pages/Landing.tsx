@@ -135,7 +135,7 @@ export default function Landing() {
                 <h2 className="text-xl font-bold">Honest about how your content is made</h2>
               </div>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Out of the box, AdSpark uses a local template engine: proven advertising structures filled with your product details. It
+                Out of the box, AdSpark runs in Demo Generation mode, a local template engine: proven advertising structures filled with your product details. It
                 works offline and costs nothing per campaign. It is not AI, and the app always labels it that way. If you run the optional
                 AdSpark server with your own AI provider key, you can switch to AI generation — only after you explicitly allow it.
               </p>

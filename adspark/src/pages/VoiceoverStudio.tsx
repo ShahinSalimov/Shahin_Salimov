@@ -38,7 +38,7 @@ export default function VoiceoverStudio() {
   const regenerate = (language: Language = vo.language) => {
     const text = regenerateVoiceoverText({ ...c.input, language }, selectedConcept(c), c.scenes, newSeed());
     setVo({ text, language });
-    toast('info', `Voiceover rewritten in ${language} with the local template engine.`);
+    toast('info', `Voiceover rewritten in ${language} with Demo Generation (local templates, not AI).`);
   };
 
   return (

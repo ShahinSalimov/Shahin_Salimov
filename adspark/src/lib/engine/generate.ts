@@ -1,5 +1,5 @@
-import type { AdStyle, CampaignInput, Concept, Platform, Scene, ShotType, SocialContent, Tone, Voiceover } from '../schemas';
-import { ARCHETYPES, CATEGORY_SETTING, STYLE_LOOK, STYLE_PREFERENCES, type ArchetypeId } from './archetypes';
+import type { AdStyle, Category, CampaignInput, Concept, Platform, Scene, ShotType, SocialContent, Tone, Voiceover } from '../schemas';
+import { ARCHETYPES, CATEGORY_PROFILE, STYLE_LOOK, STYLE_PREFERENCES, type ArchetypeId } from './archetypes';
 import { PACKS, fill, type BeatId } from './phrases';
 import { createRng, formatTime, parseList, shorten, stripEnd, toHashtag, uid, type Rng } from './util';
 
@@ -64,14 +64,23 @@ function varsFrom(input: CampaignInput): Vars {
   };
 }
 
-function pickArchetypes(style: AdStyle, rng: Rng, count: number, exclude: string[]): ArchetypeId[] {
-  const preferred = rng.shuffle(STYLE_PREFERENCES[style]).filter((id) => !exclude.includes(id));
-  const others = rng
-    .shuffle(Object.keys(ARCHETYPES) as ArchetypeId[])
-    .filter((id) => !preferred.includes(id) && !exclude.includes(id));
-  const lead = preferred.slice(0, Math.min(3, count));
-  const rest = [...others, ...preferred.slice(lead.length)];
-  return [...lead, ...rest].slice(0, count);
+/**
+ * Chooses distinct archetypes: two that suit the style, one that suits the category,
+ * then the rest from the remaining pool (all deterministic per seed).
+ */
+function pickArchetypes(style: AdStyle, category: Category, rng: Rng, count: number, exclude: string[]): ArchetypeId[] {
+  const chosen: ArchetypeId[] = [];
+  const add = (id: ArchetypeId | undefined) => {
+    if (id && !chosen.includes(id) && !exclude.includes(id) && chosen.length < count) chosen.push(id);
+  };
+  const stylePool = rng.shuffle(STYLE_PREFERENCES[style]).filter((id) => !exclude.includes(id));
+  const categoryPool = rng.shuffle(CATEGORY_PROFILE[category].boost);
+  stylePool.slice(0, 2).forEach(add);
+  categoryPool.forEach((id) => {
+    if (chosen.length < Math.min(3, count)) add(id);
+  });
+  for (const id of [...stylePool, ...rng.shuffle(Object.keys(ARCHETYPES) as ArchetypeId[])]) add(id);
+  return chosen;
 }
 
 function buildConcept(input: CampaignInput, id: ArchetypeId, rng: Rng): Concept {
@@ -80,18 +89,19 @@ function buildConcept(input: CampaignInput, id: ArchetypeId, rng: Rng): Concept 
   const v = varsFrom(input);
   const t = { product: v.product, problem: v.problem, audience: v.audience, cta: v.cta, price: v.price };
   const leadBenefit = v.benefits[0];
+  const profile = CATEGORY_PROFILE[input.category];
   return {
     id: uid('c_'),
     archetype: id,
     title: fill(a.title, t),
-    mainIdea: `${fill(a.idea, t)} Lead benefit to feature: ${leadBenefit}.`,
+    mainIdea: `${fill(a.idea, t)} Build it around ${profile.moment}, and feature the lead benefit: ${leadBenefit}.`,
     audience: v.audience,
     angle: a.angle,
     emotionalTrigger: a.trigger,
     hook: fill(rng.pick(pack.hooks[id]), t),
     message: fill(pack.messages[id], t),
     cta: v.cta,
-    visualDirection: `${STYLE_LOOK[input.style]} Setting: ${CATEGORY_SETTING[input.category]}. Frame for ${aspectRatio(input.platform)}.`,
+    visualDirection: `${STYLE_LOOK[input.style]} Setting: ${profile.setting}. Hero shot: ${profile.hero}. Frame for ${aspectRatio(input.platform)}.`,
     saved: false,
   };
 }
@@ -104,7 +114,7 @@ export function generateConcepts(
   excludeArchetypes: string[] = [],
 ): Concept[] {
   const rng = createRng(seed);
-  return pickArchetypes(input.style, rng, count, excludeArchetypes).map((id) => buildConcept(input, id, rng));
+  return pickArchetypes(input.style, input.category, rng, count, excludeArchetypes).map((id) => buildConcept(input, id, rng));
 }
 
 // ---------------------------------------------------------------------------
@@ -157,7 +167,7 @@ const PROD: Record<BeatId, BeatProduction> = {
   demo: {
     shot: 'close',
     weight: 1.3,
-    visual: ['Clear demonstration of {product} being used in {setting}.', 'Over-the-shoulder view of the product in real use, each step readable.'],
+    visual: ['Clear demonstration of {product} being used in {setting}: {hero}.', 'Over-the-shoulder view of the product in real use, each step readable.'],
     camera: ['Over-the-shoulder medium close-up, steady on a gimbal.', 'Top-down overhead shot from a tripod arm.'],
     action: ['Hands demonstrate the product step by step at a natural pace.', 'Subject uses the product and reacts to how simple it is.'],
     sfx: ['Natural product sounds (clicks, pours, taps) brought forward in the mix.', 'Light UI or tap sounds synced to each step.'],
@@ -202,7 +212,7 @@ const PROD: Record<BeatId, BeatProduction> = {
   story: {
     shot: 'wide',
     weight: 1.2,
-    visual: ['Wide establishing shot of {setting} with the main character in a natural moment.', 'Everyday moment with the main character in {setting}.'],
+    visual: ['Wide establishing shot of {setting} with the main character in a natural moment.', 'The key moment in {setting}: {moment}.'],
     camera: ['Wide shot on a tripod, natural light.', 'Slow lateral gimbal move following the character.'],
     action: ['Character goes through a routine moment.', 'Character shares a small, genuine moment with someone.'],
     sfx: ['Natural ambience with soft music.', 'Gentle music bed, room tone.'],
@@ -211,7 +221,7 @@ const PROD: Record<BeatId, BeatProduction> = {
   detail: {
     shot: 'close',
     weight: 1.1,
-    visual: ['Macro detail of {product}: texture, material or finish.', 'Extreme close-up of the most distinctive detail of {product}.'],
+    visual: ['Macro detail of {product}: {hero}.', 'Extreme close-up of the most distinctive detail of {product}.'],
     camera: ['Macro lens, slow slider move.', 'Close-up with a slow focus pull from foreground to product.'],
     action: ['A hand slowly turns or touches the product.', 'Product rotates slowly on a turntable.'],
     sfx: ['Soft tactile sounds (fabric, glass, packaging).', 'Quiet, airy ambience.'],
@@ -295,11 +305,11 @@ export function generateScenes(input: CampaignInput, concept: Concept, seed: num
     beats.map((b) => PROD[b].weight),
     2,
   );
-  const setting = CATEGORY_SETTING[input.category];
+  const { setting, hero, moment } = CATEGORY_PROFILE[input.category];
   let benefitIndex = 0;
   const occurrences = new Map<BeatId, number>();
   const offsets = new Map<BeatId, number>();
-  const base = { product: v.product, problem: v.problem, audience: v.audience, cta: v.cta, price: v.price, setting };
+  const base = { product: v.product, problem: v.problem, audience: v.audience, cta: v.cta, price: v.price, setting, hero, moment };
 
   return beats.map((beat, i) => {
     const prod = PROD[beat];

@@ -124,6 +124,16 @@ test('full workflow: concepts → campaign → storyboard → voiceover → soci
   await page.getByRole('button', { name: 'Regenerate unsaved' }).click();
   await expect(page.getByRole('article').first().getByRole('heading')).toHaveText(firstTitle!);
 
+  // Demo mode is labelled honestly
+  await expect(page.getByText('Demo Generation · not AI')).toBeVisible();
+  await expect(page.getByRole('note').filter({ hasText: 'No AI model was used' })).toBeVisible();
+
+  // Edit a concept
+  await page.getByRole('button', { name: 'Edit', exact: true }).nth(1).click();
+  await page.getByRole('dialog').getByLabel('Campaign title').fill('Fresh Every Morning');
+  await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('heading', { name: 'Fresh Every Morning' })).toBeVisible();
+
   // View concept
   await page.getByRole('button', { name: 'View' }).nth(1).click();
   await expect(page.getByRole('dialog')).toContainText('Emotional trigger');

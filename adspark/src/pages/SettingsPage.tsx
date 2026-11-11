@@ -50,11 +50,11 @@ export default function SettingsPage() {
             <Cpu className="size-5 text-secondary" aria-hidden />
             <h2 className="text-lg font-semibold">Generation engine</h2>
             <Badge tone={active ? 'secondary' : 'default'} className="ml-auto">
-              {active ? `AI · ${status?.provider}` : 'Local template engine'}
+              {active ? `AI · ${status?.provider}` : 'Demo Generation'}
             </Badge>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            The local template engine builds campaigns from proven advertising structures and your product details. It runs entirely in your browser, works offline, and is not AI.
+            Demo Generation is AdSpark’s local template engine. It builds campaigns from proven advertising structures and your product details. It runs entirely in your browser, works offline, and is not AI.
             Optional AI generation needs the AdSpark server running with your own provider key (see INSTALLATION.md). Keys stay on the server and are never sent to the browser.
           </p>
 

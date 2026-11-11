@@ -61,7 +61,7 @@ describe('backup and project files', () => {
 describe('TXT export', () => {
   it('contains every campaign section and labels the engine honestly', () => {
     const txt = campaignToText(campaign);
-    for (const part of ['CONCEPT', 'VIDEO SCRIPT', 'VOICEOVER', 'SOCIAL MEDIA CONTENT', 'Scene 1', 'Total: 15s', 'local template engine (not AI)']) {
+    for (const part of ['CONCEPT', 'VIDEO SCRIPT', 'VOICEOVER', 'SOCIAL MEDIA CONTENT', 'Scene 1', 'Total: 15s', 'Demo Generation: AdSpark local template engine (not AI)']) {
       expect(txt).toContain(part);
     }
   });

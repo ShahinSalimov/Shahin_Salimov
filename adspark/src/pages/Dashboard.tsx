@@ -83,7 +83,7 @@ export default function Dashboard() {
             <p className="mt-2 text-sm text-muted">
               {usingAi
                 ? `AI generation is on (${status?.provider}${status?.model ? `, ${status.model}` : ''}). Campaign details are sent to that provider when you generate.`
-                : 'Using the local template engine. It works offline and does not send your data anywhere. It is not AI.'}
+                : 'Demo Generation is active: a local template engine that fills proven ad structures with your brief. It works offline, sends nothing anywhere and is not AI.'}
             </p>
             <Link to="/app/settings#ai" className="mt-3 inline-flex items-center gap-1 text-sm text-secondary hover:underline">
               Engine settings <ArrowRight className="size-3.5" />

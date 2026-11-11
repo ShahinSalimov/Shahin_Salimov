@@ -25,7 +25,7 @@ export function GeneratorBadge({ c }: { c: Campaign }) {
   return c.generator.engine === 'ai' ? (
     <Badge tone="secondary">AI · {c.generator.provider}</Badge>
   ) : (
-    <Badge tone="default">Local template engine</Badge>
+    <Badge tone="warning" className="whitespace-nowrap">Demo Generation · not AI</Badge>
   );
 }
 

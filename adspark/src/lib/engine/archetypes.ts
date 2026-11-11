@@ -153,15 +153,80 @@ export const STYLE_LOOK: Record<AdStyle, string> = {
   Promotional: 'Bold brand colors, high-energy pacing, large readable text and a clear offer frame.',
 };
 
-export const CATEGORY_SETTING: Record<Category, string> = {
-  Restaurant: 'the restaurant kitchen and dining tables',
-  Fashion: 'a city street and a fitting room mirror',
-  Beauty: 'a bright vanity or bathroom mirror',
-  Technology: 'a tidy desk setup',
-  'Real Estate': 'the property interior and exterior',
-  Education: 'a study desk or classroom',
-  Fitness: 'a gym floor or outdoor training spot',
-  'E-commerce': 'a home doorstep and living room',
-  'Local Services': "a customer's home and the business storefront",
-  Other: 'a real-life setting where the product is used',
+export interface CategoryProfile {
+  /** Where the ad is shot. */
+  setting: string;
+  /** The single most persuasive visual detail for this category. */
+  hero: string;
+  /** The real-life moment the product changes. */
+  moment: string;
+  /** Archetypes that suit this category particularly well. */
+  boost: ArchetypeId[];
+}
+
+export const CATEGORY_PROFILE: Record<Category, CategoryProfile> = {
+  Restaurant: {
+    setting: 'the restaurant kitchen and dining tables',
+    hero: 'steam rising from a freshly plated dish and hands breaking it open',
+    moment: 'the first bite',
+    boost: ['behindScenes', 'productHero', 'dayInLife'],
+  },
+  Fashion: {
+    setting: 'a city street and a fitting room mirror',
+    hero: 'fabric movement and fit details as the outfit is worn in motion',
+    moment: 'catching their reflection and liking what they see',
+    boost: ['transformation', 'dayInLife', 'productHero'],
+  },
+  Beauty: {
+    setting: 'a bright vanity or bathroom mirror',
+    hero: 'texture of the product on skin and the finish in natural light',
+    moment: 'the morning routine in front of the mirror',
+    boost: ['transformation', 'socialProof', 'productHero'],
+  },
+  Technology: {
+    setting: 'a tidy desk setup',
+    hero: 'the screen or device responding instantly to one tap',
+    moment: 'finishing the task faster than expected',
+    boost: ['problemSolution', 'comparison', 'threeReasons'],
+  },
+  'Real Estate': {
+    setting: 'the property interior and exterior',
+    hero: 'light pouring through the windows into the main living space',
+    moment: 'opening the front door for the first time',
+    boost: ['emotionalStory', 'dayInLife', 'productHero'],
+  },
+  Education: {
+    setting: 'a study desk or classroom',
+    hero: 'a learner’s notes and the moment a concept clicks',
+    moment: 'answering a question they could not answer before',
+    boost: ['transformation', 'mythBusting', 'threeReasons'],
+  },
+  Fitness: {
+    setting: 'a gym floor or outdoor training spot',
+    hero: 'effort, breath and focused movement in a real workout',
+    moment: 'finishing the last rep',
+    boost: ['transformation', 'socialProof', 'mythBusting'],
+  },
+  'E-commerce': {
+    setting: 'a home doorstep and living room',
+    hero: 'the unboxing: packaging opening and the product revealed',
+    moment: 'the delivery arriving at the door',
+    boost: ['socialProof', 'offerCountdown', 'productHero'],
+  },
+  'Local Services': {
+    setting: "a customer's home and the business storefront",
+    hero: 'the professional at work with the finished result in view',
+    moment: 'the problem fixed and the customer relaxing',
+    boost: ['problemSolution', 'behindScenes', 'socialProof'],
+  },
+  Other: {
+    setting: 'a real-life setting where the product is used',
+    hero: 'the product in use in clear, natural light',
+    moment: 'the everyday moment the product makes easier',
+    boost: ['problemSolution', 'threeReasons', 'dayInLife'],
+  },
 };
+
+export const CATEGORY_SETTING: Record<Category, string> = Object.fromEntries(
+  Object.entries(CATEGORY_PROFILE).map(([k, v]) => [k, v.setting]),
+) as Record<Category, string>;
