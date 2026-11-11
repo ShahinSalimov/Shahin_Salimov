@@ -312,3 +312,40 @@ test('script regenerates for every duration and storyboard supports drag reorder
   await expect(page.getByText('7 scenes · 30s of 30s')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('voiceover and social: copy, edit, regenerate and hashtags', async ({ page, context }) => {
+  const errors = trackConsole(page);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await createCampaign(page);
+  await page.getByRole('button', { name: 'Create Full Campaign' }).first().click();
+  await page.getByRole('link', { name: 'Voiceover', exact: true }).click();
+
+  await expect(page.getByText(/spoken words at a comfortable pace for English/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Per-scene fit' })).toBeVisible();
+  await expect(page.getByText('It does not generate audio')).toBeVisible();
+  await page.getByLabel('Voiceover script').fill('[0:00–0:30] Short custom line.');
+  await expect(page.getByText(/~1s/).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Copy', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: 'Copied' })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('[0:00–0:30] Short custom line.');
+  await page.getByRole('button', { name: 'Sync from script' }).click();
+  await expect(page.getByLabel('Voiceover script')).toHaveValue(/\[0:00–/);
+  await page.getByLabel('Tone').selectOption('Calm');
+  await expect(page.getByText('Slow, relaxed pace')).toBeVisible();
+  await page.getByLabel('Language').selectOption('Russian');
+  await expect(page.getByLabel('Voiceover script')).toHaveValue(/[а-яё]/i);
+
+  await page.getByRole('link', { name: 'Social', exact: true }).click();
+  await expect(page.getByLabel('YouTube Shorts description')).toHaveValue(/#shorts/);
+  await expect(page.getByText('AdSpark does not post to social networks')).toBeVisible();
+  await page.getByLabel('New hashtag').fill('fresh bread!');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Hashtags' })).toContainText('#freshbread');
+  await page.getByRole('button', { name: 'Remove #freshbread' }).click();
+  await expect(page.getByRole('list', { name: 'Hashtags' })).not.toContainText('#freshbread');
+  await page.getByLabel('TikTok caption').fill('Edited TikTok caption');
+  await page.getByRole('button', { name: 'Regenerate' }).click();
+  await expect(page.getByText('Social content regenerated.')).toBeVisible();
+  await expect(page.getByLabel('TikTok caption')).not.toHaveValue('Edited TikTok caption');
+  expect(errors).toEqual([]);
+});

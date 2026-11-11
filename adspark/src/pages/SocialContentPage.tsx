@@ -5,7 +5,7 @@ import { useApp, useCampaign } from '../store/app';
 import type { SocialContent } from '../lib/schemas';
 import { selectedConcept } from '../lib/export/txt';
 import { newSeed } from '../lib/engine/util';
-import { Button, ButtonLink, Card, CopyButton, EmptyState, PageHeader } from '../components/ui';
+import { Button, ButtonLink, Card, CopyButton, EmptyState, PageHeader, cx } from '../components/ui';
 import { CampaignMissing, CampaignNav, ExportMenu, GenerationError, useGeneration } from '../components/campaign';
 import { CampaignTitle } from './CampaignEditor';
 
@@ -74,7 +74,7 @@ export default function SocialContentPage() {
       <CampaignNav c={c} />
       <GenerationError error={gen.error} onLocal={gen.retryLocal} onDismiss={gen.clearError} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={cx('grid gap-6 transition-opacity lg:grid-cols-2', gen.busy && 'pointer-events-none opacity-50')} aria-busy={!!gen.busy}>
         {BLOCKS.map((b) => {
           const value = social[b.key];
           return (
@@ -88,7 +88,7 @@ export default function SocialContentPage() {
               <textarea id={`soc-${b.key}`} className="input min-h-56 flex-1 resize-y leading-relaxed" value={value} maxLength={b.limit} onChange={(e) => set({ [b.key]: e.target.value })} aria-describedby={`soc-${b.key}-n`} />
               <p id={`soc-${b.key}-n`} className="mt-2 flex justify-between gap-3 text-xs text-muted">
                 <span>{b.note}</span>
-                <span className="shrink-0 tabular-nums">
+                <span className="shrink-0 tabular-nums" title="Characters used / AdSpark editor limit">
                   {value.length} / {b.limit}
                 </span>
               </p>
@@ -159,7 +159,7 @@ export default function SocialContentPage() {
         </Card>
       </div>
       <p className="mt-6 flex items-center gap-2 text-xs text-muted">
-        <Info className="size-3.5" aria-hidden /> Suggestions follow common platform conventions. Reach and engagement depend on many factors and are never guaranteed.
+        <Info className="size-3.5 shrink-0" aria-hidden /> Suggestions follow common platform conventions. Reach and engagement are never guaranteed. AdSpark does not post to social networks: copy the text into each app.
       </p>
     </>
   );

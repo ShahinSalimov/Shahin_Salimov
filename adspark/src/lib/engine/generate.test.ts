@@ -184,6 +184,35 @@ describe('generateSocial', () => {
   });
 });
 
+describe('social platform conventions', () => {
+  const s = generateSocial(base, generateConcepts(base, 4)[0], 4);
+  it('keeps hashtags relevant: product, category and platform tags only', () => {
+    expect(s.hashtags).toContain('#BloomBakery');
+    expect(s.hashtags).toContain('#restaurant');
+    expect(s.hashtags).toContain('#reels');
+    expect(new Set(s.hashtags).size).toBe(s.hashtags.length);
+  });
+  it('uses few hashtags on Facebook and more on Instagram', () => {
+    const count = (t: string) => (t.match(/#\S+/g) ?? []).length;
+    expect(count(s.facebook)).toBeLessThanOrEqual(2);
+    expect(count(s.instagram)).toBeGreaterThanOrEqual(4);
+    expect(count(s.tiktok)).toBeLessThanOrEqual(6);
+  });
+  it('puts the CTA in every caption', () => {
+    for (const t of [s.instagram, s.youtubeShorts, s.facebook]) expect(t).toContain('Order today');
+    expect(s.ctas[0]).toBe('Order today');
+  });
+});
+
+describe('reading time', () => {
+  it('uses language-specific speaking rates', () => {
+    const text = Array.from({ length: 130 }, () => 'word').join(' ');
+    expect(estimateReadingSeconds(text, 'English')).toBe(52);
+    expect(estimateReadingSeconds(text, 'Russian')).toBe(60);
+    expect(estimateReadingSeconds(text, 'Azerbaijani')).toBe(62);
+  });
+});
+
 describe('utils', () => {
   it('parses benefit lists from lines, commas and bullets', () => {
     expect(parseList('- fast\n• cheap, reliable; 4) local')).toEqual(['Fast', 'Cheap', 'Reliable', 'Local']);

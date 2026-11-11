@@ -105,6 +105,25 @@ export default function VoiceoverStudio() {
             </div>
           </Card>
 
+          <Card className="p-5">
+            <h2 className="font-semibold">Per-scene fit</h2>
+            <p className="mt-1 text-xs text-muted">Based on the voiceover line of each scene in the script.</p>
+            <ul className="mt-3 grid gap-1.5 text-sm">
+              {c.scenes.map((s, i) => {
+                const need = estimateReadingSeconds(s.voiceover, vo.language);
+                const over = need > s.duration;
+                return (
+                  <li key={s.id} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1 odd:bg-white/[0.02]">
+                    <span>Scene {i + 1}</span>
+                    <span className={over ? 'font-medium text-warning' : 'text-muted'}>
+                      ~{need}s / {s.duration}s{over ? ' · too long' : ''}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+
           <p className="flex gap-2 text-xs leading-relaxed text-muted">
             <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             AdSpark writes the script only. It does not generate audio. Record it with a voice artist or your own text-to-speech tool.
