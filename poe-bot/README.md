@@ -50,6 +50,25 @@ Bu interfeys adları (sahələrin adları) dəyişmiş ola bilər. Mənası eyni
 3. Capabilities: Image generation-ı aç (istifadəçi keyframe-ləri dərhal görə bilsin).
 4. **Publish**, sonra **Everyone**. Builder profilini təsdiqlə (domen və ya ad).
 
+## Digər fayllar
+- `example-output.md`: botun verəcəyi nümunə cavab. Test zamanı müqayisə üçün və demo video üçün istifadə olunur
+- `launch-content.md`: botu tanıtmaq üçün 3 Reels/TikTok ssenarisi və bio mətni
+- `avatar.png` / `avatar.svg`: botun avatarı (1024x1024)
+- `../site/index.html`: sifariş saytı. Bot cavablarındakı `[YOUR_CONTACT_LINK]` bu sayta aparacaq
+
+## Sifariş saytını yayımlamaq
+1. `site/index.html`-in sonundakı `CONFIG` hissəsində WhatsApp nömrəni, Instagram, TikTok və bot linkini yaz.
+2. Pulsuz yayımlamağın ən asan yolu: app.netlify.com/drop saytına `site` qovluğunu sürüklə, sənə link verəcək.
+3. Sonra həmin linki `system-prompt.md`-də `[YOUR_CONTACT_LINK]` yerinə yaz.
+
+## Qiymət planı (təklif)
+| Nə | Qiymət |
+|---|---|
+| Poe mesaj qiyməti | Aşağı başla, ilk həftələrdə istifadəçi və rəy toplamaq vacibdir. Rəqəmi Poe-nun göstərdiyi tövsiyə aralığına görə seç |
+| Video xidməti | Müddətə görə 3 paket: 15s, 30s, 60s. Qiymətləri öz bazarına görə sən təyin et |
+
+Konkret AZN qiymətləri yazmadım, çünki sənin bazar qiymətlərini bilmirəm.
+
 ## İlk 30 gün planı
 | Həftə | İş |
 |---|---|
