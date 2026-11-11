@@ -52,6 +52,7 @@ test('sample campaign and previously untested controls work', async ({ page }) =
   // Regenerate a single concept
   await page.getByRole('link', { name: 'Concepts', exact: true }).click();
   const titles = page.locator('main article h3');
+  await expect(titles).toHaveCount(5);
   const before = await titles.allTextContents();
   await page.getByRole('button', { name: 'Regenerate', exact: true }).nth(4).click();
   await expect.poll(async () => (await titles.allTextContents())[4]).not.toBe(before[4]);

@@ -68,7 +68,7 @@ export function CampaignCard({ c, actions }: { c: Campaign; actions?: ReactNode 
             {brand?.logo ? <img src={brand.logo} alt="" className="size-full object-contain" /> : c.input.productName.charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="truncate font-semibold">
+            <h3 className="line-clamp-2 font-semibold leading-snug">
               <Link to={campaignHref(c)} className="hover:text-secondary">
                 {c.name}
               </Link>

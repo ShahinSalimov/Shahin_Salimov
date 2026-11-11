@@ -91,7 +91,7 @@ async function handleGenerate(req: IncomingMessage, res: ServerResponse) {
   if (!parsed.success) return send(res, 400, { error: `Invalid request: ${parsed.error.issues[0]?.message ?? 'validation failed'}` });
 
   const client = clientId(req);
-  if (!limiter.take(client)) return send(res, 429, { error: 'Daily AI usage limit reached. The local engine is still available.' });
+  if (!limiter.take(client)) return send(res, 429, { error: 'Daily AI usage limit reached. Demo Generation is still available.' });
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -177,5 +177,5 @@ const server = createServer(async (req, res) => {
 
 server.listen(cfg.port, '127.0.0.1', () => {
   console.log(`AdSpark server running at http://localhost:${cfg.port}`);
-  console.log(provider ? `AI provider: ${provider.name} (${provider.model})` : `AI disabled: ${cfg.problem} The local engine is used.`);
+  console.log(provider ? `AI provider: ${provider.name} (${provider.model})` : `AI disabled: ${cfg.problem} Demo Generation (local templates, not AI) is used.`);
 });

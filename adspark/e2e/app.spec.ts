@@ -240,6 +240,9 @@ test('mobile layout has working navigation @mobile', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Your brand profiles' })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   expect(overflow).toBe(false);
+  // Regression: duplicate SVG gradient ids made the mobile logo render blank.
+  const ids = await page.locator('svg [id]').evaluateAll((els) => els.map((e) => e.id));
+  expect(new Set(ids).size).toBe(ids.length);
 });
 
 test('every navigation link reaches a real page', async ({ page }) => {

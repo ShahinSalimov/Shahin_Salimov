@@ -18,10 +18,10 @@ export function DurationSummary({ scenes, target, onFit }: { scenes: Scene[]; ta
   return (
     <div
       role="status"
-      className={`flex flex-col gap-3 rounded-xl border px-4 py-3 text-sm sm:flex-row sm:items-center ${ok ? 'border-success/30 bg-success/5' : 'border-warning/40 bg-warning/10'}`}
+      className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border px-4 py-3 text-sm ${ok ? 'border-success/30 bg-success/5' : 'border-warning/40 bg-warning/10'}`}
     >
       {ok ? <CircleCheck className="size-4 shrink-0 text-success" aria-hidden /> : <TriangleAlert className="size-4 shrink-0 text-warning" aria-hidden />}
-      <p className="flex-1">
+      <p className="min-w-0 flex-1 basis-48">
         <span className="font-medium">
           {scenes.length} scenes · {total}s of {target}s
         </span>

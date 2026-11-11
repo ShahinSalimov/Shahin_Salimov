@@ -1,21 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Clapperboard, Cpu, FolderOpen, LayoutDashboard, Menu, Palette, Plus, Settings, Sparkles, X, CircleCheck, TriangleAlert, Info, LoaderCircle } from 'lucide-react';
 import { useApp } from '../store/app';
 import { ButtonLink, cx, IconButton } from './ui';
 
 export function Logo({ className }: { className?: string }) {
+  // Unique gradient id: several logos can be in the DOM at once (one may be hidden).
+  const gradientId = `logo-gradient-${useId().replace(/:/g, '')}`;
   return (
     <span className={cx('inline-flex items-center gap-2.5 font-display text-lg font-bold tracking-tight', className)}>
       <svg viewBox="0 0 64 64" className="size-8" aria-hidden>
         <defs>
-          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="#8065F6" />
             <stop offset="1" stopColor="#36B8E8" />
           </linearGradient>
         </defs>
         <rect width="64" height="64" rx="16" fill="#19243A" />
-        <path d="M36 8 16 36h14l-4 20 22-30H34z" fill="url(#lg)" />
+        <path d="M36 8 16 36h14l-4 20 22-30H34z" fill={`url(#${gradientId})`} />
       </svg>
       <span>
         Ad<span className="text-gradient">Spark</span>

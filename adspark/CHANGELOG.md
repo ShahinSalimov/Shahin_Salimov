@@ -1,14 +1,34 @@
 # Changelog
 
+## 1.1.0 — 2026-11-11
+
+### Added
+- Four-step New Campaign brief with progress bar, inline validation, review step and local draft persistence.
+- Category profiles (setting, hero shot, key moment, suited ad structures) in Demo Generation.
+- Script regeneration for 15/30/45/60 s from the editor; drag-and-drop storyboard reordering.
+- Voiceover per-scene fit check.
+- Built-in sample campaign and sample PDF/TXT/JSON exports (`docs/demo/`).
+- Campaign cards with storyboard cover and progress; card/list view in My Campaigns.
+- Subtle animations, skip links, route focus management and announcements.
+- ESLint (TypeScript + React Hooks) and a build-time bundle secret scan.
+- Tests: form paths, category awareness, copy quality, PDF content, storage, backup/restore, AI proxy, link crawl, layout on three viewports.
+
+### Changed
+- Optional AI proxy rebuilt on the official Anthropic and OpenAI SDKs with structured outputs, refusal handling, consent header and pinned official endpoints.
+- Engine labelled “Demo Generation · not AI” throughout the UI and exports.
+- PDF built from a renderer-independent report model; scenes no longer split across pages.
+- Benefit lists respect one-per-line input; captions no longer repeat link CTAs.
+
+### Fixed
+- Mobile logo rendered blank (duplicate SVG gradient ids).
+- Campaign navigation clipped on phones; print view overflowed on phones.
+- Oversized AI requests now receive HTTP 413 instead of a dropped connection.
+- Grammar in Azerbaijani/Turkish templates with product names; gender-neutral Russian.
+- User text no longer runs into the next sentence without punctuation.
+
+### Removed
+- Unused `jsdom` dependency.
+
 ## 1.0.0 — 2026-11-11
 
-First release.
-
-- Landing page, Pricing (proposed editions, no billing), Dashboard.
-- New Campaign form with validation, Brand Kit prefill and session drafts.
-- Local template engine: 11 ad archetypes, 5 distinct concepts, timed scenes for 15/30/45/60 s, voiceover and social copy in English, Azerbaijani, Turkish and Russian.
-- Campaign Generator, Script editor, Storyboard Studio (SVG sketches, reorder, preview), Voiceover Studio, Social Media Content.
-- IndexedDB storage with autosave, rename, duplicate, delete, backup/restore and project import.
-- Exports: PDF with Unicode font, TXT, JSON, print view.
-- Optional AI proxy (OpenAI-compatible, Anthropic) with consent, validation and usage limits.
-- Vitest unit tests and Playwright browser tests.
+First release: landing, dashboard, campaign generator, script editor, storyboard studio, voiceover studio, social content, campaigns, Brand Kit, settings, pricing; IndexedDB storage; PDF/TXT/JSON export; optional AI proxy.
