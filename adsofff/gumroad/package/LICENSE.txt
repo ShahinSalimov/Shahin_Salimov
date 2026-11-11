@@ -1,0 +1,54 @@
+ADSOFFF END-USER LICENSE
+Version 1.1 — November 2026
+Copyright (c) 2026 Shahin Salimov. All rights reserved.
+
+By downloading or using AdSofff ("the Software") you agree to these terms.
+
+1. LICENSE GRANT
+   Each purchase grants one (1) person a non-exclusive, non-transferable license
+   to install and use the Software on any number of devices they personally use.
+
+2. WHAT YOU MAY DO
+   - Use the Software for your own business and for paid client work.
+   - Create unlimited campaigns. Everything you create with the Software
+     (concepts, scripts, storyboards, voiceover texts, captions, exports) belongs
+     to you, and you may use it commercially without attribution.
+
+3. WHAT YOU MAY NOT DO
+   - Share, resell, sublicense, rent or give away the Software or your download.
+   - Publish the Software file (AdSofff.html) on a website, file-sharing service
+     or marketplace, or bundle it into another product.
+   - Remove copyright notices or present the Software as your own product.
+   Teams: each person who uses the Software needs their own license.
+
+4. UPDATES
+   Updates within version 1.x are provided at no extra cost through your
+   Gumroad library when they are released. No update schedule is promised.
+
+5. HOW CONTENT IS GENERATED
+   The Software builds content from a built-in library of advertising templates.
+   It is not an artificial-intelligence model. You are responsible for reviewing
+   generated content and for any advertising claims you publish.
+
+6. DATA
+   The Software stores your data only in your web browser on your device and
+   does not send it anywhere. Keep your own backups (Settings > Download backup).
+   The seller cannot recover lost browser data.
+
+7. NO WARRANTY
+   The Software is provided "as is", without warranty of any kind, express or
+   implied, including fitness for a particular purpose. To the maximum extent
+   permitted by law, the seller's total liability is limited to the amount you
+   paid for the license.
+
+8. TERMINATION
+   This license ends automatically if you break these terms. On termination you
+   must stop using and delete the Software.
+
+9. THIRD-PARTY COMPONENTS
+   The Software includes open-source components under their own licenses:
+   React, React Router, Zustand, jsPDF, Zod (MIT); Lucide icons (ISC);
+   Inter and Plus Jakarta Sans fonts (SIL Open Font License 1.1);
+   DejaVu fonts (Bitstream Vera / DejaVu license).
+
+Questions: reply to your Gumroad purchase receipt.
