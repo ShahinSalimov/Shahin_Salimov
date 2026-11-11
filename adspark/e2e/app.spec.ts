@@ -8,10 +8,17 @@ function trackConsole(page: Page) {
   return errors;
 }
 
+async function fillExampleAndSubmit(page: Page) {
+  await page.getByRole('button', { name: 'Load example' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Review brief' }).click();
+  await page.getByRole('button', { name: 'Generate concepts' }).click();
+}
+
 async function createCampaign(page: Page) {
   await page.goto('/app/new');
-  await page.getByRole('button', { name: 'Load example' }).click();
-  await page.getByRole('button', { name: 'Generate concepts' }).click();
+  await fillExampleAndSubmit(page);
   await expect(page).toHaveURL(/\/concepts$/);
   await expect(page.getByRole('article')).toHaveCount(5);
 }
@@ -25,13 +32,86 @@ test('landing page renders and links into the app', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('form validation shows errors for required fields', async ({ page }) => {
+test('new campaign: step validation, inline errors and progress', async ({ page }) => {
+  const errors = trackConsole(page);
   await page.goto('/app/new');
-  await page.getByRole('button', { name: 'Clear form' }).click();
-  await page.getByRole('button', { name: 'Generate concepts' }).click();
+  await expect(page.getByText('0% complete')).toBeVisible();
+  // Cannot continue with an empty product step
+  await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText('Product or business name is required')).toBeVisible();
   await expect(page.getByRole('alert').filter({ hasText: 'Choose a category' })).toBeVisible();
-  await expect(page).toHaveURL(/\/app\/new$/);
+  await expect(page.getByLabel('Product or business name')).toBeFocused();
+  await expect(page.getByLabel('Product price')).not.toHaveAttribute('aria-invalid', 'true');
+
+  // Inline validation clears as the user types
+  await page.getByLabel('Product or business name').fill('Nar Coffee');
+  await expect(page.getByText('Product or business name is required')).toHaveCount(0);
+  await page.getByLabel('Product description').fill('short');
+  await page.getByLabel('Product description').blur();
+  await expect(page.getByText('Describe the product in at least 20 characters')).toBeVisible();
+  await page.getByLabel('Product description').fill('Specialty coffee roasted in small batches every week.');
+  await expect(page.getByText('Describe the product in at least 20 characters')).toHaveCount(0);
+  await page.getByLabel('Product category').selectOption('Restaurant');
+  await page.getByLabel('Main benefits').fill('Roasted weekly, ethically sourced');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByText('33% complete')).toBeVisible();
+
+  // Audience step, then back keeps values
+  await page.getByLabel('Target audience').fill('remote workers');
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.getByLabel('Product or business name')).toHaveValue('Nar Coffee');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByText('Customer problem is required')).toBeVisible();
+  await page.getByLabel('Customer problem').fill('Bitter office coffee');
+  await page.getByRole('button', { name: 'Continue' }).click();
+
+  // Format step: defaults are already valid, CTA is required
+  await expect(page.getByLabel('Social media platform')).toHaveValue('Instagram Reels');
+  await expect(page.getByLabel('Video duration')).toHaveValue('30');
+  await page.getByRole('button', { name: 'Review brief' }).click();
+  await expect(page.getByText('Call to action is required')).toBeVisible();
+  await page.getByLabel('Video duration').selectOption('15');
+  await page.getByLabel('Campaign language').selectOption('Turkish');
+  await page.getByLabel('Call to action').fill('Hemen sipariş verin');
+  await page.getByRole('button', { name: 'Review brief' }).click();
+
+  // Review shows everything, optional price marked, edit jumps back
+  await expect(page.getByText('100% complete')).toBeVisible();
+  await expect(page.getByText('Not specified')).toBeVisible();
+  await expect(page.getByText('15 seconds')).toBeVisible();
+  await page.getByRole('button', { name: 'Edit audience' }).click();
+  await expect(page.getByLabel('Target audience')).toHaveValue('remote workers');
+  await page.getByRole('button', { name: /Review/ }).first().click();
+  await page.getByRole('button', { name: 'Generate concepts' }).click();
+  await expect(page).toHaveURL(/\/concepts$/);
+  await expect(page.getByText('15s · Cinematic · Friendly · Turkish')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('new campaign: drafts persist across reloads and can be discarded', async ({ page }) => {
+  await page.goto('/app/new');
+  await page.getByLabel('Product or business name').fill('Draft Product');
+  await page.getByLabel('Product price').fill('25 AZN');
+  await expect(page.getByText('Draft saved')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Your unfinished brief was restored')).toBeVisible();
+  await expect(page.getByLabel('Product or business name')).toHaveValue('Draft Product');
+  await expect(page.getByLabel('Product price')).toHaveValue('25 AZN');
+  await page.getByRole('button', { name: 'Discard draft' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Discard draft' }).click();
+  await expect(page.getByLabel('Product or business name')).toHaveValue('');
+  await page.reload();
+  await expect(page.getByLabel('Product or business name')).toHaveValue('');
+  await expect(page.getByText('Your unfinished brief was restored')).toHaveCount(0);
+});
+
+test('new campaign: draft is cleared after a successful submit', async ({ page }) => {
+  await page.goto('/app/new');
+  await fillExampleAndSubmit(page);
+  await expect(page).toHaveURL(/\/concepts$/);
+  await page.goto('/app/new');
+  await expect(page.getByLabel('Product or business name')).toHaveValue('');
 });
 
 test('full workflow: concepts → campaign → storyboard → voiceover → social → exports', async ({ page }) => {
@@ -130,7 +210,6 @@ test('brand kit saves and prefills a campaign', async ({ page }) => {
   await expect(page.getByText('Brand “Nar Studio” saved.')).toBeVisible();
 
   await page.goto('/app/new');
-  await page.getByRole('button', { name: 'Clear form' }).click();
   await page.getByLabel('Use a Brand Kit profile').selectOption({ label: 'Nar Studio' });
   await expect(page.getByLabel('Product or business name')).toHaveValue('Nar Studio');
 });
@@ -157,7 +236,7 @@ test('every navigation link reaches a real page', async ({ page }) => {
   const errors = trackConsole(page);
   const sidebar = [
     ['Overview', 'Welcome to AdSpark'],
-    ['New Campaign', 'Tell us about your product'],
+    ['New Campaign', 'Campaign brief'],
     ['My Campaigns', 'Saved campaigns'],
     ['Storyboard Studio', 'Choose a storyboard'],
     ['Brand Kit', 'Your brand profiles'],

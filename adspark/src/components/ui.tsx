@@ -93,7 +93,7 @@ export function Badge({ children, tone = 'default', className }: { children: Rea
 interface FieldShellProps {
   label: string;
   error?: string;
-  hint?: string;
+  hint?: ReactNode;
   optional?: boolean;
   children: (props: { id: string; 'aria-invalid'?: boolean; 'aria-describedby'?: string }) => ReactNode;
   className?: string;
@@ -122,7 +122,7 @@ export function FieldShell({ label, error, hint, optional, children, className }
   );
 }
 
-type Common = { label: string; error?: string; hint?: string; optional?: boolean; className?: string };
+type Common = { label: string; error?: string; hint?: ReactNode; optional?: boolean; className?: string };
 
 export function TextField({ label, error, hint, optional, className, ...rest }: Common & InputHTMLAttributes<HTMLInputElement>) {
   return (
