@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 2 (Premium UI)._
+_Last updated: 2026-11-12 — after Stage 3 (Asset Intelligence)._
 
 ## Roadmap
 
@@ -8,14 +8,80 @@ _Last updated: 2026-11-12 — after Stage 2 (Premium UI)._
 |---|---|---|
 | 1 | **Foundation** — architecture, database, authentication | ✅ Complete |
 | 2 | **Premium UI** — design system, application shell, all pages | ✅ Complete |
-| 3 | **Asset Intelligence** — documents, websites, extraction | ⏳ Next (awaiting instruction) |
-| 4 | **Dependency Graph** — relationships between information | Queued |
+| 3 | **Asset Intelligence** — documents, websites, extraction | ✅ Complete |
+| 4 | **Dependency Graph** — relationships between information | ⏳ Next (awaiting instruction) |
 | 5 | **AI Change Engine** — change detection, impact analysis | Queued |
 | 6 | **Approval Engine** — approvals, update execution | Queued |
 | 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | Queued |
 | 8 | **Launch** — production-readiness audit, deploy, first customers | Queued |
 
-Stage briefs 3–8 have been received and will be executed one at a time, only after explicit instruction.
+Stage briefs 4–8 have been received and will be executed one at a time, only after explicit instruction.
+
+## Stage 3 — Asset Intelligence ✅
+
+### Delivered
+
+| Requirement | Implementation |
+|---|---|
+| 6 asset types | website, PDF, CSV, manual record, product catalog, marketing content (unchanged enum; parser chosen by file content) |
+| Add / edit / delete | Register (Stage 2) + edit metadata dialog + delete with typed-name confirmation (cascades versions, facts, scans, relationships, proposals; stored files removed) |
+| Upload documents | Server Action upload (10 MB), drag & drop, magic-byte detection, private Supabase Storage bucket (`…000400_storage.sql`) |
+| Register & scan websites | SSRF-safe single-page fetcher; scan button on assets with a URL |
+| PDF | Text per page (unpdf), prices/phones/emails/hours, image-only pages reported, password/damaged PDFs fail clearly |
+| CSV | Delimiter + header detection, column types (text, number, currency, percent, date, boolean, email, url, phone), entity column + entity kind, every cell → fact, malformed rows skipped and reported |
+| Websites | Title, meta description, language, headings, visible text, schema.org JSON-LD (products, menu items, offers, businesses, hours, addresses), microdata, tel:/mailto: links, text patterns |
+| Normalized facts | `extracted_facts`: entity, attribute, value, normalized value, number + unit, source asset, source location, extraction time, confidence, method, version |
+| Versions & timestamps | New version only when the content hash changes; `last_scanned_at`; full scan history with duration, bytes, HTTP status |
+| Status & errors | `asset_scans` history; succeeded / partial / failed with reasons and warnings; stale scans closed; UI alerts, scan history, warnings |
+| Manual business records | Add / remove manual facts (100% confidence, unversioned, audited) |
+| Asset Management UI | Asset detail tabs: Overview (source panel, impacts, connections, proposals, details, content summary) · Extracted information (searchable fact table with normalized values, locations, confidence) · Scans & versions. Facts column in the asset list |
+| Demo | Seeded facts consistent with the demo story (price list says $15, menu/PDF/ordering page still $12; Harborside phone differs), scan history, version summaries; uploads work in memory; website scans are disabled in demo |
+
+New database objects (`…000300_asset_intelligence.sql`): `asset_scans`, `extracted_facts`, `extraction_method` enum, `asset_fact_counts` view (security invoker), `start_asset_scan()`, `record_scan_result()`, RLS for all, authorship stamping, audit of manual facts.
+
+### Verification (run 2026-11-12, in this environment, from a clean build)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` | ✅ 0 errors |
+| `npm run lint` | ✅ 0 problems |
+| `npm test` (unit) | ✅ 23 files, 188 tests (extraction 37, SSRF/fetch with a real local HTTP server, files & PDF, runner integration, demo data) |
+| `npm run test:db` (PostgreSQL 16) | ✅ 4 files, 50 tests (+14 asset-intelligence: lifecycle, versioning, duplicates, caps, RLS, cross-tenant, cascade; + row mapping for facts/scans) |
+| `npm run build` | ✅ success |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+| E2E demo flows | ✅ 25/25 (CSV upload partial, facts table, scan warnings, unsupported file → failed, PDF through the production bundle, manual fact add/remove, demo scan restriction, edit, delete with confirmation) |
+| Responsive sweep (21 routes × 3 sizes) | ✅ 63 combinations, no errors, no overflow |
+
+Issues found and fixed during this stage:
+1. A test caught that the redirect-to-metadata case was blocked by the port rule before the IP rule — both block, test now checks the IP rule separately.
+2. Demo assets showed “No content has been read yet” although they had versions → demo version records with content summaries added.
+3. E2E race: toasts appear before the revalidated page is committed → tests now wait for rendered elements.
+4. “0 ms” scan durations for seeded scans → hidden.
+
+### Known limitations / honest notes
+
+1. **Website scanning was not tested against the real internet** (this sandbox only allows outbound traffic through a proxy, which the scanner intentionally does not use). It is tested end-to-end against a real local HTTP server with an injected resolver; the SSRF policy is tested with the strict defaults.
+2. **Supabase Storage upload/delete and the PostgREST layer are not exercised** (no Supabase project here). SQL, RPCs and RLS are tested on PostgreSQL; the storage migration is skipped there.
+3. No OCR: image-only PDF pages are reported as unread (scan becomes `partial`, or `failed` if no page has text).
+4. No JavaScript rendering: single-page apps produce a `partial` scan with a clear warning.
+5. Single page per scan; no crawling, no scheduled rescans, no robots.txt check yet (only explicit, user-triggered single-page reads).
+6. Office formats (.docx/.xlsx) are rejected with a message; export to PDF/CSV.
+7. The rate limit (10 scans/user/minute) is per server instance; a shared store is needed for multi-instance deployments.
+8. Scans run synchronously inside the Server Action (`maxDuration = 60`); a background queue is a later optimization.
+9. Text patterns are heuristic (confidence 0.6–0.7) and English-centric for day names; structured sources (JSON-LD, CSV) are preferred and get higher confidence.
+
+### Files added / modified in Stage 3
+
+- Migrations: `20261112000300_asset_intelligence.sql`, `20261112000400_storage.sql`
+- Domain: `src/domain/extraction/{sanitize,normalize,fact,text-patterns,json-ld,html,csv}.ts` (+ tests); `model.ts`, `inputs.ts`, `insights/activity.ts`
+- Server: `src/server/intelligence/{errors,url-guard,safe-fetch,files,pdf,analyze,runner}.ts`, `src/server/rate-limit.ts`, `src/server/workspaces/asset-actions.ts`, `src/server/demo/seed-intelligence.ts`; data layer (`source`, `demo`, `demo-store`, `supabase`, `rows`)
+- UI: `src/components/forms/asset-forms.tsx`, `src/components/features/{scan-history,content-summary}.tsx`, `src/components/app/fact-meta.ts`; asset detail and asset list pages
+- Tests: `tests/db/asset-intelligence.test.ts`, `tests/unit/{url-guard,safe-fetch,files-pdf,runner}.test.ts`, `tests/helpers/pdf.ts`, updated row-mapping, demo-data and e2e scripts
+- Config/docs: `next.config.ts` (upload body limit), `ARCHITECTURE.md` §12, `INSTALLATION.md`, `README.md`
+
+### Recommended next stage
+
+**Stage 4 — Dependency Graph:** interactive React Flow graph built from database records (assets, entities, attributes from `extracted_facts`), automatic relationship suggestions from shared facts (same entity/attribute across assets), confirm/reject, manual relationships, filters, search, depth and node details.
 
 ## Stage 2 — Premium UI ✅
 
@@ -89,9 +155,6 @@ Bugs found and fixed during verification:
 - Tests: `tests/db/{workflow,row-mapping}.test.ts`, `tests/unit/demo-data.test.ts`, `tests/e2e/{demo-flows,responsive-sweep}.cjs`
 - Config/docs: `package.json` (geist, sonner, `test:e2e`), `eslint.config.mjs`, `vitest.db.config.mts`, `ARCHITECTURE.md`, `INSTALLATION.md`, `README.md`, i18n messages
 
-### Recommended next stage
-
-**Stage 3 — Asset Intelligence:** private file uploads (PDF/CSV) with size and type limits, SSRF-safe website scanning, text and structured-fact extraction into a normalized facts table, version tracking and honest scan statuses — replacing the "Planned · Stage 3" labels.
 
 ## Stage 1 — Foundation ✅
 

@@ -33,6 +33,42 @@ describe("demo seed", () => {
   });
 });
 
+describe("demo intelligence", () => {
+  it("gives every scanned asset a version record and consistent facts", async () => {
+    const data = new DemoWorkspaceData(sid());
+    const snap = await data.snapshot();
+    for (const a of snap.assets.filter((x) => x.currentVersion > 0)) {
+      expect(snap.versions.some((v) => v.assetId === a.id && v.version === a.currentVersion), a.id).toBe(true);
+    }
+    const menu = await data.assetIntelligence("a-menu-page");
+    expect(menu.facts.find((f) => f.entityName === "Classic Burger")?.normalizedValue).toBe("USD 12.00"); // still outdated
+    const prices = await data.assetIntelligence("a-price-csv");
+    expect(prices.facts.find((f) => f.entityName === "Classic Burger" && f.attributeName === "price")?.normalizedValue).toBe("USD 15.00");
+    expect(snap.factCounts["a-price-csv"]).toBe(21);
+    const order = await data.assetIntelligence("a-order");
+    expect(order.scans[0]).toMatchObject({ status: "failed" });
+  });
+
+  it("only lets manual facts be deleted", async () => {
+    const data = new DemoWorkspaceData(sid());
+    const manual = (await data.assetIntelligence("a-loc-harbor")).facts[0]!;
+    await data.deleteFact(manual.id);
+    const scanned = (await data.assetIntelligence("a-price-csv")).facts[0]!;
+    await expect(data.deleteFact(scanned.id)).rejects.toThrow(/Only manually entered facts/);
+  });
+
+  it("deletes an asset with everything that depends on it", async () => {
+    const data = new DemoWorkspaceData(sid());
+    await data.deleteAsset("a-dinner-pdf");
+    const snap = await data.snapshot();
+    expect(snap.assets.some((a) => a.id === "a-dinner-pdf")).toBe(false);
+    expect(snap.relationships.some((r) => r.sourceAssetId === "a-dinner-pdf" || r.targetAssetId === "a-dinner-pdf")).toBe(false);
+    expect(snap.proposals.some((p) => p.targetAssetId === "a-dinner-pdf")).toBe(false);
+    expect(snap.factCounts["a-dinner-pdf"]).toBeUndefined();
+    expect(snap.audit[0]?.action).toBe("assets.delete");
+  });
+});
+
 describe("DemoWorkspaceData", () => {
   it("records a decision once and refuses a second decision", async () => {
     const data = new DemoWorkspaceData(sid());

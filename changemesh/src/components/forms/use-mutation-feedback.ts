@@ -14,13 +14,13 @@ type Action = (prev: MutationState, form: FormData) => Promise<MutationState>;
  *   `defaultValue`. React resets forms after an action; without this the user
  *   would lose what they typed.
  */
-export function useMutation(action: Action, onSuccess?: (data: { id?: string; message?: string }) => void) {
+export function useMutation(action: Action, onSuccess?: (data: { id?: string; message?: string; tone?: "warning" }) => void) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [state, formAction, pending] = useActionState<MutationState, FormData>(async (prev, form) => {
     const result = await action(prev, form);
     if (result?.ok) {
       setValues({});
-      if (result.data.message) toast.success(result.data.message);
+      if (result.data.message) (result.data.tone === "warning" ? toast.warning : toast.success)(result.data.message);
       onSuccess?.(result.data);
     } else if (result) {
       const submitted: Record<string, string> = {};

@@ -31,6 +31,7 @@ Open http://localhost:3000 and click **Explore the demo**.
 2. Apply the migrations — either:
    - **CLI:** `npx supabase link --project-ref <ref>` then `npx supabase db push`, or
    - **Dashboard:** SQL Editor → paste each file from `supabase/migrations/` in filename order → Run.
+   Migration `…000400_storage.sql` creates the private `asset-files` Storage bucket and its policies (skipped automatically on plain PostgreSQL).
 3. Project Settings → API: copy the URL and anon key into `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Copy the service-role key into `SUPABASE_SERVICE_ROLE_KEY` (server only).
 4. Authentication → URL Configuration: Site URL = `http://localhost:3000`; add `http://localhost:3000/auth/callback` to Redirect URLs.
 5. Authentication → Providers → Email: keep "Confirm email" on (recommended). Set minimum password length to 10.

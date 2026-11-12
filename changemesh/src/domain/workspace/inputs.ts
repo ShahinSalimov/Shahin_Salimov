@@ -82,3 +82,38 @@ export const updateProfileSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your name.").max(100),
   locale: z.enum(["en", "az", "tr"]),
 });
+
+const checkbox = z
+  .union([z.literal("on"), z.literal("true"), z.literal("false"), z.literal("")])
+  .optional()
+  .transform((v) => v === "on" || v === "true");
+
+export const updateAssetSchema = z.object({
+  assetId: z.string().min(1).max(64),
+  name: z.string().trim().min(1, "Enter a name.").max(200),
+  description: optionalText(2000),
+  sourceUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null))
+    .pipe(httpUrlSchema.nullable()),
+  isCustomerFacing: checkbox,
+});
+export type UpdateAssetInput = z.output<typeof updateAssetSchema>;
+
+export const deleteAssetSchema = z.object({
+  assetId: z.string().min(1).max(64),
+  confirmName: z.string().trim().min(1, "Type the asset name to confirm."),
+});
+
+export const manualFactSchema = z.object({
+  assetId: z.string().min(1).max(64),
+  entityName: z.string().trim().min(1, "Enter what the fact is about.").max(300),
+  attributeName: z.string().trim().min(1, "Enter the attribute, e.g. price.").max(200),
+  value: z.string().trim().min(1, "Enter a value.").max(2000),
+});
+export type ManualFactInput = z.output<typeof manualFactSchema>;
+
+export const deleteFactSchema = z.object({ factId: z.string().min(1).max(64) });
+export const assetIdSchema = z.object({ assetId: z.string().min(1).max(64) });

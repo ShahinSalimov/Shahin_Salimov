@@ -21,7 +21,7 @@ import { getWorkspaceData } from "../data";
 import { createUserClient } from "../supabase/clients";
 import { getWorkspaceContext } from "./service";
 
-export type MutationState = ActionResult<{ id?: string; message?: string }> | null;
+export type MutationState = ActionResult<{ id?: string; message?: string; tone?: "warning" }> | null;
 
 async function authorize(workspaceId: string, permission: Permission) {
   const viewer = await getViewer();

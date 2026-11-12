@@ -96,6 +96,7 @@ export default async function AssetsPage({ params, searchParams }: { params: Pro
                     <TableHead className="hidden md:table-cell">Type</TableHead>
                     <TableHead>Health</TableHead>
                     <TableHead className="hidden lg:table-cell">Last scan</TableHead>
+                    <TableHead className="hidden text-right md:table-cell">Facts</TableHead>
                     <TableHead className="hidden text-right sm:table-cell">Links</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -128,6 +129,7 @@ export default async function AssetsPage({ params, searchParams }: { params: Pro
                           </span>
                         </div>
                       </TableCell>
+                      <TableCell className="tabular hidden text-right md:table-cell">{snapshot.factCounts[asset.id] ?? 0}</TableCell>
                       <TableCell className="tabular hidden text-right sm:table-cell">{links}</TableCell>
                     </TableRow>
                   ))}

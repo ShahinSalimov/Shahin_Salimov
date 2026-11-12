@@ -23,7 +23,7 @@ function proposal(changeId: string, assetId: string, over: Partial<UpdateProposa
 }
 
 function snapshot(over: Partial<WorkspaceSnapshot> = {}): WorkspaceSnapshot {
-  return { assets: [], versions: [], relationships: [], changes: [], impacts: [], proposals: [], approvals: [], integrations: [], audit: [], auditVisible: true, members: [], subscription: null, ...over };
+  return { assets: [], versions: [], relationships: [], changes: [], impacts: [], proposals: [], approvals: [], integrations: [], audit: [], auditVisible: true, members: [], subscription: null, factCounts: {}, ...over };
 }
 
 describe("assetHealth", () => {

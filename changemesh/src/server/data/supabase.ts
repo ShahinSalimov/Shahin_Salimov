@@ -2,15 +2,20 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { WorkspaceRole } from "@/domain/rbac/roles";
-import type { CreateAssetInput, CreateChangeInput, DecisionInput } from "@/domain/workspace/inputs";
-import type { WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { FactDraft } from "@/domain/extraction/fact";
+import type { CreateAssetInput, CreateChangeInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
+import type { AssetIntelligence, WorkspaceSnapshot } from "@/domain/workspace/model";
+import { ScanError } from "../intelligence/errors";
+import type { ScanResult } from "../intelligence/analyze";
 import { AppError, fromPostgresError, notFound } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { createUserClient } from "../supabase/clients";
-import { approvalRow, assetRow, auditRow, changeRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, subscriptionRow, versionRow } from "./rows";
-import type { WorkspaceData } from "./source";
+import { approvalRow, assetRow, auditRow, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
+import type { RecordedScan, StoredFile, WorkspaceData } from "./source";
 
 const AUDIT_LIMIT = 300;
+const FACT_LIMIT = 2000;
+const BUCKET = "asset-files";
 function check<T>(op: string, result: { data: T | null; error: { message: string; code?: string } | null }): T {
   if (result.error) {
     const mapped = fromPostgresError(result.error);
@@ -46,7 +51,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
   async snapshot(): Promise<WorkspaceSnapshot> {
     const db = await this.db();
     const ws = this.workspaceId;
-    const [assets, versions, rels, changes, impacts, proposals, approvals, integrations, audit, members, subscription] = await Promise.all([
+    const [assets, versions, rels, changes, impacts, proposals, approvals, integrations, audit, members, subscription, factCounts] = await Promise.all([
       db.from("assets").select("*").eq("workspace_id", ws).order("created_at", { ascending: false }),
       db.from("asset_versions").select("id, asset_id, version, content_hash, summary, created_at").eq("workspace_id", ws).order("version", { ascending: false }),
       db.from("asset_relationships").select("*").eq("workspace_id", ws),
@@ -58,6 +63,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
       db.from("audit_logs").select("*, profiles!audit_logs_actor_id_fkey(full_name)").eq("workspace_id", ws).order("created_at", { ascending: false }).limit(AUDIT_LIMIT),
       db.from("workspace_members").select("user_id, role, created_at, profiles!workspace_members_user_id_fkey(full_name, email)").eq("workspace_id", ws).order("created_at"),
       db.from("subscriptions").select("plan, status, current_period_end, cancel_at_period_end").eq("organization_id", this.organizationId).maybeSingle(),
+      db.from("asset_fact_counts").select("asset_id, facts_count").eq("workspace_id", ws),
     ]);
 
     const role = parseRows("members", memberRow, check("members", members));
@@ -102,6 +108,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
       })),
       auditVisible: myRole === "owner" || myRole === "admin",
       members: role.map((r) => ({ userId: r.user_id, fullName: r.profiles.full_name, email: r.profiles.email, role: r.role, joinedAt: r.created_at })),
+      factCounts: Object.fromEntries(parseRows("factCounts", factCountRow, check("factCounts", factCounts)).map((r) => [r.asset_id, r.facts_count])),
       subscription: (() => {
         const row = check("subscription", subscription);
         const parsed = row ? subscriptionRow.safeParse(row) : null;
@@ -170,5 +177,120 @@ export class SupabaseWorkspaceData implements WorkspaceData {
     const db = await this.db();
     const res = await db.from("workspaces").update({ name }).eq("id", this.workspaceId).select("id");
     if (!check("renameWorkspace", res)?.length) throw notFound("Workspace not found.");
+  }
+
+  async updateAsset(input: UpdateAssetInput) {
+    const db = await this.db();
+    const res = await db
+      .from("assets")
+      .update({ name: input.name, description: input.description, source_url: input.sourceUrl, is_customer_facing: input.isCustomerFacing })
+      .eq("id", input.assetId)
+      .eq("workspace_id", this.workspaceId)
+      .select("id");
+    if (!check("updateAsset", res)?.length) throw notFound("Asset not found.");
+  }
+
+  async deleteAsset(assetId: string) {
+    const db = await this.db();
+    const res = await db.from("assets").delete().eq("id", assetId).eq("workspace_id", this.workspaceId).select("id");
+    if (!check("deleteAsset", res)?.length) throw notFound("Asset not found.");
+    // Remove stored originals. The database rows are already gone; a leftover file is logged, not hidden.
+    const prefix = `${this.workspaceId}/${assetId}`;
+    const listed = await db.storage.from(BUCKET).list(prefix, { limit: 1000 });
+    const paths = (listed.data ?? []).map((o) => `${prefix}/${o.name}`);
+    if (paths.length) {
+      const removed = await db.storage.from(BUCKET).remove(paths);
+      if (removed.error) logger.error("storage.remove_failed", { assetId, count: paths.length, message: removed.error.message });
+    }
+  }
+
+  async assetIntelligence(assetId: string): Promise<AssetIntelligence> {
+    const db = await this.db();
+    const asset = check("asset", await db.from("assets").select("current_version").eq("id", assetId).eq("workspace_id", this.workspaceId).maybeSingle<{ current_version: number }>());
+    if (!asset) throw notFound("Asset not found.");
+    const [facts, scans] = await Promise.all([
+      db
+        .from("extracted_facts")
+        .select("id, asset_id, asset_version, scan_id, entity_name, attribute_name, value_text, value_number, value_unit, normalized_value, source_location, confidence, method, origin, extracted_at")
+        .eq("asset_id", assetId)
+        .or(`asset_version.is.null,asset_version.eq.${Number(asset.current_version)}`)
+        .order("entity_name")
+        .limit(FACT_LIMIT),
+      db.from("asset_scans").select("*").eq("asset_id", assetId).order("started_at", { ascending: false }).limit(20),
+    ]);
+    return {
+      facts: parseRows("facts", factRow, check("facts", facts)).map((r) => ({
+        id: r.id, assetId: r.asset_id, assetVersion: r.asset_version, scanId: r.scan_id, entityName: r.entity_name, attributeName: r.attribute_name,
+        valueText: r.value_text, valueNumber: r.value_number, valueUnit: r.value_unit, normalizedValue: r.normalized_value, location: r.source_location,
+        confidence: r.confidence, method: r.method, origin: r.origin, extractedAt: r.extracted_at,
+      })),
+      scans: parseRows("scans", scanRow, check("scans", scans)).map((r) => ({
+        id: r.id, assetId: r.asset_id, kind: r.kind, status: r.status, startedAt: r.started_at, finishedAt: r.finished_at, assetVersion: r.asset_version,
+        factsCount: r.facts_count, error: r.error, warnings: r.warnings, stats: r.stats,
+      })),
+    };
+  }
+
+  async startScan(assetId: string, kind: "website" | "upload") {
+    const db = await this.db();
+    const res = await db.rpc("start_asset_scan", { p_asset_id: assetId, p_kind: kind });
+    return check("startScan", res) as string;
+  }
+
+  async storeOriginal(assetId: string, file: { bytes: Uint8Array; contentType: string; hash: string; extension: string }) {
+    const db = await this.db();
+    const path = `${this.workspaceId}/${assetId}/${file.hash}.${file.extension}`;
+    const { error } = await db.storage.from(BUCKET).upload(path, file.bytes, { contentType: file.contentType, upsert: true });
+    if (error) {
+      logger.error("storage.upload_failed", { assetId, message: error.message });
+      throw new ScanError("The file could not be stored. Nothing was analyzed; please try again.");
+    }
+    return path;
+  }
+
+  async recordScan(scanId: string, result: ScanResult, file?: StoredFile): Promise<RecordedScan> {
+    const db = await this.db();
+    const res = await db
+      .rpc("record_scan_result", {
+        p_scan_id: scanId,
+        p_status: result.status,
+        p_content_hash: result.contentHash,
+        p_summary: { ...result.summary, ...(file ? { fileName: file.fileName, storagePath: file.storagePath } : {}) },
+        p_facts: result.facts.map((f) => ({
+          entity_name: f.entityName, attribute_name: f.attributeName, value_text: f.valueText, value_number: f.valueNumber, value_unit: f.valueUnit,
+          normalized_value: f.normalizedValue, source_location: f.location, confidence: f.confidence, method: f.method,
+        })),
+        p_warnings: result.warnings,
+        p_error: result.error,
+        p_stats: result.stats,
+      })
+      .single<{ asset_version: number | null; new_version: boolean; facts_count: number }>();
+    const row = check("recordScan", res);
+    if (file && result.status !== "failed") {
+      const scan = check("scanAsset", await db.from("asset_scans").select("asset_id").eq("id", scanId).single<{ asset_id: string }>());
+      const upd = await db.from("assets").update({ storage_path: file.storagePath, mime_type: file.mimeType, size_bytes: file.sizeBytes }).eq("id", scan.asset_id);
+      if (upd.error) logger.warn("asset.file_meta_update_failed", { scanId, message: upd.error.message });
+    }
+    return { assetVersion: row.asset_version, newVersion: row.new_version, factsCount: row.facts_count };
+  }
+
+  async addManualFact(assetId: string, fact: FactDraft) {
+    const db = await this.db();
+    const res = await db
+      .from("extracted_facts")
+      .insert({
+        workspace_id: this.workspaceId, asset_id: assetId, asset_version: null, entity_name: fact.entityName, attribute_name: fact.attributeName,
+        value_text: fact.valueText, value_number: fact.valueNumber, value_unit: fact.valueUnit, normalized_value: fact.normalizedValue,
+        source_location: fact.location, confidence: fact.confidence, method: "manual", origin: "manual",
+      })
+      .select("id")
+      .single<{ id: string }>();
+    return check("addManualFact", res);
+  }
+
+  async deleteFact(factId: string) {
+    const db = await this.db();
+    const res = await db.from("extracted_facts").delete().eq("id", factId).eq("workspace_id", this.workspaceId).eq("method", "manual").select("id");
+    if (!check("deleteFact", res)?.length) throw notFound("Fact not found, or it is a scanned fact (scanned facts change only when the asset is scanned again).");
   }
 }

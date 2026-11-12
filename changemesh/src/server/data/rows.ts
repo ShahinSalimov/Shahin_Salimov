@@ -57,3 +57,26 @@ export const auditRow = z.object({
 export const memberRow = z.object({ user_id: z.string(), role: z.enum(WORKSPACE_ROLES), created_at: z.string(), profiles: z.object({ full_name: nullableText, email: z.string() }) });
 export const subscriptionRow = z.object({ plan: z.enum(SUBSCRIPTION_PLANS), status: z.string(), current_period_end: nullableText, cancel_at_period_end: z.boolean() });
 
+
+const locationSchema = z
+  .object({
+    kind: z.enum(["row", "page", "element", "json_ld", "line", "meta", "link", "manual"]),
+    row: z.number().optional(),
+    column: z.string().optional(),
+    page: z.number().optional(),
+    line: z.number().optional(),
+    path: z.string().optional(),
+    snippet: z.string().optional(),
+  })
+  .catch({ kind: "manual" });
+
+export const factRow = z.object({
+  id: z.string(), asset_id: z.string(), asset_version: num.nullable(), scan_id: nullableText, entity_name: z.string(), attribute_name: z.string(),
+  value_text: z.string(), value_number: num.nullable(), value_unit: nullableText, normalized_value: z.string(), source_location: locationSchema,
+  confidence: num, method: z.enum(["csv", "html", "json_ld", "pdf_text", "plain_text", "manual"]), origin: z.enum(RECORD_ORIGINS), extracted_at: z.string(),
+});
+export const scanRow = z.object({
+  id: z.string(), asset_id: z.string(), kind: z.enum(["website", "upload"]), status: z.enum(SCAN_STATUSES), started_at: z.string(), finished_at: nullableText,
+  asset_version: num.nullable(), facts_count: num, error: nullableText, warnings: z.array(z.string()).catch([]), stats: json,
+});
+export const factCountRow = z.object({ asset_id: z.string(), facts_count: num });

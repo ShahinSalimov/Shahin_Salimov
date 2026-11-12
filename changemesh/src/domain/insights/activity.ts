@@ -24,6 +24,7 @@ const CATEGORY: Record<string, ActivityCategory> = {
   workspace_members: "team",
   organization_members: "team",
   workspaces: "workspace",
+  extracted_facts: "assets",
   organizations: "workspace",
   integrations: "workspace",
 };
@@ -58,6 +59,7 @@ export function describeEvent(event: AuditEvent, snapshot: Pick<WorkspaceSnapsho
       targetHref = snapshot.assets.some((a) => a.id === event.targetId) ? `${base}/assets/${event.targetId}` : null;
       if (op === "insert") verb = "registered";
       else if (op === "delete") verb = "deleted";
+      else if (changed.includes("scan_status") && status === "running") verb = "started a scan of";
       else if (changed.includes("scan_status") && status === "failed") verb = "scan failed for";
       else if (changed.includes("scan_status") && status === "partial") verb = "scan partially completed for";
       else if (changed.includes("scan_status")) verb = "scanned";
@@ -100,6 +102,10 @@ export function describeEvent(event: AuditEvent, snapshot: Pick<WorkspaceSnapsho
       targetHref = `${base}/settings/team`;
       break;
     }
+    case "extracted_facts":
+      verb = op === "delete" ? "removed a manually entered fact" : "added a fact manually";
+      target = null;
+      break;
     case "workspaces":
       verb = changed.includes("name") ? "renamed the workspace to" : op === "insert" ? "created the workspace" : "updated workspace settings";
       target = changed.includes("name") ? name : null;

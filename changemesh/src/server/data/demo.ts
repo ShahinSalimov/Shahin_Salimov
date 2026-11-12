@@ -1,10 +1,12 @@
 import "server-only";
 import type { WorkspaceRole } from "@/domain/rbac/roles";
-import type { CreateAssetInput, CreateChangeInput, DecisionInput } from "@/domain/workspace/inputs";
-import type { AuditEvent, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { FactDraft } from "@/domain/extraction/fact";
+import type { CreateAssetInput, CreateChangeInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
+import type { AssetIntelligence, AuditEvent, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, notFound } from "@/lib/errors";
 import { getDemoSession } from "./demo-store";
-import type { WorkspaceData } from "./source";
+import type { RecordedScan, StoredFile, WorkspaceData } from "./source";
 
 const VISITOR = { id: "demo-user-1", name: "Demo Visitor (you)" };
 
@@ -32,7 +34,109 @@ export class DemoWorkspaceData implements WorkspaceData {
   }
 
   async snapshot(): Promise<WorkspaceSnapshot> {
-    return structuredClone(this.session.snapshot);
+    const { snapshot, facts } = this.session;
+    const current = new Map(snapshot.assets.map((a) => [a.id, a.currentVersion]));
+    const factCounts: Record<string, number> = {};
+    for (const f of facts) {
+      if (f.assetVersion === null || f.assetVersion === current.get(f.assetId)) factCounts[f.assetId] = (factCounts[f.assetId] ?? 0) + 1;
+    }
+    return structuredClone({ ...snapshot, factCounts });
+  }
+
+  private asset(assetId: string) {
+    const a = this.session.snapshot.assets.find((x) => x.id === assetId);
+    if (!a) throw notFound("Asset not found.");
+    return a;
+  }
+
+  async updateAsset(input: UpdateAssetInput) {
+    const a = this.asset(input.assetId);
+    if (a.type === "website" && !input.sourceUrl) throw new AppError("VALIDATION_FAILED", "Websites need a URL.", { fieldErrors: { sourceUrl: ["Websites need a URL."] } });
+    Object.assign(a, { name: input.name, description: input.description, sourceUrl: input.sourceUrl, isCustomerFacing: input.isCustomerFacing, updatedAt: new Date().toISOString() });
+    this.audit("assets.update", "assets", a.id, { changed: ["description", "is_customer_facing", "name", "source_url"], name: a.name });
+  }
+
+  async deleteAsset(assetId: string) {
+    const a = this.asset(assetId);
+    const s = this.session;
+    const snap = s.snapshot;
+    snap.assets = snap.assets.filter((x) => x.id !== assetId);
+    snap.relationships = snap.relationships.filter((r) => r.sourceAssetId !== assetId && r.targetAssetId !== assetId);
+    snap.versions = snap.versions.filter((v) => v.assetId !== assetId);
+    snap.impacts = snap.impacts.filter((i) => i.assetId !== assetId);
+    snap.proposals = snap.proposals.filter((p) => p.targetAssetId !== assetId);
+    for (const c of snap.changes) if (c.sourceAssetId === assetId) c.sourceAssetId = null;
+    s.facts = s.facts.filter((f) => f.assetId !== assetId);
+    s.scans = s.scans.filter((x) => x.assetId !== assetId);
+    this.audit("assets.delete", "assets", assetId, { name: a.name });
+  }
+
+  async assetIntelligence(assetId: string): Promise<AssetIntelligence> {
+    const a = this.asset(assetId);
+    return structuredClone({
+      facts: this.session.facts.filter((f) => f.assetId === assetId && (f.assetVersion === null || f.assetVersion === a.currentVersion)),
+      scans: this.session.scans.filter((x) => x.assetId === assetId).sort((x, y) => Date.parse(y.startedAt) - Date.parse(x.startedAt)),
+    });
+  }
+
+  async startScan(assetId: string, kind: "website" | "upload") {
+    const a = this.asset(assetId);
+    if (this.session.scans.some((x) => x.assetId === assetId && x.status === "running")) throw conflict("A scan is already running for this asset.");
+    const id = `s-${crypto.randomUUID()}`;
+    this.session.scans.unshift({ id, assetId, kind, status: "running", startedAt: new Date().toISOString(), finishedAt: null, assetVersion: null, factsCount: 0, error: null, warnings: [], stats: {} });
+    a.scanStatus = "running";
+    return id;
+  }
+
+  async storeOriginal(): Promise<string | null> {
+    return null; // Demo uploads are analyzed in memory and never stored.
+  }
+
+  async recordScan(scanId: string, result: ScanResult, file?: StoredFile): Promise<RecordedScan> {
+    const s = this.session;
+    const scan = s.scans.find((x) => x.id === scanId);
+    if (!scan) throw notFound("Scan not found.");
+    if (scan.status !== "running") throw conflict("This scan has already finished.");
+    const a = this.asset(scan.assetId);
+    const now = new Date().toISOString();
+    let version = a.currentVersion;
+    let newVersion = false;
+    let count = 0;
+    if (result.status !== "failed") {
+      const latest = s.snapshot.versions.filter((v) => v.assetId === a.id).sort((x, y) => y.version - x.version)[0];
+      if (latest?.contentHash !== result.contentHash) {
+        newVersion = true;
+        version = a.currentVersion + 1;
+        s.snapshot.versions.push({ id: `v-${crypto.randomUUID()}`, assetId: a.id, version, contentHash: result.contentHash, summary: result.summary, createdAt: now });
+        result.facts.forEach((f) => s.facts.push(toFact(f, a.id, version, scanId, now)));
+        count = result.facts.length;
+      } else {
+        count = s.facts.filter((f) => f.assetId === a.id && f.assetVersion === version).length;
+      }
+      Object.assign(a, { scanStatus: result.status, lastScannedAt: now, lastScanError: result.status === "partial" ? result.error : null, currentVersion: version, updatedAt: now });
+      if (file) Object.assign(a, { mimeType: file.mimeType, sizeBytes: file.sizeBytes });
+    } else {
+      Object.assign(a, { scanStatus: "failed", lastScannedAt: now, lastScanError: result.error, updatedAt: now });
+    }
+    Object.assign(scan, { status: result.status, finishedAt: now, assetVersion: result.status === "failed" ? null : version || null, factsCount: count, error: result.error, warnings: result.warnings, stats: result.stats });
+    this.audit("assets.update", "assets", a.id, { changed: ["last_scanned_at", "scan_status"], status: result.status, name: a.name });
+    return { assetVersion: version || null, newVersion, factsCount: count };
+  }
+
+  async addManualFact(assetId: string, fact: FactDraft) {
+    this.asset(assetId);
+    const f = toFact(fact, assetId, null, null, new Date().toISOString());
+    this.session.facts.push(f);
+    this.audit("extracted_facts.insert", "extracted_facts", f.id, {});
+    return { id: f.id };
+  }
+
+  async deleteFact(factId: string) {
+    const f = this.session.facts.find((x) => x.id === factId);
+    if (!f) throw notFound("Fact not found.");
+    if (f.method !== "manual") throw new AppError("VALIDATION_FAILED", "Only manually entered facts can be deleted. Scanned facts change when the asset is scanned again.");
+    this.session.facts = this.session.facts.filter((x) => x.id !== factId);
+    this.audit("extracted_facts.delete", "extracted_facts", factId, {});
   }
 
   get workspaceName(): string {
@@ -133,4 +237,24 @@ export class DemoWorkspaceData implements WorkspaceData {
     this.session.workspaceName = name;
     this.audit("workspaces.update", "workspaces", "demo", { changed: ["name"], name });
   }
+}
+
+function toFact(f: FactDraft, assetId: string, assetVersion: number | null, scanId: string | null, at: string) {
+  return {
+    id: `f-${crypto.randomUUID()}`,
+    assetId,
+    assetVersion,
+    scanId,
+    entityName: f.entityName,
+    attributeName: f.attributeName,
+    valueText: f.valueText,
+    valueNumber: f.valueNumber,
+    valueUnit: f.valueUnit,
+    normalizedValue: f.normalizedValue,
+    location: f.location,
+    confidence: f.confidence,
+    method: f.method,
+    origin: (f.method === "manual" ? "manual" : "scan") as "manual" | "scan",
+    extractedAt: at,
+  };
 }

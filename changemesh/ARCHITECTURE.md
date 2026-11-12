@@ -31,7 +31,7 @@ The repository is a personal monorepo. CHANGEMESH is fully self-contained in `ch
 | Tests | Vitest (unit) + Vitest against real PostgreSQL (migrations + RLS) | ✅ |
 | Data visualization | Hand-built accessible SVG/CSS charts (stacked bar, donut, bar list, trend) | ✅ Stage 2 |
 | Graph UI | React Flow (`@xyflow/react`) | ⏳ Stage 4 |
-| Parsing | `unpdf` (PDF), `papaparse` (CSV), `node-html-parser` (HTML) | ⏳ Stage 3 (installed) |
+| Parsing | `unpdf` (PDF), `papaparse` (CSV), `node-html-parser` (HTML) | ✅ Stage 3 |
 | AI | Provider abstraction; Claude when `ANTHROPIC_API_KEY` is set, deterministic engine otherwise | ⏳ Stage 5 |
 | Billing | Stripe (test mode), webhook signature verification | ⏳ Stage 7 |
 
@@ -188,9 +188,47 @@ page.tsx ──► loadWorkspace(id)       → WorkspaceContext (viewer, workspa
 - **Loading**: route-level skeletons (`loading.tsx`) for every workspace page; workspace-scoped `not-found.tsx`.
 - **Responsiveness**: checked automatically at 390 / 820 / 1440 px (`tests/e2e/responsive-sweep.cjs`).
 
-## 12. Planned engines (designed, not built)
+## 12. Asset Intelligence (Stage 3) ✅
 
-- **Asset Intelligence (Stage 3):** SSRF-safe fetcher (DNS resolution, private-range blocking, size/time limits), PDF/CSV/HTML extraction into a normalized facts table (entity, attribute, value, source location, confidence, version). Scanned content is treated as untrusted data and never as instructions.
+```
+upload (PDF/CSV/TXT) ─┐                      ┌─ domain/extraction (pure, tested)
+                      ├─► server/intelligence │   html.ts      title, meta, headings, visible text, microdata, tel:/mailto:
+website URL ──────────┘    runner.ts          │   json-ld.ts   schema.org Product/MenuItem/Offer/LocalBusiness
+                            │ files.ts         │   csv.ts       delimiter, header, column types, entity column, cells → facts
+                            │ pdf.ts (unpdf)   │   text-patterns prices, phones, emails, opening hours (PDF/text/HTML)
+                            │ safe-fetch.ts    │   normalize.ts money/phone/hours/text normalization
+                            ▼                  └─  sanitize.ts  control/zero-width/bidi removal, length caps
+                    analyze.ts → ScanResult {status, contentHash, summary, facts[], warnings[], error, stats}
+                            ▼
+      start_asset_scan() ──► record_scan_result()   (one transaction: version + facts + asset status + scan row)
+```
+
+**Normalized fact model** (`extracted_facts`): entity name, attribute name, value text, numeric value + unit, normalized value (e.g. `USD 15.00`, `+15550142`, `mon-sun 11:00-23:00`), source asset, asset version (NULL for manual facts), source location (row/column, page/line, element path, JSON-LD path, link), extraction method, confidence, extraction timestamp, scan id.
+
+**Versioning**: every successful or partial scan whose content hash differs from the latest version creates `asset_versions` vN+1 with a content summary; the facts of older versions stay as history. Identical content creates no new version. Failed scans never change the current version.
+
+**Honest status** (`asset_scans` + asset `scan_status`):
+
+| Situation | Status |
+|---|---|
+| Content fully read | `succeeded` (even with 0 facts — a warning says nothing was recognized) |
+| Truncated (size/row/page/fact caps), malformed CSV rows, image-only PDF pages, non-UTF-8 text, page with no visible text | `partial` + warnings |
+| HTTP error, timeout, blocked address, non-HTML response, unsupported/disguised file, no readable rows/text | `failed` + reason; previous version and facts kept |
+| A scan "running" for more than 5 minutes | closed as `failed` (“did not finish”) when the next scan starts |
+
+**Limits**: uploads 10 MB (CSV 5 MB, text 2 MB), PDFs 100 pages / 20 s, web pages 2 MB (decompressed) / 10 s / 3 redirects, CSV 5,000 rows × 50 columns, 5,000 facts per scan, one running scan per asset, 10 scans per user per minute (per server instance).
+
+**Untrusted content**:
+- SSRF: only http(s) on ports 80/443; no credentials in URLs; internal host names rejected; IP literals (incl. decimal/hex/octal and IPv4-mapped IPv6) checked; **every resolved address is checked at connection time** through a custom DNS `lookup`, which also covers redirects and DNS rebinding; private, loopback, link-local (cloud metadata), CGNAT, multicast, documentation and reserved ranges are blocked; proxies are not used.
+- Files are identified by magic bytes, not names; Office/ZIP and binary files are rejected with a clear message; file names are sanitized; originals are stored privately (`asset-files` bucket, path `workspace/asset/sha256.ext`).
+- HTML is parsed, never rendered or executed: scripts, styles, iframes and hidden elements are removed; links are not followed.
+- Extracted text is stripped of control, zero-width and bidirectional-override characters and length-capped; it is displayed as plain text only.
+- Extraction is rule-based. **Text inside documents is treated as data, never as instructions** — a document saying "ignore previous instructions" just becomes a text value (covered by a test). When AI is added (Stage 5) content will be passed as delimited data and its output schema-validated.
+- CSV cells starting with `= + - @` are flagged and stored as plain text (no formula evaluation).
+- Demo mode never fetches external websites (anonymous visitors cannot use the server as a fetch proxy); demo uploads are analyzed in memory and not stored.
+
+## 13. Planned engines (designed, not built)
+
 - **Dependency Graph (Stage 4):** graph service computed from DB rows; suggested relationships require human confirmation.
 - **Change & Impact (Stage 5):** deterministic BFS impact engine with explainable relationship paths; AI provider interface with schema-validated JSON, retries and usage tracking; AI never approves anything.
 - **Approval & Updates (Stage 6):** approval workflow on top of the existing constraints; internal update simulator and exportable instructions; idempotent execution.

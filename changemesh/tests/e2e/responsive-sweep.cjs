@@ -2,7 +2,7 @@
 // Requires Playwright + Chromium. Usage: BASE_URL=http://localhost:3000 node tests/e2e/responsive-sweep.cjs
 const { chromium } = require('playwright');
 const PUBLIC = ['/', '/login', '/signup'];
-const PAGES = [...PUBLIC, '/w/demo', '/w/demo/assets', '/w/demo/assets/a-price-csv', '/w/demo/assets/a-order', '/w/demo/graph', '/w/demo/changes', '/w/demo/changes/c-burger', '/w/demo/changes/c-truffle', '/w/demo/approvals', '/w/demo/proposals', '/w/demo/integrations', '/w/demo/activity', '/w/demo/settings', '/w/demo/settings/team', '/w/demo/settings/billing'];
+const PAGES = [...PUBLIC, '/w/demo', '/w/demo/assets', '/w/demo/assets/a-price-csv', '/w/demo/assets/a-order', '/w/demo/assets/a-price-csv?tab=information', '/w/demo/assets/a-catering-pdf?tab=scans', '/w/demo/assets/a-loc-downtown', '/w/demo/graph', '/w/demo/changes', '/w/demo/changes/c-burger', '/w/demo/changes/c-truffle', '/w/demo/approvals', '/w/demo/proposals', '/w/demo/integrations', '/w/demo/activity', '/w/demo/settings', '/w/demo/settings/team', '/w/demo/settings/billing'];
 const VIEWPORTS = { mobile: { width: 390, height: 844 }, tablet: { width: 820, height: 1180 }, desktop: { width: 1440, height: 900 } };
 (async () => {
   const b = await chromium.launch();

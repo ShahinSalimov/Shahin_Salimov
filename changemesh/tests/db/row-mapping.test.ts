@@ -34,6 +34,15 @@ beforeAll(async () => {
     const p = (await q<{ id: string }>("insert into public.update_proposals (workspace_id, change_id, change_impact_id, target_asset_id, impact_level, evidence) values ($1,$2,$3,$4,'high','[{\"label\":\"Source\",\"detail\":\"Prices\"}]') returning id", [ws, c, i, a])).rows[0]!.id;
     await q("select public.decide_update_proposal($1,'approved',null)", [p]);
     await q("insert into public.integrations (workspace_id, provider, display_name) values ($1,'google_sheets','Sheets')", [ws]);
+    const scan = (await q<{ id: string }>("select public.start_asset_scan($1, 'upload') as id", [b])).rows[0]!.id;
+    await q("select * from public.record_scan_result($1,'partial','h1',$2,$3,$4,'Row 3 skipped',$5)", [
+      scan,
+      JSON.stringify({ kind: "csv" }),
+      JSON.stringify([{ entity_name: "Burger", attribute_name: "price", value_text: "$15.00", value_number: 15, value_unit: "USD", normalized_value: "USD 15.00", source_location: { kind: "row", row: 2, column: "Price" }, confidence: 0.9, method: "csv" }]),
+      JSON.stringify(["Row 3 skipped"]),
+      JSON.stringify({ bytes: 120 }),
+    ]);
+    await q("insert into public.extracted_facts (workspace_id, asset_id, entity_name, attribute_name, value_text, normalized_value, confidence, method, origin) values ($1,$2,'Downtown','phone','+1 555 0142','+15550142',1,'manual','manual')", [ws, b]);
   });
   await pool.query("insert into public.subscriptions (organization_id, plan, status, current_period_end) values ($1,'business','trialing', now() + interval '10 days')", [org]);
 });
@@ -77,6 +86,16 @@ describe("row schemas match the database", () => {
     expectAllParse(rows.approvalRow, await jsonRows("select to_jsonb(t) || jsonb_build_object('profiles', (select jsonb_build_object('full_name', p.full_name) from public.profiles p where p.id = t.decided_by)) j from public.approvals t where workspace_id = $1"));
     expectAllParse(rows.auditRow, await jsonRows("select to_jsonb(t) || jsonb_build_object('profiles', (select jsonb_build_object('full_name', p.full_name) from public.profiles p where p.id = t.actor_id)) j from public.audit_logs t where workspace_id = $1"));
     expectAllParse(rows.memberRow, await jsonRows("select to_jsonb(t) || jsonb_build_object('profiles', (select jsonb_build_object('full_name', p.full_name, 'email', p.email) from public.profiles p where p.id = t.user_id)) j from public.workspace_members t where workspace_id = $1"));
+  });
+
+  it("facts, scans and fact counts (Stage 3)", async () => {
+    const facts = await jsonRows("select to_jsonb(t) j from public.extracted_facts t where workspace_id = $1");
+    expectAllParse(rows.factRow, facts);
+    expect(facts.map((f) => rows.factRow.parse(f).source_location.kind).sort()).toEqual(["manual", "row"]);
+    const scans = await jsonRows("select to_jsonb(t) j from public.asset_scans t where workspace_id = $1");
+    expectAllParse(rows.scanRow, scans);
+    expect(rows.scanRow.parse(scans[0]).warnings).toEqual(["Row 3 skipped"]);
+    expectAllParse(rows.factCountRow, await jsonRows("select to_jsonb(t) j from public.asset_fact_counts t where workspace_id = $1"));
   });
 
   it("integrations and subscriptions", async () => {

@@ -1,15 +1,18 @@
 import "server-only";
-import type { WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AssetScan, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { demoWorkspace } from "../demo/fixture";
 import { buildDemoSnapshot } from "../demo/seed";
+import { buildDemoIntelligence } from "../demo/seed-intelligence";
 
 /**
  * In-memory demo state, one copy per demo session (cookie id).
  * Fictional data only. Lost on server restart and NOT shared between server
  * instances — acceptable for a demo, documented in DEVELOPMENT_STATUS.md.
  */
-interface DemoSession {
+export interface DemoSession {
   snapshot: WorkspaceSnapshot;
+  facts: ExtractedFact[];
+  scans: AssetScan[];
   workspaceName: string;
   touchedAt: number;
 }
@@ -33,7 +36,10 @@ export function getDemoSession(sessionId: string): DemoSession {
   let session = sessions.get(sessionId);
   if (!session) {
     evict(now);
-    session = { snapshot: buildDemoSnapshot(new Date(now)), workspaceName: demoWorkspace.name, touchedAt: now };
+    const snapshot = buildDemoSnapshot(new Date(now));
+    const { facts, scans, versions } = buildDemoIntelligence(snapshot.assets, new Date(now), snapshot.versions);
+    snapshot.versions.push(...versions);
+    session = { snapshot, facts, scans, workspaceName: demoWorkspace.name, touchedAt: now };
     sessions.set(sessionId, session);
   }
   session.touchedAt = now;

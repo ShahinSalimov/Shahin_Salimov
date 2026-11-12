@@ -342,5 +342,6 @@ export function buildDemoSnapshot(now: Date = new Date()): WorkspaceSnapshot {
     auditVisible: true,
     members,
     subscription: { plan: "business", status: "trialing", currentPeriodEnd: new Date(now.getTime() + 10 * 86400_000).toISOString(), cancelAtPeriodEnd: false },
+    factCounts: {},
   };
 }

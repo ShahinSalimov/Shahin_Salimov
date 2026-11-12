@@ -179,4 +179,51 @@ export interface WorkspaceSnapshot {
   auditVisible: boolean;
   members: Member[];
   subscription: Subscription | null;
+  /** Number of current facts per asset id. */
+  factCounts: Record<string, number>;
+}
+
+// ---------------------------------------------------------------------------
+// Asset Intelligence (Stage 3)
+// ---------------------------------------------------------------------------
+export type { ExtractionMethod, SourceLocation } from "../extraction/fact";
+import type { ExtractionMethod, SourceLocation } from "../extraction/fact";
+
+export interface ExtractedFact {
+  id: string;
+  assetId: string;
+  /** null for manual facts (valid across versions). */
+  assetVersion: number | null;
+  scanId: string | null;
+  entityName: string;
+  attributeName: string;
+  valueText: string;
+  valueNumber: number | null;
+  valueUnit: string | null;
+  normalizedValue: string;
+  location: SourceLocation;
+  confidence: number;
+  method: ExtractionMethod;
+  origin: RecordOrigin;
+  extractedAt: string;
+}
+
+export interface AssetScan {
+  id: string;
+  assetId: string;
+  kind: "website" | "upload";
+  status: ScanStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  assetVersion: number | null;
+  factsCount: number;
+  error: string | null;
+  warnings: string[];
+  stats: Record<string, unknown>;
+}
+
+export interface AssetIntelligence {
+  /** Current facts: manual facts + facts of the current version. */
+  facts: ExtractedFact[];
+  scans: AssetScan[];
 }
