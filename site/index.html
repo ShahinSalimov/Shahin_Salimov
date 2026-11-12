@@ -157,6 +157,11 @@ pouring into a white ceramic cup..."</pre>
           </select>
         </label>
       </div>
+      <label>Bizi haradan tapdınız?
+        <select name="source" required>
+          <option value="" disabled selected>Seçin</option><option>AdReel Director botu</option><option>Instagram</option><option>TikTok</option><option>Tövsiyə</option><option>Digər</option>
+        </select>
+      </label>
       <label>Məhsul və məqsəd haqqında qısa<textarea name="details" rows="4" required placeholder="Məsələn: yeni kafe açırıq, səhər müştərilərini cəlb etmək istəyirik"></textarea></label>
       <button class="btn btn-primary" type="submit">WhatsApp-da göndər</button>
     </form>
@@ -186,6 +191,9 @@ pouring into a white ceramic cup..."</pre>
     const key = a.dataset.link;
     if (links[key]) { a.href = links[key]; a.target = "_blank"; a.rel = "noopener"; }
   });
+  const src = new URLSearchParams(location.search).get("src");
+  const srcMap = { bot: "AdReel Director botu", ig: "Instagram", tt: "TikTok" };
+  if (srcMap[src]) document.querySelector("select[name=source]").value = srcMap[src];
   document.getElementById("y").textContent = new Date().getFullYear();
 
   document.getElementById("orderForm").addEventListener("submit", e => {
@@ -197,6 +205,7 @@ pouring into a white ceramic cup..."</pre>
       f.get("brand") ? "Brend: " + f.get("brand") : null,
       "Xidmət: " + f.get("service"),
       "Müddət: " + f.get("duration"),
+      "Mənbə: " + f.get("source"),
       "Detallar: " + f.get("details")
     ].filter(Boolean).join("\n");
     window.open(links.whatsapp + "?text=" + encodeURIComponent(msg), "_blank");
