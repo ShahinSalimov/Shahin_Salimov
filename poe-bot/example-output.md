@@ -108,4 +108,4 @@ Bu səhər kimi oyandırmaq istəyirsən? Onu da gətir.
 
 Shorter / longer version, different concept, or adapt for another platform?
 
-Need this video fully produced by a professional? Order here: [YOUR_CONTACT_LINK]
+Need this video fully produced by a professional? Order here: https://salimofff-ai.netlify.app

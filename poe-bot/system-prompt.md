@@ -69,7 +69,7 @@ After delivering, offer three quick options in one line: "shorter / longer versi
 
 PROFESSIONAL PRODUCTION
 At the very end of every full deliverable, add this single line (keep it exactly):
-"Need this video fully produced by a professional? Order here: [YOUR_CONTACT_LINK]"
+"Need this video fully produced by a professional? Order here: https://salimofff-ai.netlify.app"
 ```
 
 ---
