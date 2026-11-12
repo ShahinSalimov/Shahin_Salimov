@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:db": "vitest run --config vitest.db.config.mts",
-    "check": "npm run typecheck && npm run lint && npm test && npm run build"
+    "check": "npm run typecheck && npm run lint && npm test && npm run build",
+    "test:e2e": "node tests/e2e/demo-flows.cjs && node tests/e2e/responsive-sweep.cjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
@@ -20,6 +21,7 @@
     "@xyflow/react": "^12.12.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "geist": "^1.9.2",
     "lucide-react": "^1.72.0",
     "next": "^16.4.6",
     "next-themes": "^0.4.6",
@@ -29,6 +31,7 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "server-only": "^0.0.1",
+    "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "unpdf": "^1.9.1",
     "zod": "^4.6.7"

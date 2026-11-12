@@ -21,7 +21,7 @@ The repository is a personal monorepo. CHANGEMESH is fully self-contained in `ch
 | Framework | Next.js 16 App Router (Server Components, Server Actions, Route Handlers, `proxy.ts`) | ✅ |
 | Language | TypeScript `strict` + `noUncheckedIndexedAccess`, `noImplicitOverride` | ✅ |
 | Styling | Tailwind CSS 4, design tokens in `src/app/globals.css` (light + dark) | ✅ |
-| Components | shadcn/ui conventions (`components.json`, `cva`, Radix primitives via `radix-ui`, `lucide-react`) | ✅ base set |
+| Components | shadcn/ui conventions (`components.json`, `cva`, Radix primitives via `radix-ui`, `lucide-react`), Sonner toasts, Geist fonts | ✅ |
 | Auth | Supabase Auth (email + password, optional Google OAuth) via `@supabase/ssr` cookies | ✅ |
 | Database | Supabase Postgres, Row Level Security on every table | ✅ |
 | Migrations | SQL files in `supabase/migrations/`, applied with the Supabase CLI | ✅ |
@@ -29,6 +29,7 @@ The repository is a personal monorepo. CHANGEMESH is fully self-contained in `ch
 | i18n | Typed dictionaries `en` (default), `az`, `tr`; cookie or `Accept-Language` | ✅ skeleton |
 | Logging | Structured JSON logger with secret redaction and request ids | ✅ |
 | Tests | Vitest (unit) + Vitest against real PostgreSQL (migrations + RLS) | ✅ |
+| Data visualization | Hand-built accessible SVG/CSS charts (stacked bar, donut, bar list, trend) | ✅ Stage 2 |
 | Graph UI | React Flow (`@xyflow/react`) | ⏳ Stage 4 |
 | Parsing | `unpdf` (PDF), `papaparse` (CSV), `node-html-parser` (HTML) | ⏳ Stage 3 (installed) |
 | AI | Provider abstraction; Claude when `ANTHROPIC_API_KEY` is set, deterministic engine otherwise | ⏳ Stage 5 |
@@ -158,7 +159,36 @@ The same matrix exists twice on purpose: `src/domain/rbac/roles.ts` (UI + early,
 - Security headers: `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `X-Powered-By` removed. A full CSP is planned for the hardening stage.
 - Zod validation for all inputs and DB rows read by the app.
 
-## 10. Planned engines (designed, not built)
+## 10. Data access layer (Stage 2) ✅
+
+```
+page.tsx ──► loadWorkspace(id)       → WorkspaceContext (viewer, workspace, role)  [404 if not a member]
+        └──► loadSnapshot(ctx)        → WorkspaceSnapshot (one per request, React cache)
+                 │
+                 ├─ SupabaseWorkspaceData  — real tenants; every query as the user (RLS)
+                 └─ DemoWorkspaceData      — fictional, per demo session, in server memory
+        └──► domain/insights/*        → pure functions: metrics, asset health, impact overview,
+                                         graph stats (depth, clusters, disconnected), activity text
+```
+
+- **One interface (`WorkspaceData`)** for reads (`snapshot()`) and the Stage-2 mutations: register asset, record change (draft), decide proposal, review relationship, change member role, remove member, rename workspace. Profile updates go directly to `profiles` (RLS: self only).
+- **Mutations** are Server Actions in `src/server/workspaces/mutations.ts`: authenticate → load workspace context → check permission with `domain/rbac` → validate input with Zod (`domain/workspace/inputs.ts`) → call `WorkspaceData` → `revalidatePath`. The database checks the same rules again.
+- **Approvals** go through the `decide_update_proposal()` RPC (migration `…000200`): atomic status change + approval record, comment required for reject / revision, no second decision on approved/rejected proposals.
+- **Authorship** (`created_by`, `reviewed_by`) is stamped by database triggers from the JWT and cannot be spoofed.
+- **Row mapping**: PostgREST rows are validated with the Zod schemas in `src/server/data/rows.ts`; `tests/db/row-mapping.test.ts` checks them against real PostgreSQL output. Malformed rows are logged and skipped instead of crashing a page.
+- **Demo store**: `Map<sessionId, state>` with 8-hour TTL and a 500-session cap. A new visitor gets a fresh copy of the seed (`src/server/demo/seed.ts`). State is lost on restart and is not shared between server instances.
+
+## 11. UI architecture (Stage 2) ✅
+
+- **Shell**: fixed sidebar (≥1024 px) with live counters (open changes, pending approvals), workspace switcher, role/plan card; sticky top bar with breadcrumb and user menu (theme, settings, sign-out); slide-in navigation sheet on mobile/tablet; persistent demo banner.
+- **Routes** (`/w/[workspaceId]/…`): overview, assets, assets/[id], graph (Change Map), changes, changes/[id] (impact analysis), approvals (Approval Center), proposals, integrations, activity, settings, settings/team, settings/billing. Public: `/`, `/login`, `/signup`, `/onboarding`.
+- **Filters and search** use URL query parameters and server rendering, so they work without JavaScript and links are shareable.
+- **Status language**: every status is shown as icon + label + colour (`components/app/meta.tsx`, `status-pill.tsx`). Demo records carry a *Sample* tag; unbuilt capabilities show *Planned · Stage N* instead of a button.
+- **Feedback**: `useMutation()` shows toasts as soon as the server answers and keeps typed values when validation fails (React resets forms after actions).
+- **Loading**: route-level skeletons (`loading.tsx`) for every workspace page; workspace-scoped `not-found.tsx`.
+- **Responsiveness**: checked automatically at 390 / 820 / 1440 px (`tests/e2e/responsive-sweep.cjs`).
+
+## 12. Planned engines (designed, not built)
 
 - **Asset Intelligence (Stage 3):** SSRF-safe fetcher (DNS resolution, private-range blocking, size/time limits), PDF/CSV/HTML extraction into a normalized facts table (entity, attribute, value, source location, confidence, version). Scanned content is treated as untrusted data and never as instructions.
 - **Dependency Graph (Stage 4):** graph service computed from DB rows; suggested relationships require human confirmation.

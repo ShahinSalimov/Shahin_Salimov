@@ -52,6 +52,13 @@ scripts/test-db.sh stop
 npm run build       # production build
 ```
 
+End-to-end checks (need Playwright with Chromium, and a running server with demo mode enabled):
+
+```bash
+npm run build && CHANGEMESH_DEMO_MODE=enabled npm start   # in another terminal
+BASE_URL=http://localhost:3000 npm run test:e2e
+```
+
 `scripts/test-db.sh` uses PostgreSQL binaries from `/usr/lib/postgresql/16/bin` (override with `PGBIN`). With Docker instead:
 
 ```bash

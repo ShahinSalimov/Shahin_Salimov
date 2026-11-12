@@ -17,5 +17,11 @@ export default defineConfig([
     files: ["src/lib/logger.ts", "scripts/**"],
     rules: { "no-console": "off" },
   },
+  {
+    // Playwright scripts run directly with Node (CommonJS).
+    files: ["tests/e2e/**/*.cjs"],
+    languageOptions: { sourceType: "commonjs", globals: { require: "readonly", process: "readonly", console: "readonly" } },
+    rules: { "@typescript-eslint/no-require-imports": "off", "no-console": "off" },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "node_modules/**"]),
 ]);

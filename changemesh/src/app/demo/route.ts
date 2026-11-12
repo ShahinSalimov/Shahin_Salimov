@@ -7,7 +7,7 @@ import { isDemoModeEnabled } from "@/server/env.server";
 export async function POST(request: NextRequest) {
   if (!isDemoModeEnabled()) return NextResponse.json({ error: "Demo mode is disabled." }, { status: 404 });
   const response = NextResponse.redirect(new URL(`/w/${DEMO_WORKSPACE_ID}`, request.nextUrl.origin), { status: 303 });
-  response.cookies.set(DEMO_COOKIE, "1", {
+  response.cookies.set(DEMO_COOKIE, crypto.randomUUID(), {
     httpOnly: true,
     sameSite: "lax",
     secure: request.nextUrl.protocol === "https:",

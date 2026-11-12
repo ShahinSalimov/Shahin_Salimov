@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isProtected = PROTECTED_PREFIXES.some((p) => path === p.replace(/\/$/, "") || path.startsWith(p));
-  const hasDemo = request.cookies.get("cm_demo")?.value === "1";
+  const hasDemo = Boolean(request.cookies.get("cm_demo")?.value);
   if (isProtected && !signedIn && !hasDemo) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";

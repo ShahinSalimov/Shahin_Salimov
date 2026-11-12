@@ -4,7 +4,8 @@ import { can, isWorkspaceRole, type Permission, type WorkspaceRole } from "@/dom
 import { forbidden, fromPostgresError, notFound, AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import type { Viewer } from "../auth/session";
-import { DEMO_WORKSPACE_ID, demoMembers, demoOrganization, demoViewerRole, demoWorkspace } from "../demo/fixture";
+import { DEMO_WORKSPACE_ID, demoOrganization, demoViewerRole, demoWorkspace } from "../demo/fixture";
+import { getDemoSession } from "../data/demo-store";
 import { createUserClient } from "../supabase/clients";
 
 export interface WorkspaceSummary {
@@ -23,13 +24,6 @@ export interface WorkspaceContext {
   viewer: Viewer;
 }
 
-export interface WorkspaceMember {
-  userId: string;
-  fullName: string | null;
-  email: string;
-  role: WorkspaceRole;
-}
-
 const membershipRow = z.object({
   role: z.string().refine(isWorkspaceRole),
   workspaces: z.object({
@@ -42,10 +36,10 @@ const membershipRow = z.object({
   }),
 });
 
-function demoSummary(): WorkspaceSummary {
+function demoSummary(sessionId: string): WorkspaceSummary {
   return {
     id: demoWorkspace.id,
-    name: demoWorkspace.name,
+    name: getDemoSession(sessionId).workspaceName,
     slug: demoWorkspace.slug,
     organizationId: demoOrganization.id,
     organizationName: demoOrganization.name,
@@ -62,7 +56,7 @@ function unexpected(op: string, error: { message?: string; code?: string }): nev
 }
 
 export async function listWorkspaces(viewer: Viewer): Promise<WorkspaceSummary[]> {
-  if (viewer.kind === "demo") return [demoSummary()];
+  if (viewer.kind === "demo") return [demoSummary(viewer.sessionId)];
   const supabase = await createUserClient();
   const { data, error } = await supabase
     .from("workspace_members")
@@ -93,7 +87,7 @@ export async function getWorkspaceContext(viewer: Viewer, workspaceId: string, p
   let workspace: WorkspaceSummary | undefined;
   if (viewer.kind === "demo") {
     if (workspaceId !== DEMO_WORKSPACE_ID) throw notFound("Workspace not found.");
-    workspace = demoSummary();
+    workspace = demoSummary(viewer.sessionId);
   } else {
     if (!z.string().uuid().safeParse(workspaceId).success) throw notFound("Workspace not found.");
     workspace = (await listWorkspaces(viewer)).find((w) => w.id === workspaceId);
@@ -101,25 +95,4 @@ export async function getWorkspaceContext(viewer: Viewer, workspaceId: string, p
   if (!workspace) throw notFound("Workspace not found.");
   if (!can(workspace.role, permission)) throw forbidden();
   return { workspace, role: workspace.role, viewer };
-}
-
-const memberRow = z.object({
-  role: z.string().refine(isWorkspaceRole),
-  user_id: z.string().uuid(),
-  profiles: z.object({ full_name: z.string().nullable(), email: z.string() }),
-});
-
-export async function listMembers(ctx: WorkspaceContext): Promise<WorkspaceMember[]> {
-  if (ctx.viewer.kind === "demo") return demoMembers.map((m) => ({ ...m }));
-  const supabase = await createUserClient();
-  const { data, error } = await supabase
-    .from("workspace_members")
-    .select("role, user_id, profiles!workspace_members_user_id_fkey(full_name, email)")
-    .eq("workspace_id", ctx.workspace.id)
-    .order("created_at", { ascending: true });
-  if (error) unexpected("listMembers", error);
-  return (data ?? []).map((raw) => {
-    const row = memberRow.parse(raw);
-    return { userId: row.user_id, fullName: row.profiles.full_name, email: row.profiles.email, role: row.role as WorkspaceRole };
-  });
 }

@@ -11,7 +11,9 @@ export const DEMO_COOKIE = "cm_demo";
 
 export type Viewer =
   | { kind: "user"; id: string; email: string; fullName: string | null }
-  | { kind: "demo" };
+  | { kind: "demo"; sessionId: string };
+
+const DEMO_SESSION_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /**
  * Resolves who is making the request.
@@ -39,7 +41,8 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   }
   if (isDemoModeEnabled()) {
     const store = await cookies();
-    if (store.get(DEMO_COOKIE)?.value === "1") return { kind: "demo" };
+    const sessionId = store.get(DEMO_COOKIE)?.value;
+    if (sessionId && DEMO_SESSION_PATTERN.test(sessionId)) return { kind: "demo", sessionId };
   }
   return null;
 });

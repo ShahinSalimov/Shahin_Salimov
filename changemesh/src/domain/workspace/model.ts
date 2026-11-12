@@ -1,0 +1,182 @@
+import type { WorkspaceRole } from "../rbac/roles";
+
+/** Enumerations mirror the PostgreSQL enums in supabase/migrations. */
+export const ASSET_TYPES = ["website", "pdf", "csv", "manual", "product_catalog", "marketing_content"] as const;
+export type AssetType = (typeof ASSET_TYPES)[number];
+export const SCAN_STATUSES = ["not_scanned", "queued", "running", "succeeded", "partial", "failed"] as const;
+export type ScanStatus = (typeof SCAN_STATUSES)[number];
+export const RELATIONSHIP_TYPES = ["derived_from", "embeds", "links_to", "syncs_with", "references", "duplicates"] as const;
+export type RelationshipType = (typeof RELATIONSHIP_TYPES)[number];
+export const RELATIONSHIP_STATUSES = ["suggested", "confirmed", "rejected"] as const;
+export type RelationshipStatus = (typeof RELATIONSHIP_STATUSES)[number];
+export const RECORD_ORIGINS = ["manual", "rule", "ai", "scan", "demo", "system"] as const;
+export type RecordOrigin = (typeof RECORD_ORIGINS)[number];
+export const CHANGE_TYPES = ["created", "updated", "deleted", "conflicting", "outdated"] as const;
+export type ChangeType = (typeof CHANGE_TYPES)[number];
+export const CHANGE_STATUSES = ["draft", "analyzing", "analyzed", "pending_approval", "approved", "rejected", "completed", "cancelled"] as const;
+export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
+export const IMPACT_LEVELS = ["critical", "high", "medium", "low"] as const;
+export type ImpactLevel = (typeof IMPACT_LEVELS)[number];
+export const APPROVAL_STATUSES = ["pending", "approved", "rejected", "needs_revision"] as const;
+export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
+export const EXECUTION_STATUSES = ["not_started", "ready", "in_progress", "completed", "failed"] as const;
+export type ExecutionStatus = (typeof EXECUTION_STATUSES)[number];
+export const INTEGRATION_STATUSES = ["not_connected", "connected", "error", "disabled"] as const;
+export type IntegrationStatus = (typeof INTEGRATION_STATUSES)[number];
+export const SUBSCRIPTION_PLANS = ["starter", "business", "agency", "enterprise"] as const;
+export type SubscriptionPlan = (typeof SUBSCRIPTION_PLANS)[number];
+
+export interface Asset {
+  id: string;
+  type: AssetType;
+  name: string;
+  description: string | null;
+  sourceUrl: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  status: "active" | "archived";
+  scanStatus: ScanStatus;
+  lastScannedAt: string | null;
+  lastScanError: string | null;
+  currentVersion: number;
+  isCustomerFacing: boolean;
+  origin: RecordOrigin;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AssetVersion {
+  id: string;
+  assetId: string;
+  version: number;
+  contentHash: string | null;
+  summary: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface AssetRelationship {
+  id: string;
+  sourceAssetId: string;
+  targetAssetId: string;
+  type: RelationshipType;
+  status: RelationshipStatus;
+  confidence: number;
+  origin: RecordOrigin;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface Change {
+  id: string;
+  title: string;
+  description: string | null;
+  type: ChangeType;
+  status: ChangeStatus;
+  sourceAssetId: string | null;
+  entityName: string | null;
+  attributeName: string | null;
+  oldValue: string | null;
+  newValue: string | null;
+  origin: RecordOrigin;
+  createdAt: string;
+}
+
+export interface RelationshipPathStep {
+  assetId: string;
+  relationship: RelationshipType | "contains";
+}
+
+export interface ChangeImpact {
+  id: string;
+  changeId: string;
+  assetId: string;
+  level: ImpactLevel;
+  depth: number;
+  path: RelationshipPathStep[];
+  oldValue: string | null;
+  newValue: string | null;
+  confidence: number;
+  recommendedAction: string | null;
+  origin: RecordOrigin;
+  createdAt: string;
+}
+
+export interface UpdateProposal {
+  id: string;
+  changeId: string;
+  changeImpactId: string | null;
+  targetAssetId: string;
+  currentValue: string | null;
+  proposedValue: string | null;
+  reason: string | null;
+  evidence: { label: string; detail?: string }[];
+  impactLevel: ImpactLevel;
+  approvalStatus: ApprovalStatus;
+  executionStatus: ExecutionStatus;
+  origin: RecordOrigin;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Approval {
+  id: string;
+  proposalId: string;
+  decision: Exclude<ApprovalStatus, "pending">;
+  comment: string | null;
+  decidedBy: string;
+  decidedByName: string | null;
+  createdAt: string;
+}
+
+export interface Integration {
+  id: string;
+  provider: string;
+  displayName: string;
+  status: IntegrationStatus;
+  lastSyncedAt: string | null;
+  lastError: string | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  actorId: string | null;
+  actorName: string | null;
+  actorType: "user" | "system" | "service";
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface Member {
+  userId: string;
+  fullName: string | null;
+  email: string;
+  role: WorkspaceRole;
+  joinedAt: string;
+}
+
+export interface Subscription {
+  plan: SubscriptionPlan;
+  status: string;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+}
+
+/** Everything a workspace page needs, already filtered to one workspace (by RLS or the demo store). */
+export interface WorkspaceSnapshot {
+  assets: Asset[];
+  versions: AssetVersion[];
+  relationships: AssetRelationship[];
+  changes: Change[];
+  impacts: ChangeImpact[];
+  proposals: UpdateProposal[];
+  approvals: Approval[];
+  integrations: Integration[];
+  audit: AuditEvent[];
+  /** False when the viewer's role may not read the audit log (RLS hides it). */
+  auditVisible: boolean;
+  members: Member[];
+  subscription: Subscription | null;
+}

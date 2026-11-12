@@ -1,0 +1,59 @@
+import { z } from "zod";
+import { WORKSPACE_ROLES } from "@/domain/rbac/roles";
+import {
+  APPROVAL_STATUSES,
+  ASSET_TYPES,
+  CHANGE_STATUSES,
+  CHANGE_TYPES,
+  EXECUTION_STATUSES,
+  IMPACT_LEVELS,
+  INTEGRATION_STATUSES,
+  RECORD_ORIGINS,
+  RELATIONSHIP_STATUSES,
+  RELATIONSHIP_TYPES,
+  SCAN_STATUSES,
+  SUBSCRIPTION_PLANS,
+} from "@/domain/workspace/model";
+
+/** Zod schemas for database rows as returned by PostgREST (snake_case). Verified against PostgreSQL in tests/db/row-mapping.test.ts. */
+const num = z.coerce.number();
+const nullableText = z.string().nullable();
+const json = z.record(z.string(), z.unknown());
+
+export const assetRow = z.object({
+  id: z.string(), type: z.enum(ASSET_TYPES), name: z.string(), description: nullableText, source_url: nullableText, mime_type: nullableText,
+  size_bytes: num.nullable(), status: z.enum(["active", "archived"]), scan_status: z.enum(SCAN_STATUSES), last_scanned_at: nullableText,
+  last_scan_error: nullableText, current_version: num, is_customer_facing: z.boolean(), origin: z.enum(RECORD_ORIGINS), created_at: z.string(), updated_at: z.string(),
+});
+export const versionRow = z.object({ id: z.string(), asset_id: z.string(), version: num, content_hash: nullableText, summary: json, created_at: z.string() });
+export const relationshipRow = z.object({
+  id: z.string(), source_asset_id: z.string(), target_asset_id: z.string(), relationship_type: z.enum(RELATIONSHIP_TYPES),
+  status: z.enum(RELATIONSHIP_STATUSES), confidence: num, origin: z.enum(RECORD_ORIGINS), note: nullableText, created_at: z.string(),
+});
+export const changeRow = z.object({
+  id: z.string(), title: z.string(), description: nullableText, change_type: z.enum(CHANGE_TYPES), status: z.enum(CHANGE_STATUSES),
+  source_asset_id: nullableText, entity_name: nullableText, attribute_name: nullableText, old_value: nullableText, new_value: nullableText,
+  origin: z.enum(RECORD_ORIGINS), created_at: z.string(),
+});
+const pathStep = z.object({ assetId: z.string(), relationship: z.union([z.enum(RELATIONSHIP_TYPES), z.literal("contains")]) });
+export const impactRow = z.object({
+  id: z.string(), change_id: z.string(), asset_id: z.string(), impact_level: z.enum(IMPACT_LEVELS), depth: num, relationship_path: z.array(pathStep).catch([]),
+  old_value: nullableText, new_value: nullableText, confidence: num, recommended_action: nullableText, origin: z.enum(RECORD_ORIGINS), created_at: z.string(),
+});
+export const proposalRow = z.object({
+  id: z.string(), change_id: z.string(), change_impact_id: nullableText, target_asset_id: z.string(), current_value: nullableText, proposed_value: nullableText,
+  reason: nullableText, evidence: z.array(z.object({ label: z.string(), detail: z.string().optional() })).catch([]), impact_level: z.enum(IMPACT_LEVELS),
+  approval_status: z.enum(APPROVAL_STATUSES), execution_status: z.enum(EXECUTION_STATUSES), origin: z.enum(RECORD_ORIGINS), created_at: z.string(), updated_at: z.string(),
+});
+const profileRef = z.object({ full_name: nullableText, email: z.string().optional() }).nullable();
+export const approvalRow = z.object({
+  id: z.string(), proposal_id: z.string(), decision: z.enum(["approved", "rejected", "needs_revision"]), comment: nullableText, decided_by: z.string(), created_at: z.string(), profiles: profileRef,
+});
+export const integrationRow = z.object({ id: z.string(), provider: z.string(), display_name: z.string(), status: z.enum(INTEGRATION_STATUSES), last_synced_at: nullableText, last_error: nullableText });
+export const auditRow = z.object({
+  id: z.union([z.string(), z.number()]).transform(String), actor_id: nullableText, actor_type: z.enum(["user", "system", "service"]), action: z.string(),
+  target_type: z.string(), target_id: nullableText, metadata: json, created_at: z.string(), profiles: profileRef,
+});
+export const memberRow = z.object({ user_id: z.string(), role: z.enum(WORKSPACE_ROLES), created_at: z.string(), profiles: z.object({ full_name: nullableText, email: z.string() }) });
+export const subscriptionRow = z.object({ plan: z.enum(SUBSCRIPTION_PLANS), status: z.string(), current_period_end: nullableText, cancel_at_period_end: z.boolean() });
+
