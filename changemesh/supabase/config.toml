@@ -1,0 +1,15 @@
+# Supabase CLI configuration (local development / `supabase db push`).
+# Keys not listed here use the CLI defaults.
+project_id = "changemesh"
+
+[db]
+major_version = 16
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+enable_signup = true
+minimum_password_length = 10
+
+[auth.email]
+enable_confirmations = true
