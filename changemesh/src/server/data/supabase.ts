@@ -3,11 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
-import type { CreateAssetInput, CreateChangeInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { RelationshipSuggestion } from "@/domain/graph/suggest";
+import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
+import type { AssetIntelligence, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { ScanError } from "../intelligence/errors";
 import type { ScanResult } from "../intelligence/analyze";
-import { AppError, fromPostgresError, notFound } from "@/lib/errors";
+import { AppError, conflict, fromPostgresError, notFound } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { createUserClient } from "../supabase/clients";
 import { approvalRow, assetRow, auditRow, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
@@ -15,6 +16,8 @@ import type { RecordedScan, StoredFile, WorkspaceData } from "./source";
 
 const AUDIT_LIMIT = 300;
 const FACT_LIMIT = 2000;
+const WORKSPACE_FACT_LIMIT = 20_000;
+const PAGE = 1000; // PostgREST default max rows per request
 const BUCKET = "asset-files";
 function check<T>(op: string, result: { data: T | null; error: { message: string; code?: string } | null }): T {
   if (result.error) {
@@ -292,5 +295,62 @@ export class SupabaseWorkspaceData implements WorkspaceData {
     const db = await this.db();
     const res = await db.from("extracted_facts").delete().eq("id", factId).eq("workspace_id", this.workspaceId).eq("method", "manual").select("id");
     if (!check("deleteFact", res)?.length) throw notFound("Fact not found, or it is a scanned fact (scanned facts change only when the asset is scanned again).");
+  }
+
+  async workspaceFacts(): Promise<ExtractedFact[]> {
+    const db = await this.db();
+    const out: ExtractedFact[] = [];
+    for (let from = 0; from < WORKSPACE_FACT_LIMIT; from += PAGE) {
+      const res = await db
+        .from("current_facts")
+        .select("id, asset_id, asset_version, scan_id, entity_name, attribute_name, value_text, value_number, value_unit, normalized_value, source_location, confidence, method, origin, extracted_at")
+        .eq("workspace_id", this.workspaceId)
+        .order("id")
+        .range(from, from + PAGE - 1);
+      const rows = parseRows("workspaceFacts", factRow, check("workspaceFacts", res));
+      out.push(
+        ...rows.map((r) => ({
+          id: r.id, assetId: r.asset_id, assetVersion: r.asset_version, scanId: r.scan_id, entityName: r.entity_name, attributeName: r.attribute_name,
+          valueText: r.value_text, valueNumber: r.value_number, valueUnit: r.value_unit, normalizedValue: r.normalized_value, location: r.source_location,
+          confidence: r.confidence, method: r.method, origin: r.origin, extractedAt: r.extracted_at,
+        })),
+      );
+      if (rows.length < PAGE) break;
+    }
+    if (out.length >= WORKSPACE_FACT_LIMIT) logger.warn("graph.facts_truncated", { workspaceId: this.workspaceId, limit: WORKSPACE_FACT_LIMIT });
+    return out;
+  }
+
+  async createRelationship(input: CreateRelationshipInput) {
+    const db = await this.db();
+    const res = await db
+      .from("asset_relationships")
+      .insert({ workspace_id: this.workspaceId, source_asset_id: input.sourceAssetId, target_asset_id: input.targetAssetId, relationship_type: input.type, status: "confirmed", origin: "manual", confidence: 1, note: input.note })
+      .select("id")
+      .single<{ id: string }>();
+    if (res.error?.code === "23505") throw conflict("These assets already have a relationship of this type.");
+    if (res.error?.code === "23503") throw notFound("One of the assets does not exist in this workspace.");
+    return check("createRelationship", res);
+  }
+
+  async deleteRelationship(id: string) {
+    const db = await this.db();
+    const res = await db.from("asset_relationships").delete().eq("id", id).eq("workspace_id", this.workspaceId).select("id");
+    if (!check("deleteRelationship", res)?.length) throw notFound("Relationship not found.");
+  }
+
+  async addSuggestions(suggestions: RelationshipSuggestion[]) {
+    const db = await this.db();
+    let created = 0;
+    // One by one so a pair created concurrently (unique violation) does not cancel the others.
+    for (const s of suggestions) {
+      const res = await db.from("asset_relationships").insert({
+        workspace_id: this.workspaceId, source_asset_id: s.sourceAssetId, target_asset_id: s.targetAssetId, relationship_type: s.type,
+        status: "suggested", origin: "rule", confidence: s.confidence, note: s.note,
+      });
+      if (!res.error) created++;
+      else if (res.error.code !== "23505") check("addSuggestions", { data: null, error: res.error });
+    }
+    return created;
   }
 }

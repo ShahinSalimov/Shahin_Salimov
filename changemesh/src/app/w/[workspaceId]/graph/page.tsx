@@ -6,14 +6,17 @@ import { EmptyState } from "@/components/app/empty-state";
 import { FilterChips, str, withParams } from "@/components/app/filters";
 import { RELATIONSHIP_LABEL, RELATIONSHIP_STATUS_META } from "@/components/app/meta";
 import { PageHeader, SectionCard } from "@/components/app/page-header";
-import { PlannedTag, SampleTag, StatusPill } from "@/components/app/status-pill";
+import { SampleTag, StatusPill } from "@/components/app/status-pill";
+import { DependencyGraph } from "@/components/graph/dependency-graph";
+import { buildDependencyGraph } from "@/domain/graph/build";
+import { assetHealth } from "@/domain/insights/metrics";
 import { RelationshipReview } from "@/components/forms/relationship-review";
 import { graphStats } from "@/domain/insights/graph-stats";
 import { can } from "@/domain/rbac/roles";
 import { RELATIONSHIP_STATUSES } from "@/domain/workspace/model";
 import { percent } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { loadSnapshot } from "@/server/data";
+import { getWorkspaceData, loadSnapshot } from "@/server/data";
 import { loadWorkspace } from "@/server/workspaces/load";
 
 export const metadata: Metadata = { title: "Change Map" };
@@ -26,6 +29,18 @@ export default async function ChangeMapPage({ params, searchParams }: { params: 
   const base = `/w/${ctx.workspace.id}`;
   const path = `${base}/graph`;
   const status = RELATIONSHIP_STATUSES.find((s) => s === str(sp.status));
+  const view = str(sp.view) === "list" || status ? "list" : "graph";
+  const facts = view === "graph" ? await getWorkspaceData(ctx).workspaceFacts() : [];
+  const graph =
+    view === "graph"
+      ? buildDependencyGraph({
+          assets: snapshot.assets,
+          relationships: snapshot.relationships,
+          facts,
+          health: new Map(snapshot.assets.map((a) => [a.id, assetHealth(a, snapshot)])),
+          factCounts: snapshot.factCounts,
+        })
+      : null;
   const assets = new Map(snapshot.assets.map((a) => [a.id, a]));
   const stats = graphStats(snapshot.assets, snapshot.relationships);
   const canReview = can(ctx.role, "relationships.write");
@@ -38,20 +53,47 @@ export default async function ChangeMapPage({ params, searchParams }: { params: 
     <div className="grid gap-6">
       <PageHeader
         title="Change Map"
-        description="How your assets depend on each other. Impact analysis follows confirmed relationships."
-        actions={<PlannedTag stage="Interactive graph in Stage 4" />}
+        description="How your assets and the information inside them are connected. Impact analysis follows confirmed relationships."
       />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Metric label="Confirmed relationships" value={stats.confirmed} />
-        <Metric label="Awaiting review" value={stats.suggested} tone={stats.suggested ? "info" : undefined} href={withParams(path, {}, { status: "suggested" })} />
+        <Metric label="Awaiting review" value={stats.suggested} tone={stats.suggested ? "info" : undefined} href={withParams(path, {}, { view: "list", status: "suggested" })} />
         <Metric label="Graph depth" value={stats.maxDepth} hint="Longest chain, in hops" />
-        <Metric label="Disconnected assets" value={stats.disconnected.length} tone={stats.disconnected.length ? "warning" : undefined} hint={`${stats.clusters.length} connected group${stats.clusters.length === 1 ? "" : "s"}`} />
+        <Metric
+          label="Without confirmed links"
+          value={stats.disconnected.length}
+          tone={stats.disconnected.length ? "warning" : undefined}
+          hint={graph ? `${graph.stats.disconnectedAssets} with no link at all · ${stats.disconnected.length - graph.stats.disconnectedAssets} only suggested` : `${stats.clusters.length} connected group${stats.clusters.length === 1 ? "" : "s"}`}
+        />
+        {graph ? (
+          <Metric label="Inconsistent information" value={graph.stats.inconsistentInformation} tone={graph.stats.inconsistentInformation ? "warning" : undefined} hint={`of ${graph.stats.informationNodes} shared facts`} />
+        ) : (
+          <Metric label="Relationships rejected" value={stats.rejected} />
+        )}
       </div>
 
-      {snapshot.relationships.length === 0 ? (
+      <FilterChips
+        label="Change Map view"
+        active={view}
+        options={[
+          { value: "graph", label: "Graph", href: path },
+          { value: "list", label: "List", count: snapshot.relationships.length, href: withParams(path, {}, { view: "list" }) },
+        ]}
+      />
+
+      {graph ? (
+        <>
+          <DependencyGraph graph={graph} workspaceId={ctx.workspace.id} canEdit={canReview} assets={snapshot.assets.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name }))} />
+          {graph.stats.truncatedInformation ? (
+            <p className="text-xs text-muted-foreground">{graph.stats.truncatedInformation} more shared facts are not drawn (the map shows the 80 most relevant). Use asset pages for the full list.</p>
+          ) : null}
+        </>
+      ) : null}
+
+      {view === "list" && snapshot.relationships.length === 0 ? (
         <EmptyState icon={Waypoints} title="No relationships yet" description="Relationships appear when assets share information. Suggestions from scans arrive with the Asset Intelligence and Graph stages." />
-      ) : (
+      ) : view === "list" ? (
         <div className="grid gap-6 xl:grid-cols-3 xl:items-start">
           <SectionCard
             className="xl:col-span-2"
@@ -64,8 +106,8 @@ export default async function ChangeMapPage({ params, searchParams }: { params: 
                 label="Relationship status"
                 active={status ?? "all"}
                 options={[
-                  { value: "all", label: "All", count: snapshot.relationships.length, href: path },
-                  ...RELATIONSHIP_STATUSES.map((s) => ({ value: s, label: RELATIONSHIP_STATUS_META[s].label, count: snapshot.relationships.filter((r) => r.status === s).length, href: withParams(path, {}, { status: s }) })),
+                  { value: "all", label: "All", count: snapshot.relationships.length, href: withParams(path, {}, { view: "list" }) },
+                  ...RELATIONSHIP_STATUSES.map((s) => ({ value: s, label: RELATIONSHIP_STATUS_META[s].label, count: snapshot.relationships.filter((r) => r.status === s).length, href: withParams(path, {}, { view: "list", status: s }) })),
                 ]}
               />
             </div>
@@ -131,7 +173,7 @@ export default async function ChangeMapPage({ params, searchParams }: { params: 
             <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">A change can only be traced to assets that are connected. Review suggestions or link these assets manually.</p>
           </SectionCard>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

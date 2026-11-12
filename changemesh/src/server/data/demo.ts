@@ -1,8 +1,9 @@
 import "server-only";
 import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
-import type { CreateAssetInput, CreateChangeInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, AuditEvent, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { RelationshipSuggestion } from "@/domain/graph/suggest";
+import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
+import type { AssetIntelligence, AssetRelationship, AuditEvent, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, notFound } from "@/lib/errors";
 import { getDemoSession } from "./demo-store";
@@ -121,6 +122,47 @@ export class DemoWorkspaceData implements WorkspaceData {
     Object.assign(scan, { status: result.status, finishedAt: now, assetVersion: result.status === "failed" ? null : version || null, factsCount: count, error: result.error, warnings: result.warnings, stats: result.stats });
     this.audit("assets.update", "assets", a.id, { changed: ["last_scanned_at", "scan_status"], status: result.status, name: a.name });
     return { assetVersion: version || null, newVersion, factsCount: count };
+  }
+
+  async workspaceFacts(): Promise<ExtractedFact[]> {
+    const { snapshot, facts } = this.session;
+    const current = new Map(snapshot.assets.filter((a) => a.status === "active").map((a) => [a.id, a.currentVersion]));
+    return structuredClone(facts.filter((f) => current.has(f.assetId) && (f.assetVersion === null || f.assetVersion === current.get(f.assetId))));
+  }
+
+  private pairTaken(a: string, b: string, type?: string) {
+    return this.session.snapshot.relationships.some(
+      (r) => ((r.sourceAssetId === a && r.targetAssetId === b) || (r.sourceAssetId === b && r.targetAssetId === a)) && (!type || r.type === type),
+    );
+  }
+
+  async createRelationship(input: CreateRelationshipInput) {
+    this.asset(input.sourceAssetId);
+    this.asset(input.targetAssetId);
+    if (this.pairTaken(input.sourceAssetId, input.targetAssetId, input.type)) throw conflict("These assets already have a relationship of this type.");
+    const r: AssetRelationship = { id: `r-${crypto.randomUUID()}`, sourceAssetId: input.sourceAssetId, targetAssetId: input.targetAssetId, type: input.type, status: "confirmed", confidence: 1, origin: "manual", note: input.note, createdAt: new Date().toISOString() };
+    this.session.snapshot.relationships.push(r);
+    this.audit("asset_relationships.insert", "asset_relationships", r.id, { status: "confirmed" });
+    return { id: r.id };
+  }
+
+  async deleteRelationship(id: string) {
+    const snap = this.session.snapshot;
+    if (!snap.relationships.some((r) => r.id === id)) throw notFound("Relationship not found.");
+    snap.relationships = snap.relationships.filter((r) => r.id !== id);
+    this.audit("asset_relationships.delete", "asset_relationships", id, {});
+  }
+
+  async addSuggestions(suggestions: RelationshipSuggestion[]) {
+    let created = 0;
+    for (const s of suggestions) {
+      if (this.pairTaken(s.sourceAssetId, s.targetAssetId)) continue;
+      const id = `r-${crypto.randomUUID()}`;
+      this.session.snapshot.relationships.push({ id, sourceAssetId: s.sourceAssetId, targetAssetId: s.targetAssetId, type: s.type, status: "suggested", confidence: s.confidence, origin: "rule", note: s.note, createdAt: new Date().toISOString() });
+      this.audit("asset_relationships.insert", "asset_relationships", id, { status: "suggested" });
+      created++;
+    }
+    return created;
   }
 
   async addManualFact(assetId: string, fact: FactDraft) {

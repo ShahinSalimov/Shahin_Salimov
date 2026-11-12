@@ -10,6 +10,7 @@ import { formToObject, runAction } from "../action";
 import { getViewer } from "../auth/session";
 import { getWorkspaceData } from "../data";
 import { UPLOAD_LIMITS } from "../intelligence/files";
+import { refreshSuggestionsSafely } from "../graph";
 import { ingestUpload, scanWebsite } from "../intelligence/runner";
 import { takeToken } from "../rate-limit";
 import { getWorkspaceContext } from "./service";
@@ -78,9 +79,12 @@ export async function scanAssetAction(_prev: MutationState, form: FormData): Pro
     if (!asset.sourceUrl) throw new AppError("VALIDATION_FAILED", "Add a URL to this asset before scanning.");
     limitScans(actorKey);
     const outcome = await scanWebsite(data, asset);
+    // New facts may connect this asset to others: refresh suggestions (never blocks the scan result).
+    const suggested = outcome.status !== "failed" && outcome.newVersion ? await refreshSuggestionsSafely(data) : 0;
     revalidatePath(`/w/${workspaceId}`, "layout");
     if (outcome.status === "failed") throw new AppError("VALIDATION_FAILED", outcome.message);
-    return { message: outcome.message, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
+    const extra = suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "";
+    return { message: outcome.message + extra, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
   });
 }
 
@@ -95,9 +99,12 @@ export async function uploadAssetFileAction(_prev: MutationState, form: FormData
     if (asset.type === "manual") throw new AppError("VALIDATION_FAILED", "Manual records hold facts entered by people; files cannot be uploaded to them.");
     limitScans(actorKey);
     const outcome = await ingestUpload(data, asset, { name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) });
+    // New facts may connect this asset to others: refresh suggestions (never blocks the scan result).
+    const suggested = outcome.status !== "failed" && outcome.newVersion ? await refreshSuggestionsSafely(data) : 0;
     revalidatePath(`/w/${workspaceId}`, "layout");
     if (outcome.status === "failed") throw new AppError("VALIDATION_FAILED", outcome.message);
-    return { message: outcome.message, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
+    const extra = suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "";
+    return { message: outcome.message + extra, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
   });
 }
 

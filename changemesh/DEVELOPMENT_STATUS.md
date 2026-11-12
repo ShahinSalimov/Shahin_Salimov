@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 3 (Asset Intelligence)._
+_Last updated: 2026-11-12 — after Stage 4 (Dependency Graph)._
 
 ## Roadmap
 
@@ -9,13 +9,79 @@ _Last updated: 2026-11-12 — after Stage 3 (Asset Intelligence)._
 | 1 | **Foundation** — architecture, database, authentication | ✅ Complete |
 | 2 | **Premium UI** — design system, application shell, all pages | ✅ Complete |
 | 3 | **Asset Intelligence** — documents, websites, extraction | ✅ Complete |
-| 4 | **Dependency Graph** — relationships between information | ⏳ Next (awaiting instruction) |
-| 5 | **AI Change Engine** — change detection, impact analysis | Queued |
+| 4 | **Dependency Graph** — relationships between information | ✅ Complete |
+| 5 | **AI Change Engine** — change detection, impact analysis | ⏳ Next (awaiting instruction) |
 | 6 | **Approval Engine** — approvals, update execution | Queued |
 | 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | Queued |
 | 8 | **Launch** — production-readiness audit, deploy, first customers | Queued |
 
-Stage briefs 4–8 have been received and will be executed one at a time, only after explicit instruction.
+Stage briefs 5–8 have been received and will be executed one at a time, only after explicit instruction.
+
+## Stage 4 — Dependency Graph ✅
+
+### Delivered
+
+| # | Requirement | Implementation |
+|---|---|---|
+| — | React Flow graph of entities, attributes, assets (documents, websites, products, marketing) | Custom entity, information and asset nodes; relationship, occurrence and attribute edges |
+| 1 | Automatic relationship suggestions from extracted information | Rule-based engine with evidence notes; on demand and after every new scanned version |
+| 2 | Confirm / reject | From the edge details panel, the asset page and the list view |
+| 3 | Manual relationships | "Add relationship" dialog (type help text), confirmed immediately; remove with confirmation |
+| 4 | Source and destination | Arrow from dependent to upstream; edge panel shows both ends |
+| 5 | Relationship types | Shown on selection and in the list (derived from, embeds, links to, syncs with, references, duplicates) |
+| 6 | Graph depth | Longest chain metric + dependency level per asset + hop distance in the details panel |
+| 7 | Highlight connected assets | Neighborhood highlight with 1 / 2 / 3 / all hops |
+| 8 | Filter by asset type | Toggle chips per type |
+| 9 | Search nodes | Live search over assets, entities and attributes; Enter or "Show" focuses matches |
+| 10 | Node details | Side panel for assets, information and entities |
+| 11 | Zoom and pan | React Flow canvas, controls, minimap, Fit |
+| 12 | Confidence | Edge thickness, % on selection, panel |
+| 13 | Disconnected assets | "Not connected" column + metric (no link at all vs only suggested) |
+| — | Graph service from database records | `buildDependencyGraph()` uses only assets, relationships and `current_facts`; nothing is drawn by hand |
+| — | Demo workspace | Seeded relationships and facts render a realistic map (price list → menu page / PDF / ordering page → campaign; two inconsistent shared facts) |
+
+New database objects (`…000500_dependency_graph.sql`): `current_facts` view, direction-independent unique index for relationships, immutable endpoints trigger.
+
+### Verification (run 2026-11-12, in this environment, from a clean build)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` / `npm run lint` | ✅ 0 errors / 0 problems |
+| `npm test` (unit) | ✅ 25 files, 207 tests (+15 graph domain: keys, suggestions, traversal, layout, inconsistency, performance with 1,000 assets; +4 graph service) |
+| `npm run test:db` (PostgreSQL 16) | ✅ 5 files, 55 tests (+5: reverse duplicates, self/cross-tenant links, viewer writes, immutable endpoints, `current_facts` tenancy/archived) |
+| `npm run build` | ✅ success |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+| E2E demo flows | ✅ 38/38, twice in a row (+13 graph checks: nodes and edges from data, depth highlight, inconsistent information, search, type filter, suggestions stored, manual relationship, reverse duplicate refused, confirm suggestion from the graph, remove relationship, list view) |
+| Responsive sweep (22 routes × 3 sizes) | ✅ 66 combinations, no errors, no overflow |
+
+Bugs found and fixed during this stage:
+1. A relationship backed only by a shared phone number was typed `derived_from` → now `references` (needs ≥2 shared facts for `derived_from`).
+2. Suggestion evidence text depended on fact order (non-deterministic) → keys and labels sorted.
+3. The graph opened too small (`fitView` ran before nodes existed) → initial nodes passed on mount, readable minimum zoom.
+4. "Disconnected assets" metric (confirmed links only) disagreed with the graph (which shows suggested links) → metric now explains both numbers.
+5. Incoming relationships read "links to by" → proper wording ("linked from", "source for", …).
+6. E2E race on sidebar counters after approvals → tests poll until the revalidated page commits.
+
+### Known limitations / honest notes
+
+1. Suggestions are rule-based (shared facts and identifiers). They do not understand synonyms beyond a small attribute list (price/cost, phone/telephone, hours…) or entity spelling variants beyond case and punctuation. AI-assisted matching is a Stage 5 candidate.
+2. Large workspaces: the map draws at most 80 shared-information nodes and loads up to 20,000 current facts; the layout is computed per request (≈ tens of ms for 1,000 assets in tests).
+3. Node positions after dragging are not saved.
+4. The canvas is a visual tool; screen-reader users should use the List view (linked from the same page).
+5. Supabase/PostgREST paths (paging `current_facts`, suggestion inserts) are tested at the SQL level only, as in previous stages.
+
+### Files added / modified in Stage 4
+
+- Migration: `supabase/migrations/20261112000500_dependency_graph.sql`
+- Domain: `src/domain/graph/{keys,suggest,traverse,build}.ts` (+ `graph.test.ts`), `inputs.ts`
+- Server: `src/server/graph.ts`, `src/server/workspaces/graph-actions.ts`, data layer (`source`, `demo`, `supabase`), `asset-actions.ts` (post-scan suggestions)
+- UI: `src/components/graph/{nodes,dependency-graph,graph-forms}.tsx`, `components/app/meta.tsx`, Change Map page (graph + list views), dashboard link
+- Tests: `tests/db/graph.test.ts`, `tests/unit/graph-service.test.ts`, e2e scripts
+- Docs: `ARCHITECTURE.md` §13, `README.md`
+
+### Recommended next stage
+
+**Stage 5 — AI Change Engine:** register new values, compare with previous versions, detect created/updated/deleted/conflicting/outdated information, compute direct and indirect impact over confirmed relationships and shared facts, impact levels and recommendations, update proposals, and an AI abstraction (demo analysis without keys, Claude when configured, schema-validated JSON, retries, usage tracking).
 
 ## Stage 3 — Asset Intelligence ✅
 
@@ -79,9 +145,6 @@ Issues found and fixed during this stage:
 - Tests: `tests/db/asset-intelligence.test.ts`, `tests/unit/{url-guard,safe-fetch,files-pdf,runner}.test.ts`, `tests/helpers/pdf.ts`, updated row-mapping, demo-data and e2e scripts
 - Config/docs: `next.config.ts` (upload body limit), `ARCHITECTURE.md` §12, `INSTALLATION.md`, `README.md`
 
-### Recommended next stage
-
-**Stage 4 — Dependency Graph:** interactive React Flow graph built from database records (assets, entities, attributes from `extracted_facts`), automatic relationship suggestions from shared facts (same entity/attribute across assets), confirm/reject, manual relationships, filters, search, depth and node details.
 
 ## Stage 2 — Premium UI ✅
 

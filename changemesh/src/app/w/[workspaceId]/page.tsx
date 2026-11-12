@@ -220,7 +220,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ works
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">Until someone reviews them, impacts that rely on suggestions are shown as unconfirmed and low confidence.</p>
                 <Button asChild size="sm" variant="outline" className="mt-3">
-                  <Link href={`${base}/graph?status=suggested`}>Review suggestions</Link>
+                  <Link href={`${base}/graph?view=list&status=suggested`}>Review suggestions</Link>
                 </Button>
               </div>
             </div>

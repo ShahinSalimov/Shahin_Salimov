@@ -30,7 +30,7 @@ The repository is a personal monorepo. CHANGEMESH is fully self-contained in `ch
 | Logging | Structured JSON logger with secret redaction and request ids | ✅ |
 | Tests | Vitest (unit) + Vitest against real PostgreSQL (migrations + RLS) | ✅ |
 | Data visualization | Hand-built accessible SVG/CSS charts (stacked bar, donut, bar list, trend) | ✅ Stage 2 |
-| Graph UI | React Flow (`@xyflow/react`) | ⏳ Stage 4 |
+| Graph UI | React Flow (`@xyflow/react`) with custom nodes, deterministic layered layout | ✅ Stage 4 |
 | Parsing | `unpdf` (PDF), `papaparse` (CSV), `node-html-parser` (HTML) | ✅ Stage 3 |
 | AI | Provider abstraction; Claude when `ANTHROPIC_API_KEY` is set, deterministic engine otherwise | ⏳ Stage 5 |
 | Billing | Stripe (test mode), webhook signature verification | ⏳ Stage 7 |
@@ -227,9 +227,24 @@ website URL ──────────┘    runner.ts          │   json-l
 - CSV cells starting with `= + - @` are flagged and stored as plain text (no formula evaluation).
 - Demo mode never fetches external websites (anonymous visitors cannot use the server as a fetch proxy); demo uploads are analyzed in memory and not stored.
 
-## 13. Planned engines (designed, not built)
+## 13. Dependency Intelligence Graph (Stage 4) ✅
 
-- **Dependency Graph (Stage 4):** graph service computed from DB rows; suggested relationships require human confirmation.
+```
+DB records ──► buildDependencyGraph()  (src/domain/graph/build.ts, pure)
+  assets                 asset nodes (active only) with type, health, fact count, dependency layer
+  asset_relationships    relationship edges (confirmed / suggested / rejected) with type + confidence
+  current_facts (view)   entity nodes ──has──► information nodes (entity · attribute, shared by ≥2 assets)
+                         information ──appears in──► asset edges, value per asset, mismatches flagged
+```
+
+- **Layout** (deterministic, server-side): sources on the left, dependents to the right. Layer = 1 + max layer of everything an asset depends on (edges point from dependent to upstream; cycles are cut). Two barycenter sweeps order nodes to reduce crossings; information and entity columns are ordered next to the assets they appear in; assets with no relationship at all go to a "Not connected" column. At most 80 information nodes are drawn (inconsistent ones first).
+- **Suggestions** (`src/domain/graph/suggest.ts`, rule-based, explainable): two assets are linked when they share ≥2 entity/attribute facts or one identifier (phone, email, address). Confidence = 0.35 + 0.45·overlap + 0.15·agreement (+0.1 for a shared identifier), capped at 0.95, minimum 0.5. Direction follows source-of-truth authority (CSV/manual → catalog → PDF/website → marketing): `derived_from` toward CSV/manual sources when ≥2 facts overlap, `duplicates` for equally authoritative assets with identical shared values, otherwise `references`. The note explains the evidence ("3 shared facts (…); 2 with matching values, 1 different"). Pairs that already have any relationship — **including rejected ones** — are never suggested again. Suggestions run on demand ("Suggest relationships") and automatically after a scan/upload creates a new version.
+- **Integrity**: one relationship per asset pair and type regardless of direction (unique index on least/greatest ids), endpoints immutable, no self-links, composite FKs keep both ends in the workspace.
+- **UI** (`src/components/graph/`): React Flow canvas with zoom/pan, minimap, controls; search (Enter focuses matches); asset-type filter; toggles for information nodes, suggested and rejected relationships; click a node to highlight its neighborhood up to 1/2/3/all hops; details panel for assets (health, layer, connected assets with hop distance, relationships, shared information), information (value per asset, mismatches) and relationships (direction, type, status, confidence, origin, evidence, confirm/reject/remove). A List view is the text alternative.
+- **Data**: `current_facts` view (security invoker) loaded in pages of 1,000 rows (PostgREST limit), capped at 20,000 facts per workspace.
+
+## 14. Planned engines (designed, not built)
+
 - **Change & Impact (Stage 5):** deterministic BFS impact engine with explainable relationship paths; AI provider interface with schema-validated JSON, retries and usage tracking; AI never approves anything.
 - **Approval & Updates (Stage 6):** approval workflow on top of the existing constraints; internal update simulator and exportable instructions; idempotent execution.
 - **Commercial SaaS (Stage 7):** Stripe test-mode billing, plan limits, invitations, notifications, usage metering, admin area.

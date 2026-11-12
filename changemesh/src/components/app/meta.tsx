@@ -126,3 +126,13 @@ export const RELATIONSHIP_LABEL: Record<RelationshipType | "contains", string> =
   duplicates: "duplicates",
   contains: "source",
 };
+
+/** Wording when reading a relationship from the target's side. */
+export const RELATIONSHIP_INCOMING_LABEL: Record<RelationshipType, string> = {
+  derived_from: "source for",
+  embeds: "embedded in",
+  links_to: "linked from",
+  syncs_with: "syncs with",
+  references: "referenced by",
+  duplicates: "duplicates",
+};

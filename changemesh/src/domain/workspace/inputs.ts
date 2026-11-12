@@ -117,3 +117,15 @@ export type ManualFactInput = z.output<typeof manualFactSchema>;
 
 export const deleteFactSchema = z.object({ factId: z.string().min(1).max(64) });
 export const assetIdSchema = z.object({ assetId: z.string().min(1).max(64) });
+
+export const createRelationshipSchema = z
+  .object({
+    sourceAssetId: z.string().min(1, "Choose the source asset.").max(64),
+    targetAssetId: z.string().min(1, "Choose the target asset.").max(64),
+    type: z.enum(["derived_from", "embeds", "links_to", "syncs_with", "references", "duplicates"]),
+    note: optionalText(1000),
+  })
+  .refine((v) => v.sourceAssetId !== v.targetAssetId, { path: ["targetAssetId"], message: "An asset cannot be related to itself." });
+export type CreateRelationshipInput = z.output<typeof createRelationshipSchema>;
+
+export const relationshipIdSchema = z.object({ relationshipId: z.string().min(1).max(64) });

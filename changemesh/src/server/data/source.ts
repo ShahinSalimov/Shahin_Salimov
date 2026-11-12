@@ -1,7 +1,8 @@
 import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
-import type { CreateAssetInput, CreateChangeInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { RelationshipSuggestion } from "@/domain/graph/suggest";
+import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
+import type { AssetIntelligence, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 
 export interface StoredFile {
@@ -43,4 +44,12 @@ export interface WorkspaceData {
   recordScan(scanId: string, result: ScanResult, file?: StoredFile): Promise<RecordedScan>;
   addManualFact(assetId: string, fact: FactDraft): Promise<{ id: string }>;
   deleteFact(factId: string): Promise<void>;
+
+  // Dependency graph
+  /** Current facts of all active assets (capped; see implementations). */
+  workspaceFacts(): Promise<ExtractedFact[]>;
+  createRelationship(input: CreateRelationshipInput): Promise<{ id: string }>;
+  deleteRelationship(id: string): Promise<void>;
+  /** Stores rule-based suggestions; pairs that already exist are skipped. Returns how many were created. */
+  addSuggestions(suggestions: RelationshipSuggestion[]): Promise<number>;
 }

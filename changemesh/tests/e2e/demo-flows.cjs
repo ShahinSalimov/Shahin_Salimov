@@ -8,6 +8,14 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   const p = await (await b.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
   await p.goto(B); await p.click('text=Explore the demo'); await p.waitForURL('**/w/demo');
   const badge = async () => (await p.locator('nav[aria-label=Main] a[href="/w/demo/approvals"]').innerText()).replace(/\D/g, '');
+  // Waits until the sidebar counter shows the expected value (the revalidated page commits after the toast).
+  const badgeBecomes = async (want) => {
+    for (let i = 0; i < 40; i++) {
+      if ((await badge()) === want) return true;
+      await p.waitForTimeout(100);
+    }
+    return false;
+  };
   check(await badge() === '8', 'sidebar shows 8 pending approvals');
 
   // Approve a proposal
@@ -15,7 +23,7 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   await p.getByRole('button', { name: 'Approve update for Online ordering page' }).click();
   await p.getByRole('dialog').getByRole('button', { name: 'Approve' }).click();
   await p.getByText('Proposal approved').waitFor();
-  check(await badge() === '7', 'approving decreases pending count to 7');
+  check(await badgeBecomes('7'), 'approving decreases pending count to 7');
 
   // Reject requires comment (server-side validation)
   await p.getByRole('button', { name: /Reject update for/ }).first().click();
@@ -25,7 +33,7 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   await p.getByRole('dialog').locator('textarea').fill('Wrong source document');
   await p.getByRole('dialog').getByRole('button', { name: 'Reject' }).click();
   await p.getByText('Proposal rejected').waitFor();
-  check(await badge() === '6', 'rejecting with comment decreases pending to 6');
+  check(await badgeBecomes('6'), 'rejecting with comment decreases pending to 6');
 
   // Confirm a suggested relationship
   await p.goto(B + '/w/demo/graph?status=suggested');
@@ -174,6 +182,93 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   await p.getByRole('heading', { name: 'Assets' }).waitFor();
   check(!(await p.locator('main').innerText()).includes('Allergen guide 2026.pdf'), 'asset is deleted after confirmation');
   fs.rmSync(dir, { recursive: true, force: true });
+
+  // ---- Stage 4: Dependency graph ----
+  await p.setViewportSize({ width: 1440, height: 1000 });
+  await p.goto(B + '/w/demo/graph');
+  await p.locator('.react-flow__node-asset').first().waitFor();
+  const assetNodes = await p.locator('.react-flow__node-asset').count();
+  check(assetNodes >= 14, `graph renders asset nodes from the database (${assetNodes})`);
+  check((await p.locator('.react-flow__node-information').count()) > 0 && (await p.locator('.react-flow__node-entity').count()) > 0, 'graph renders entities and shared information');
+  check((await p.locator('.react-flow__edge').count()) > 10, 'graph renders relationship and occurrence edges');
+
+  // Select a node: details + highlight with depth
+  const panel = p.locator('aside[aria-live]');
+  await p.locator('.react-flow__node').filter({ hasText: 'Master price list.csv' }).click();
+  await panel.getByText('Connected assets').waitFor();
+  const allHops = await panel.locator('li button', { hasText: /hop/ }).count();
+  await p.getByLabel('Highlight depth').selectOption('1');
+  const oneHop = await panel.locator('li button', { hasText: /hop/ }).count();
+  check(oneHop > 0 && oneHop < allHops, `depth filter limits highlighted assets (${allHops} → ${oneHop})`);
+
+  // Inconsistent information
+  await p.locator('.react-flow__node-information').filter({ hasText: 'Values differ' }).first().click();
+  await panel.getByText(/Values differ between assets/).waitFor();
+  check(true, 'information node shows differing values per asset');
+
+  // Search
+  await p.getByLabel('Search nodes').fill('burger');
+  await p.getByText(/\d+ match/).waitFor();
+  check(/[1-9]\d* match/.test(await p.getByText(/\d+ match/).innerText()), 'search finds matching nodes');
+  await p.getByLabel('Clear search').click();
+
+  // Asset type filter
+  await p.getByRole('button', { name: 'Marketing content', pressed: true }).click();
+  await p.waitForTimeout(300);
+  const filtered = await p.locator('.react-flow__node-asset').count();
+  check(filtered === assetNodes - 3, `asset type filter hides marketing content (${assetNodes} → ${filtered})`);
+  await p.getByRole('button', { name: 'Marketing content', pressed: false }).click();
+
+  // Rule-based suggestions
+  const awaitingBefore = Number((await p.locator('a', { hasText: 'Awaiting review' }).innerText()).match(/\d+/)[0]);
+  await p.getByRole('button', { name: 'Suggest relationships' }).click();
+  const toastText = await p.locator('[data-sonner-toast]').first().innerText({ timeout: 15000 });
+  await p.waitForTimeout(800);
+  const awaitingAfter = Number((await p.locator('a', { hasText: 'Awaiting review' }).innerText()).match(/\d+/)[0]);
+  const created = Number((toastText.match(/(\d+) new relationship/) || [0, 0])[1]);
+  check(/new relationship suggestion|No new relationships/.test(toastText) && awaitingAfter === awaitingBefore + created, `suggestions are stored for review (${awaitingBefore} → ${awaitingAfter}, created ${created})`);
+  await p.locator('[data-sonner-toast]').first().waitFor({ state: 'detached', timeout: 10000 }).catch(() => {});
+
+  // Manual relationship for a disconnected asset
+  await p.getByRole('button', { name: 'Add relationship' }).click();
+  const d6 = p.getByRole('dialog');
+  await d6.getByLabel('Source asset').selectOption({ label: 'November newsletter draft' });
+  await d6.getByLabel('Relationship').selectOption('references');
+  await d6.getByLabel('Target asset').selectOption({ label: 'Website — Menu page' });
+  await d6.getByRole('button', { name: 'Create relationship' }).click();
+  await p.getByText('Relationship created and confirmed.').waitFor();
+  check(true, 'manual relationship is created');
+
+  // Duplicate in reverse direction is refused
+  await p.getByRole('button', { name: 'Add relationship' }).click();
+  const d7 = p.getByRole('dialog');
+  await d7.getByLabel('Source asset').selectOption({ label: 'Website — Menu page' });
+  await d7.getByLabel('Relationship').selectOption('references');
+  await d7.getByLabel('Target asset').selectOption({ label: 'November newsletter draft' });
+  await d7.getByRole('button', { name: 'Create relationship' }).click();
+  await p.getByText('These assets already have a relationship of this type.').waitFor();
+  check(true, 'reverse duplicate relationship is refused');
+  await d7.getByRole('button', { name: 'Cancel' }).click();
+
+  // Review a suggestion from the edge details panel
+  await p.locator('.react-flow__node').filter({ hasText: 'Catering menu.pdf' }).click();
+  await panel.locator('li button', { hasText: 'derived from' }).filter({ hasText: 'Master price list.csv' }).first().click();
+  await panel.getByRole('button', { name: /^Confirm:/ }).click();
+  await p.getByText('Relationship confirmed.').waitFor();
+  check(true, 'suggested relationship is confirmed from the graph');
+
+  // Remove the manual relationship
+  await p.locator('.react-flow__node').filter({ hasText: 'November newsletter draft' }).click();
+  await panel.locator('li button', { hasText: 'references' }).filter({ hasText: 'Website — Menu page' }).first().click();
+  await panel.getByRole('button', { name: /Remove relationship/ }).click();
+  await panel.getByRole('button', { name: 'Confirm remove' }).click();
+  await p.getByText('Relationship removed.').waitFor();
+  check(true, 'relationship is removed after confirmation');
+
+  // List view (text alternative)
+  await p.getByRole('link', { name: /^List/ }).click();
+  await p.getByRole('heading', { name: 'Relationships' }).waitFor();
+  check(true, 'list view is available as a text alternative');
 
   // Separate demo session is isolated
   const p2 = await (await b.newContext()).newPage();
