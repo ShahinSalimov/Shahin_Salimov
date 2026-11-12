@@ -7,6 +7,8 @@ Niyə Poe:
 - Bot sahiblərinə pul ödəyir: hər mesaja görə qiymət təyin etmək (price per message) və bot sayəsində abunə olan istifadəçiyə görə bonus.
 - Prompt bot yaratmaq üçün kod lazım deyil, bir gündə buraxmaq olar.
 
+Bot linki: https://poe.com/AdReel-Director (base model: Claude Haiku 5.5)
+
 İkinci məkan: ChatGPT GPT Store. Eyni prompt ilə Custom GPT yaradılır. Orada birbaşa ödəniş zəmanətli deyil, ona görə funnel (müştəri cəlbi) kimi işlədilir.
 
 Diqqət: Poe-nun ödəniş proqramı əvvəlcə yalnız ABŞ yaradıcıları üçün idi, sonradan genişləndiyi bildirilir. Azərbaycandan qoşulmanın mümkün olub-olmadığını hesab açanda yoxla: Creator / Monetization bölməsi. Proqram əlçatan olmasa da, bot funnel kimi işləyəcək.

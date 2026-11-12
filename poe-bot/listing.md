@@ -42,6 +42,6 @@ Minimalist app icon, a sleek black film clapperboard merged with a play button, 
 ```
 Məhsulunu yaz, AI reklam videosunun hazır planını al.
 AdReel Director sənə 1 dəqiqəyə saniyə-saniyə ssenari, şəkil və video prompt-ları, səs mətni və caption hazırlayır.
-Pulsuz yoxla: [POE_BOT_LINK]
+Pulsuz yoxla: https://poe.com/AdReel-Director
 Videonu peşəkar şəkildə hazır istəyirsən? DM yaz.
 ```
