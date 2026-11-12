@@ -355,6 +355,39 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   const mdRes = await p.request.get(B + '/w/demo/updates/export?format=md');
   check(mdRes.status() === 200 && (await mdRes.text()).startsWith('# Update instructions'), 'update instructions export as Markdown');
 
+  // ---- Stage 7: commercial SaaS ----
+  const bell = p.getByRole('button', { name: /Notifications/ });
+  check(/unread/.test(await bell.getAttribute('aria-label')), 'notification bell shows unread sample notifications');
+  await bell.click();
+  await p.getByText('Updates need your approval').first().waitFor();
+  await p.getByRole('button', { name: 'Mark all read' }).click();
+  await p.waitForFunction(() => !document.querySelector('[data-testid=notification-count]'), null, { timeout: 10000 });
+  check(true, 'mark all read clears the unread counter');
+  await p.keyboard.press('Escape');
+
+  await p.goto(B + '/w/demo/settings/team');
+  check(await p.getByRole('button', { name: 'Create invitation' }).isDisabled(), 'invitations are disabled (honestly) in the demo');
+  await p.goto(B + '/w/demo/settings/api');
+  check(await p.getByRole('button', { name: 'New API key' }).isDisabled(), 'API keys are disabled in the demo');
+  await p.goto(B + '/w/demo/settings/billing');
+  const billing = await p.locator('main').innerText();
+  check(billing.includes('sample data') && billing.includes('Proposed test prices'), 'billing labels demo data and test prices');
+  const choose = p.getByRole('button', { name: /^Choose / });
+  check((await choose.count()) === 0 || (await choose.first().isDisabled()), 'checkout cannot be started from the demo');
+  await p.goto(B + '/w/demo/settings/usage');
+  const usage = await p.locator('main').innerText();
+  check(/Active assets/.test(usage) && /Metered, not limited/.test(usage) && /Enforced limit/.test(usage), 'usage page separates enforced limits from metered quantities');
+  await p.goto(B + '/w/demo/settings/organization');
+  check((await p.getByLabel('Organization name').inputValue()) === 'Harbor & Vine Hospitality' && (await p.getByLabel('Organization name').isDisabled()), 'organization settings show the organization (read-only in demo)');
+  await p.goto(B + '/pricing');
+  check((await p.getByRole('heading', { level: 2, name: 'Business' }).count()) === 1 && (await p.locator('main').innerText()).includes('$59'), 'public pricing page lists plans');
+  const api = await p.request.get(B + '/api/v1/assets');
+  check([401, 503].includes(api.status()), 'API refuses requests without a key');
+  const hook = await p.request.post(B + '/api/webhooks/stripe', { data: '{}' });
+  check([400, 503].includes(hook.status()), 'Stripe webhook refuses unsigned requests');
+  const admin = await p.request.get(B + '/admin', { maxRedirects: 0 });
+  check([307, 404].includes(admin.status()), 'platform admin is not reachable for demo visitors');
+
   // Separate demo session is isolated
   const p2 = await (await b.newContext()).newPage();
   await p2.goto(B); await p2.click('text=Explore the demo'); await p2.waitForURL('**/w/demo');

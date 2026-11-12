@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 6 (Approval & Update Management)._
+_Last updated: 2026-11-12 — after Stage 7 (Commercial SaaS)._
 
 ## Roadmap
 
@@ -12,10 +12,47 @@ _Last updated: 2026-11-12 — after Stage 6 (Approval & Update Management)._
 | 4 | **Dependency Graph** — relationships between information | ✅ Complete |
 | 5 | **AI Change Engine** — change detection, impact analysis | ✅ Complete |
 | 6 | **Approval Engine** — approvals, update execution | ✅ Complete |
-| 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | ⏳ Next (awaiting instruction) |
-| 8 | **Launch** — production-readiness audit, deploy, first customers | Queued |
+| 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | ✅ Complete |
+| 8 | **Launch** — production-readiness audit, deploy, first customers | ⏳ In progress (authorized together with Stage 7) |
 
-Stage briefs 7–8 have been received and will be executed one at a time, only after explicit instruction.
+Stages 7 and 8 were authorized together ("Stage 7-8"). Stage 7 is committed separately before Stage 8 starts.
+
+## Stage 7 — Commercial SaaS ✅
+
+### Delivered
+- **Plan limits in the database** (migration `20261112000800_commercial.sql`): `organization_limits()` + `enforce_plan_limits()` trigger. No live subscription ⇒ Starter (25 active assets, 1 workspace). Business 250 / 5, Agency 1,000 / unlimited, Enterprise custom (unlimited). Restoring an archived asset over the limit is refused too. Prices remain **proposed test prices**.
+- **Stripe billing, test mode only**: live keys refused; Checkout (org owner/admin, workspace admin+) → Stripe-hosted page; success page states that the plan changes only after the webhook; Billing Portal for changes/cancel/invoices. `POST /api/webhooks/stripe`: signature verified on the raw body, live events refused, idempotent (`stripe_events`), out-of-order events ignored, subscription re-read from Stripe on checkout completion, unknown prices/orgs → 500 (Stripe retries, nothing granted).
+- **Team invitations**: hashed one-time tokens, 7-day expiry, one open invitation per email, email-bound acceptance (`accept_invitation()`), revoke, owners-only for admin invites, `/invite/[token]` page; signup/login return to the invitation.
+- **Notifications**: DB-trigger generated (approval needed, revision requested, update failed, scan failed, invitation accepted, payment problem); header bell with unread count, mark read / mark all read.
+- **API keys + REST API v1**: hashed, scoped (read / read & write), expiring, revocable keys; `/api/v1/workspace|assets|changes|proposals` (GET) and `POST /api/v1/changes` (draft only, origin `api`); per-key rate limit; JSON errors without internals. `API_DOCUMENTATION.md`.
+- **Usage metering**: `organization_usage()` (assets, workspaces, members, scans/failed scans and AI operations + estimated cost this month, connected integrations, active API keys); Usage tab separates enforced limits from metered quantities.
+- **Organization settings**: rename, workspace list, create workspace (blocked with the reason at the plan limit or without org admin role).
+- **RBAC additions**: `api_keys.manage`, `billing.manage` (admin); billing additionally requires organization owner/admin.
+- **Platform admin** `/admin`: allow-listed emails only (404 otherwise); aggregate counts per organization, recent Stripe events; no tenant content.
+- **Public pricing page** `/pricing` (linked from the landing page), labeled as test prices.
+- **Security headers**: Content-Security-Policy and HSTS (production).
+- **Audit**: invitations and API keys are audited (insert/update). Token and key hashes never enter the audit metadata.
+
+### Verification (run 2026-11-12, in this environment)
+| Check | Result |
+|---|---|
+| `npm run typecheck` | ✅ 0 errors |
+| `npm run lint` | ✅ 0 problems |
+| `npm test` | ✅ 258/258 (31 files) — new: Stripe mapping, signed webhook (bad signature, idempotency, stale events, unmapped price → 500, live events refused), tokens, inputs, test-key guard |
+| `npm run test:db` | ✅ 93/93 (8 files) — new `commercial.test.ts`: plan limits (assets, workspaces, restore, upgrade/cancel), invitations (admin-only, stamping, email match, expiry, revoke, single use, immutable token), notifications (recipients, own rows only, read_at only), API keys (admin-only, scopes, immutable hash, audit), stripe_events hidden, usage aggregates and outsider refusal |
+| `npm run build` | ✅ production build (new routes: /pricing, /invite/[token], /admin, /api/v1/*, /api/webhooks/stripe, settings/organization|api|usage) |
+| E2E `tests/e2e/demo-flows.cjs` | ✅ 68/68 against `next start` (new: notification bell + mark all read, demo refusals for invitations/API keys/checkout, usage, organization, pricing, API 401/503, unsigned webhook refused, /admin hidden) |
+| Responsive sweep | ✅ 87 page/viewport combinations, no horizontal overflow or console errors |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+
+### Known limitations / honest notes
+- **Stripe was not called for real**: no Stripe test account/keys exist in this environment. The webhook path is tested with real Stripe signatures (`generateTestHeaderString`) against a fake database; Checkout/Portal session creation is untested end-to-end.
+- **Supabase PostgREST path still not exercised end-to-end** (no Supabase/Docker here). All SQL is tested on PostgreSQL 16 with the Supabase shim; the TypeScript Supabase queries for invitations, API keys, notifications, usage and the REST API have not run against a real PostgREST.
+- **No email delivery**: invitation links are copied manually by the admin (stated in the UI).
+- REST API and per-key rate limit run with the service role; tenant isolation on this path depends on the `workspace_id` filter in each handler (reviewed, not DB-enforced). Rate limiting is in-memory per instance.
+- CSP still allows `'unsafe-inline'` scripts (Next.js bootstrap); nonce-based CSP is a follow-up.
+- Team size is metered, not limited (the brief defines no member cap). AI-operation counts are metered, not limited.
+- Plan changes (upgrade/downgrade between paid plans) are delegated to the Stripe Billing Portal; its product configuration must be set up in the Stripe dashboard.
 
 ## Stage 6 — Approval & Update Management ✅
 

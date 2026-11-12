@@ -286,6 +286,26 @@ proposal ──(admin)──► approved ─► execution: ready ──(admin cl
 - **Exports**: `/w/[id]/updates/export?format=csv|md&scope=open|all` — formula-safe CSV and escaped Markdown instructions.
 - **History**: `update_executions` (insert/update via RPCs, audited by trigger) shown on the Update history page.
 
-## 16. Planned engines (designed, not built)
+## 16. Commercial SaaS (Stage 7) ✅
 
-- **Commercial SaaS (Stage 7):** Stripe test-mode billing, plan limits, invitations, notifications, usage metering, admin area.
+Migration `20261112000800_commercial.sql`.
+
+**Plans and limits.** `src/domain/billing/plans.ts` holds the proposed test prices (Starter $19, Business $59, Agency $149, Enterprise custom — not validated). Limits are enforced **in the database**: `organization_limits(org)` resolves the plan (no live subscription ⇒ Starter) and the `enforce_plan_limits()` trigger refuses the 26th active asset on Starter (also when an archived asset is restored) and extra workspaces. Team size is metered but not limited because the brief defines no member cap. `organization_usage(org)` returns aggregate counts (assets, workspaces, members, scans and AI operations this month, AI cost, connected integrations, active API keys) to anyone who can view the organization.
+
+**Billing (Stripe, test mode only).** `src/server/commercial/stripe.ts` refuses live keys. `startCheckoutAction` (org owner/admin) creates a Stripe Checkout session with `organization_id` metadata and redirects; the success page says the plan changes only after Stripe confirms. `POST /api/webhooks/stripe` verifies the signature on the raw body (`stripe.webhooks.constructEvent`), refuses live-mode events, deduplicates by `stripe_events.id`, re-reads the subscription from Stripe on `checkout.session.completed`, ignores out-of-order events (`last_event_at`), and maps prices to plans with `subscriptionFromStripe()`; unknown prices or orgs return 500 so Stripe retries and nothing is granted. Subscriptions are written only by the service role. The Stripe billing portal handles plan changes, cancellation and invoices.
+
+**Invitations.** Admins create an invitation (`invitations`, one open per email per workspace, roles admin/editor/viewer; only owners invite admins). A 256-bit token is shown once as a link; only its SHA-256 is stored. Email delivery is not configured, so the admin copies the link. `/invite/[token]` previews it through `invitation_preview()` and `accept_invitation()` (SECURITY DEFINER) checks expiry (7 days), revocation, single use and that the signed-in email matches, then adds organization and workspace membership. Signup and login keep `next=/invite/…` so invitees return to the link.
+
+**Notifications.** `notifications` rows are written only by SECURITY DEFINER triggers: change → pending approval (admins), proposal → needs revision (editors), update failed (admins), scan failed (editors), invitation accepted (inviter), subscription past_due/unpaid (org owners/admins). The actor is not notified about their own action. Users can only read their own rows and set `read_at`. The header bell lists the latest 30.
+
+**API keys and REST API.** `api_keys` stores name, display prefix (`cm_xxxxxxxx`), SHA-256 hash, scopes (`read`, `write`), expiry and revocation; the key is shown once. `/api/v1/{workspace,assets,changes,proposals}` authenticate `Authorization: Bearer` keys with the service role, and **every query filters by the key's workspace** (RLS is bypassed on this path). `POST /api/v1/changes` (write scope) creates a draft change with origin `api`; nothing can be approved or executed through the API. 120 requests/minute per key (in-memory, per instance). See API_DOCUMENTATION.md.
+
+**Organization, usage, admin.** Settings gained Organization (rename, list/create workspaces within plan limits), API keys and Usage tabs. `/admin` is limited to `CHANGEMESH_PLATFORM_ADMIN_EMAILS` (404 otherwise) and shows aggregate counts only — no tenant content.
+
+**Security headers.** `next.config.ts` adds a Content-Security-Policy (`default-src 'self'`, Supabase origins in `connect-src`, `frame-ancestors 'none'`, Stripe in `form-action`) and HSTS in production. Scripts still need `'unsafe-inline'` until nonce-based CSP is adopted.
+
+**Demo mode.** Invitations, API keys, organization changes and payments are refused with a clear message; notifications and usage are computed from the session's sample data.
+
+## 17. Planned (Stage 8)
+
+- Production-readiness audit, deployment guide, API documentation, test report.

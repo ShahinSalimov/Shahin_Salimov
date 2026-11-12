@@ -164,9 +164,11 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
                 </ul>
                 <div className="mt-5">
                   {current ? (
-                    <p className="text-center text-xs text-muted-foreground">Change or cancel in the Stripe billing portal.</p>
+                    <p className="text-center text-xs text-muted-foreground">{isDemo ? "Sample plan for the demo." : "Change or cancel in the Stripe billing portal."}</p>
                   ) : !purchasable ? (
                     <p className="text-center text-xs text-muted-foreground">Arranged manually — no self-serve checkout.</p>
+                  ) : isDemo ? (
+                    <p className="text-center text-xs text-muted-foreground">Payments are disabled in the demo.</p>
                   ) : live ? (
                     <p className="text-center text-xs text-muted-foreground">Switch plans in the Stripe billing portal.</p>
                   ) : (
