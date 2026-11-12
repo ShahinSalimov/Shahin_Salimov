@@ -2,9 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { toast } from "sonner";
-import type { MutationState } from "@/server/workspaces/mutations";
+import type { ActionResult } from "@/lib/errors";
 
-type Action = (prev: MutationState, form: FormData) => Promise<MutationState>;
+type Feedback = { message?: string; tone?: "warning" };
+type State<D> = ActionResult<D> | null;
+type Action<D> = (prev: State<D>, form: FormData) => Promise<State<D>>;
 
 /**
  * useActionState + immediate feedback.
@@ -14,9 +16,9 @@ type Action = (prev: MutationState, form: FormData) => Promise<MutationState>;
  *   `defaultValue`. React resets forms after an action; without this the user
  *   would lose what they typed.
  */
-export function useMutation(action: Action, onSuccess?: (data: { id?: string; message?: string; tone?: "warning" }) => void) {
+export function useMutation<D extends Feedback>(action: Action<D>, onSuccess?: (data: D) => void) {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [state, formAction, pending] = useActionState<MutationState, FormData>(async (prev, form) => {
+  const [state, formAction, pending] = useActionState<State<D>, FormData>(async (prev, form) => {
     const result = await action(prev, form);
     if (result?.ok) {
       setValues({});

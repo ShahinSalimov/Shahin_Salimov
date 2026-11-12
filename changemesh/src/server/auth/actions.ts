@@ -39,6 +39,8 @@ export async function signInAction(_prev: AuthFormState, form: FormData): Promis
 
 export async function signUpAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   let signedIn = false;
+  const rawNext = form.get("next");
+  const next = typeof rawNext === "string" && rawNext.startsWith("/invite/") ? safeNextPath(rawNext) : "/onboarding";
   const result = await runAction("auth.sign_up", async () => {
     const input = signUpSchema.parse(formToObject(form));
     const supabase = await createUserClient();
@@ -47,7 +49,7 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
       password: input.password,
       options: {
         data: { full_name: input.fullName },
-        emailRedirectTo: `${await appOrigin()}/auth/callback?next=/onboarding`,
+        emailRedirectTo: `${await appOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
     if (error) {
@@ -58,7 +60,7 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
     signedIn = Boolean(data.session);
     return { message: "Check your inbox to confirm your email address, then sign in." };
   });
-  if (result.ok && signedIn) redirect("/onboarding");
+  if (result.ok && signedIn) redirect(next);
   return result;
 }
 

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/app", "/w/", "/onboarding"];
+const PROTECTED_PREFIXES = ["/app", "/w/", "/onboarding", "/admin"];
 
 /**
  * Runs before every matched request:

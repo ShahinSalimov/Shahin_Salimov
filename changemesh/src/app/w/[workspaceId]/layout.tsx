@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FlaskConical } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { MobileNav } from "@/components/shell/mobile-nav";
+import { NotificationsMenu } from "@/components/shell/notifications-menu";
 import { SidebarNav } from "@/components/shell/sidebar-nav";
 import { UserMenu } from "@/components/shell/user-menu";
 import { WorkspaceSwitcher } from "@/components/shell/workspace-switcher";
@@ -9,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { dashboardMetrics, isOpenChange } from "@/domain/insights/metrics";
 import { getMessages } from "@/i18n/server";
+import { logger } from "@/lib/logger";
+import { listNotifications } from "@/server/commercial/service";
 import { loadSnapshot } from "@/server/data";
 import { listWorkspaces } from "@/server/workspaces/service";
 import { loadWorkspace } from "@/server/workspaces/load";
@@ -16,7 +19,11 @@ import { loadWorkspace } from "@/server/workspaces/load";
 export default async function WorkspaceLayout({ children, params }: { children: React.ReactNode; params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = await params;
   const ctx = await loadWorkspace(workspaceId);
-  const [t, workspaces, snapshot] = await Promise.all([getMessages(), listWorkspaces(ctx.viewer), loadSnapshot(ctx)]);
+  const [t, workspaces, snapshot, notifications] = await Promise.all([getMessages(), listWorkspaces(ctx.viewer), loadSnapshot(ctx), listNotifications(ctx).catch((error: unknown) => {
+      // The bell must not take the whole workspace down; the failure is logged.
+      logger.error("notifications.load_failed", { error });
+      return [];
+    })]);
   const isDemo = ctx.viewer.kind === "demo";
   const metrics = dashboardMetrics(snapshot);
   const counts = { changes: snapshot.changes.filter(isOpenChange).length, approvals: metrics.pendingApprovals };
@@ -88,6 +95,7 @@ export default async function WorkspaceLayout({ children, params }: { children: 
             <Badge variant="outline" className="hidden sm:inline-flex lg:hidden">
               {t.roles[ctx.role]}
             </Badge>
+            <NotificationsMenu workspaceId={ctx.workspace.id} items={notifications} />
             <UserMenu
               id={user.id}
               name={user.name}

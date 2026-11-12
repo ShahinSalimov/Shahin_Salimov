@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { Messages } from "@/i18n/messages";
 import { signUpAction } from "@/server/auth/actions";
 
-export function SignupForm({ t }: { t: Messages }) {
+export function SignupForm({ t, next }: { t: Messages; next?: string }) {
   const [state, formAction, pending] = useActionState(signUpAction, null);
   if (state?.ok) {
     return (
@@ -21,6 +21,7 @@ export function SignupForm({ t }: { t: Messages }) {
   const errors = state && !state.ok ? state.error : undefined;
   return (
     <form action={formAction} className="grid gap-4" noValidate>
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       {errors && !errors.fieldErrors ? (
         <Alert variant="destructive">
           <CircleAlert />

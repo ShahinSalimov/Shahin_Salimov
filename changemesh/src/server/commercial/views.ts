@@ -19,6 +19,7 @@ export interface ApiKeyView {
   lastUsedAt: string | null;
   expiresAt: string | null;
   revokedAt: string | null;
+  expired: boolean;
 }
 
 export type NotificationKind = "approval_needed" | "revision_requested" | "scan_failed" | "invitation_accepted" | "payment_problem" | "update_failed";

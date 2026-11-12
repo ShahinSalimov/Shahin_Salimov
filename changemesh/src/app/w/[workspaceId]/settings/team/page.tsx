@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import { Check, Minus, UserPlus } from "lucide-react";
+import { Check, Minus } from "lucide-react";
 import { Avatar } from "@/components/app/avatar";
 import { PageHeader, SectionCard } from "@/components/app/page-header";
 import { SettingsNav } from "@/components/app/settings-nav";
-import { PlannedTag } from "@/components/app/status-pill";
+import { InviteMemberForm, RevokeInvitationButton } from "@/components/forms/commercial-forms";
 import { MemberRoleSelect, RemoveMemberButton } from "@/components/forms/settings-forms";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { can, canAssignRole, PERMISSIONS, WORKSPACE_ROLES, type Permission } from "@/domain/rbac/roles";
 import { formatDate } from "@/lib/format";
+import { listInvitations } from "@/server/commercial/service";
 import { loadSnapshot } from "@/server/data";
 import { loadWorkspace } from "@/server/workspaces/load";
 
@@ -19,7 +20,7 @@ const MATRIX: { label: string; permission: Permission }[] = [
   { label: "View workspace data", permission: "assets.view" },
   { label: "Add and edit assets, relationships, changes", permission: "assets.write" },
   { label: "Approve or reject update proposals", permission: "proposals.decide" },
-  { label: "Manage members and integrations", permission: "members.manage" },
+  { label: "Invite and manage members, integrations, API keys", permission: "members.manage" },
   { label: "View the audit log", permission: "audit.view" },
   { label: "Delete the workspace", permission: "workspace.delete" },
 ];
@@ -27,9 +28,11 @@ const MATRIX: { label: string; permission: Permission }[] = [
 export default async function TeamPage({ params }: { params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = await params;
   const ctx = await loadWorkspace(workspaceId);
-  const snapshot = await loadSnapshot(ctx);
+  const manageMembers = can(ctx.role, "members.manage");
+  const [snapshot, invitations] = await Promise.all([loadSnapshot(ctx), manageMembers ? listInvitations(ctx) : Promise.resolve([])]);
+  const isDemo = ctx.viewer.kind === "demo";
   const base = `/w/${ctx.workspace.id}`;
-  const manage = can(ctx.role, "members.manage");
+  const manage = manageMembers;
   const selfId = ctx.viewer.kind === "user" ? ctx.viewer.id : "demo-user-1";
   const assignable = WORKSPACE_ROLES.filter((r) => canAssignRole(ctx.role, r));
 
@@ -37,16 +40,31 @@ export default async function TeamPage({ params }: { params: Promise<{ workspace
     <div className="grid gap-6">
       <PageHeader title="Settings" description={ctx.workspace.name} />
       <SettingsNav base={base} active="team" />
-      <SectionCard
-        title={`Members (${snapshot.members.length})`}
-        description="People with access to this workspace"
-        action={
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <UserPlus className="size-4" /> Invitations <PlannedTag stage="Stage 7" />
-          </span>
-        }
-        bodyClassName="px-0 pb-0"
-      >
+      {manage ? (
+        <SectionCard title="Invite a teammate" description="Invitations are bound to one email address, can be used once and expire after 7 days.">
+          <InviteMemberForm workspaceId={ctx.workspace.id} canInviteAdmin={ctx.role === "owner"} disabledReason={isDemo ? "Invitations need a real account — the demo has no real users." : undefined} />
+          {invitations.length ? (
+            <div className="mt-5 border-t pt-4">
+              <h3 className="mb-2 text-xs font-medium text-muted-foreground">Pending invitations ({invitations.length})</h3>
+              <ul className="grid gap-2">
+                {invitations.map((inv) => (
+                  <li key={inv.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{inv.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {ROLE_LABEL[inv.role]} · {inv.status === "expired" ? <span className="text-destructive">expired {formatDate(inv.expiresAt)}</span> : <>expires {formatDate(inv.expiresAt)}</>}
+                      </p>
+                    </div>
+                    <RevokeInvitationButton workspaceId={ctx.workspace.id} invitationId={inv.id} email={inv.email} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </SectionCard>
+      ) : null}
+
+      <SectionCard title={`Members (${snapshot.members.length})`} description="People with access to this workspace" bodyClassName="px-0 pb-0">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

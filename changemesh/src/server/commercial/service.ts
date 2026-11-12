@@ -109,11 +109,12 @@ export async function acceptInvitation(token: string): Promise<string> {
 export async function listApiKeys(ctx: WorkspaceContext): Promise<ApiKeyView[]> {
   if (ctx.viewer.kind === "demo") return [];
   const db = await createUserClient();
+  const now = Date.now();
   const rows = check("listApiKeys", await db.from("api_keys").select("id, name, prefix, scopes, created_at, last_used_at, expires_at, revoked_at").eq("workspace_id", ctx.workspace.id).order("created_at", { ascending: false }));
   return z
     .array(apiKeyRow)
     .parse(rows)
-    .map((r) => ({ id: r.id, name: r.name, prefix: r.prefix, scopes: r.scopes, createdAt: r.created_at, lastUsedAt: r.last_used_at, expiresAt: r.expires_at, revokedAt: r.revoked_at }));
+    .map((r) => ({ id: r.id, name: r.name, prefix: r.prefix, scopes: r.scopes, createdAt: r.created_at, lastUsedAt: r.last_used_at, expiresAt: r.expires_at, revokedAt: r.revoked_at, expired: r.expires_at !== null && new Date(r.expires_at).getTime() < now }));
 }
 
 /** Returns the full secret once. It cannot be retrieved again. */

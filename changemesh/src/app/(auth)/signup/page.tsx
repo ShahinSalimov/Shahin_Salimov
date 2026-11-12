@@ -8,7 +8,9 @@ import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = { title: "Create account" };
 
-export default async function SignupPage() {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next } = await searchParams;
+  const safeNext = next && next.startsWith("/invite/") ? next : undefined;
   const t = await getMessages();
   return (
     <div className="grid gap-6">
@@ -18,10 +20,10 @@ export default async function SignupPage() {
       </div>
       {isSupabaseConfigured() ? (
         <>
-          <SignupForm t={t} />
+          <SignupForm t={t} next={safeNext} />
           <p className="text-center text-sm text-muted-foreground">
             {t.auth.haveAccount}{" "}
-            <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/login">
+            <Link className="font-medium text-foreground underline-offset-4 hover:underline" href={safeNext ? `/login?next=${encodeURIComponent(safeNext)}` : "/login"}>
               {t.common.signIn}
             </Link>
           </p>

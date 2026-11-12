@@ -20,6 +20,9 @@ export default async function HomePage() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Button asChild variant="ghost">
+            <Link href="/pricing">Pricing</Link>
+          </Button>
+          <Button asChild variant="ghost">
             <Link href="/login">{t.common.signIn}</Link>
           </Button>
         </div>
