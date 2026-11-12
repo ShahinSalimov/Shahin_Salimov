@@ -11,9 +11,12 @@ Copy `.env.example` to `.env.local` (never commit it). Values are validated at r
 | `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` | public | no | `false` | Shows "Continue with Google". Requires the Google provider in Supabase Auth. |
 | `CHANGEMESH_DEMO_MODE` | server | no | `disabled` | `enabled` lets visitors explore fictional demo data without an account. |
 | `LOG_LEVEL` | server | no | `info` | `debug`, `info`, `warn` or `error`. |
+| `CHANGEMESH_AI_PROVIDER` | server | no | `none` | `claude` enables AI-assisted impact analysis. Without it every analysis is rule-based. |
+| `ANTHROPIC_API_KEY` | **server only** | with AI | – | Claude API key. Never exposed to the browser. |
+| `CHANGEMESH_AI_MODEL` | server | no | `claude-opus-5-5` | Claude model id for impact analysis. |
 | `TEST_DATABASE_URL` | tests only | for `npm run test:db` | – | PostgreSQL superuser URL for migration/RLS tests. Each run creates and drops its own database. |
 
-Later stages will add: `ANTHROPIC_API_KEY` (optional AI), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+Later stages will add: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
 ## Behaviour without Supabase
 

@@ -1,5 +1,5 @@
 import type { Asset, AssetRelationship, ExtractedFact, RelationshipType } from "../workspace/model";
-import { attributeKey, entityKey, IDENTIFIER_ATTRIBUTES, PAGE_LEVEL_ATTRIBUTES } from "./keys";
+import { attributeKey, AUTHORITY, entityKey, IDENTIFIER_ATTRIBUTES, PAGE_LEVEL_ATTRIBUTES } from "./keys";
 
 export interface RelationshipSuggestion {
   sourceAssetId: string;
@@ -10,12 +10,6 @@ export interface RelationshipSuggestion {
   sharedFacts: number;
   matchingValues: number;
 }
-
-/**
- * Lower = closer to the source of truth. A website derived from a price list
- * points to the price list, never the other way round.
- */
-const AUTHORITY: Record<Asset["type"], number> = { csv: 0, manual: 0, product_catalog: 1, pdf: 2, website: 2, marketing_content: 3 };
 
 export const SUGGESTION_LIMITS = { minConfidence: 0.5, maxSuggestions: 50 } as const;
 

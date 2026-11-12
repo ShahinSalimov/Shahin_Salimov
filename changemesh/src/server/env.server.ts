@@ -14,6 +14,19 @@ export const serverEnvSchema = z.object({
     .transform((v) => (v ? v : undefined)),
   CHANGEMESH_DEMO_MODE: z.enum(["enabled", "disabled"]).default("disabled"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  /** "claude" enables AI-assisted impact analysis (requires ANTHROPIC_API_KEY). Default: rules only. */
+  CHANGEMESH_AI_PROVIDER: z.enum(["none", "claude"]).default("none"),
+  CHANGEMESH_AI_MODEL: z
+    .string()
+    .trim()
+    .regex(/^claude-[a-z0-9-]+$/, "Must be a Claude model id")
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+  ANTHROPIC_API_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : undefined)),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

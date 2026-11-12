@@ -3,11 +3,11 @@ import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
 import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, AssetRelationship, AuditEvent, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetIntelligence, AssetRelationship, AuditEvent, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, notFound } from "@/lib/errors";
 import { getDemoSession } from "./demo-store";
-import type { RecordedScan, StoredFile, WorkspaceData } from "./source";
+import type { AiUsageEntry, RecordedScan, SavedAnalysis, StoredFile, WorkspaceData } from "./source";
 
 const VISITOR = { id: "demo-user-1", name: "Demo Visitor (you)" };
 
@@ -165,6 +165,51 @@ export class DemoWorkspaceData implements WorkspaceData {
     return created;
   }
 
+  async versionFacts(assetId: string, version: number): Promise<ExtractedFact[]> {
+    return structuredClone(this.session.facts.filter((f) => f.assetId === assetId && f.assetVersion === version));
+  }
+
+  /** Mirrors public.save_change_analysis(): replaces impacts and pending proposals, keeps decided ones. */
+  async saveChangeAnalysis(changeId: string, payload: SavedAnalysis) {
+    const snap = this.session.snapshot;
+    const change = snap.changes.find((c) => c.id === changeId);
+    if (!change) throw notFound("Change not found.");
+    if (["completed", "cancelled", "rejected"].includes(change.status)) throw new AppError("VALIDATION_FAILED", "A closed change cannot be analyzed again.");
+    const now = new Date().toISOString();
+    snap.impacts = snap.impacts.filter((i) => i.changeId !== changeId);
+    snap.proposals = snap.proposals.filter((p) => !(p.changeId === changeId && p.approvalStatus === "pending" && p.executionStatus === "not_started"));
+    const kept = snap.proposals.filter((p) => p.changeId === changeId).length;
+    const impactIds = new Map<string, string>();
+    for (const i of payload.impacts) {
+      const id = `i-${crypto.randomUUID()}`;
+      impactIds.set(i.assetId, id);
+      snap.impacts.push({ id, changeId, assetId: i.assetId, level: i.level, depth: i.depth, path: i.path, oldValue: i.oldValue, newValue: i.newValue, confidence: i.confidence, recommendedAction: i.recommendedAction, origin: i.origin, createdAt: now });
+    }
+    let created = 0;
+    for (const p of payload.proposals) {
+      if (snap.proposals.some((x) => x.changeId === changeId && x.targetAssetId === p.targetAssetId)) continue;
+      snap.proposals.push({
+        id: `p-${crypto.randomUUID()}`, changeId, changeImpactId: impactIds.get(p.targetAssetId) ?? null, targetAssetId: p.targetAssetId, currentValue: p.currentValue, proposedValue: p.proposedValue,
+        reason: p.reason, evidence: p.evidence, impactLevel: p.impactLevel, approvalStatus: "pending", executionStatus: "not_started", origin: p.origin, createdAt: now, updatedAt: now,
+      });
+      created++;
+    }
+    const open = snap.proposals.some((p) => p.changeId === changeId && (p.approvalStatus === "pending" || p.approvalStatus === "needs_revision"));
+    change.status = open ? "pending_approval" : "analyzed";
+    change.analysis = payload.analysis;
+    change.analyzedAt = now;
+    this.audit("changes.update", "changes", changeId, { changed: ["analysis", "status"], status: change.status, name: change.title });
+    return { impactsSaved: payload.impacts.length, proposalsCreated: created, proposalsKept: kept, status: change.status };
+  }
+
+  async recordAiUsage(entry: AiUsageEntry) {
+    (this.session.aiUsage ??= []).unshift({ id: `u-${crypto.randomUUID()}`, changeId: entry.changeId, model: entry.model, status: entry.status, inputTokens: entry.inputTokens, outputTokens: entry.outputTokens, costUsd: entry.costUsd, createdAt: new Date().toISOString() });
+  }
+
+  async aiUsage(): Promise<AiUsageRecord[]> {
+    return structuredClone(this.session.aiUsage ?? []);
+  }
+
   async addManualFact(assetId: string, fact: FactDraft) {
     this.asset(assetId);
     const f = toFact(fact, assetId, null, null, new Date().toISOString());
@@ -210,7 +255,7 @@ export class DemoWorkspaceData implements WorkspaceData {
     return { id };
   }
 
-  async createChange(input: CreateChangeInput) {
+  async createChange(input: CreateChangeInput, opts?: { origin?: RecordOrigin }) {
     const snap = this.session.snapshot;
     if (input.sourceAssetId && !snap.assets.some((a) => a.id === input.sourceAssetId)) throw notFound("Source asset not found.");
     const id = `c-${crypto.randomUUID()}`;
@@ -225,8 +270,10 @@ export class DemoWorkspaceData implements WorkspaceData {
       attributeName: input.attributeName,
       oldValue: input.oldValue,
       newValue: input.newValue,
-      origin: "demo",
+      origin: opts?.origin ?? "manual",
       createdAt: new Date().toISOString(),
+      analysis: null,
+      analyzedAt: null,
     });
     this.audit("changes.insert", "changes", id, { name: input.title, status: "draft" });
     return { id };

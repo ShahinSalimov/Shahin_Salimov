@@ -1,5 +1,5 @@
 import "server-only";
-import type { AssetScan, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetScan, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { demoWorkspace } from "../demo/fixture";
 import { buildDemoSnapshot } from "../demo/seed";
 import { buildDemoIntelligence } from "../demo/seed-intelligence";
@@ -13,6 +13,7 @@ export interface DemoSession {
   snapshot: WorkspaceSnapshot;
   facts: ExtractedFact[];
   scans: AssetScan[];
+  aiUsage?: AiUsageRecord[];
   workspaceName: string;
   touchedAt: number;
 }

@@ -5,14 +5,14 @@ import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
 import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetIntelligence, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { ScanError } from "../intelligence/errors";
 import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, fromPostgresError, notFound } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { createUserClient } from "../supabase/clients";
-import { approvalRow, assetRow, auditRow, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
-import type { RecordedScan, StoredFile, WorkspaceData } from "./source";
+import { aiUsageRow, approvalRow, assetRow, auditRow, changeAnalysisSchema, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
+import type { AiUsageEntry, RecordedScan, SavedAnalysis, StoredFile, WorkspaceData } from "./source";
 
 const AUDIT_LIMIT = 300;
 const FACT_LIMIT = 2000;
@@ -89,6 +89,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
       changes: parseRows("changes", changeRow, check("changes", changes)).map((r) => ({
         id: r.id, title: r.title, description: r.description, type: r.change_type, status: r.status, sourceAssetId: r.source_asset_id,
         entityName: r.entity_name, attributeName: r.attribute_name, oldValue: r.old_value, newValue: r.new_value, origin: r.origin, createdAt: r.created_at,
+        analysis: r.analysis ? (changeAnalysisSchema.safeParse(r.analysis).data ?? null) : null, analyzedAt: r.analyzed_at ?? null,
       })),
       impacts: parseRows("impacts", impactRow, check("impacts", impacts)).map((r) => ({
         id: r.id, changeId: r.change_id, assetId: r.asset_id, level: r.impact_level, depth: r.depth, path: r.relationship_path, oldValue: r.old_value,
@@ -132,7 +133,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
     return check("createAsset", res);
   }
 
-  async createChange(input: CreateChangeInput) {
+  async createChange(input: CreateChangeInput, opts?: { origin?: RecordOrigin }) {
     const db = await this.db();
     const res = await db
       .from("changes")
@@ -146,6 +147,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
         old_value: input.oldValue,
         new_value: input.newValue,
         source_asset_id: input.sourceAssetId,
+        origin: opts?.origin ?? "manual",
       })
       .select("id")
       .single<{ id: string }>();
@@ -352,5 +354,57 @@ export class SupabaseWorkspaceData implements WorkspaceData {
       else if (res.error.code !== "23505") check("addSuggestions", { data: null, error: res.error });
     }
     return created;
+  }
+
+  async versionFacts(assetId: string, version: number): Promise<ExtractedFact[]> {
+    const db = await this.db();
+    const res = await db
+      .from("extracted_facts")
+      .select("id, asset_id, asset_version, scan_id, entity_name, attribute_name, value_text, value_number, value_unit, normalized_value, source_location, confidence, method, origin, extracted_at")
+      .eq("asset_id", assetId)
+      .eq("asset_version", version)
+      .limit(5000);
+    return parseRows("versionFacts", factRow, check("versionFacts", res)).map((r) => ({
+      id: r.id, assetId: r.asset_id, assetVersion: r.asset_version, scanId: r.scan_id, entityName: r.entity_name, attributeName: r.attribute_name,
+      valueText: r.value_text, valueNumber: r.value_number, valueUnit: r.value_unit, normalizedValue: r.normalized_value, location: r.source_location,
+      confidence: r.confidence, method: r.method, origin: r.origin, extractedAt: r.extracted_at,
+    }));
+  }
+
+  async saveChangeAnalysis(changeId: string, payload: SavedAnalysis) {
+    const db = await this.db();
+    const res = await db
+      .rpc("save_change_analysis", {
+        p_change_id: changeId,
+        p_impacts: payload.impacts.map((i) => ({
+          asset_id: i.assetId, impact_level: i.level, depth: i.depth, relationship_path: i.path, old_value: i.oldValue, new_value: i.newValue,
+          confidence: i.confidence, recommended_action: i.recommendedAction, origin: i.origin,
+        })),
+        p_proposals: payload.proposals.map((p) => ({
+          target_asset_id: p.targetAssetId, current_value: p.currentValue, proposed_value: p.proposedValue, reason: p.reason, evidence: p.evidence, impact_level: p.impactLevel, origin: p.origin,
+        })),
+        p_analysis: payload.analysis,
+      })
+      .single<{ impacts_saved: number; proposals_created: number; proposals_kept: number; new_status: string }>();
+    const row = check("saveChangeAnalysis", res);
+    return { impactsSaved: row.impacts_saved, proposalsCreated: row.proposals_created, proposalsKept: row.proposals_kept, status: row.new_status };
+  }
+
+  async recordAiUsage(entry: AiUsageEntry) {
+    const db = await this.db();
+    const res = await db.from("ai_usage").insert({
+      workspace_id: this.workspaceId, change_id: entry.changeId, operation: "impact_analysis", provider: "claude", model: entry.model, status: entry.status,
+      input_tokens: entry.inputTokens, output_tokens: entry.outputTokens, cost_usd: entry.costUsd, attempts: entry.attempts, duration_ms: entry.durationMs, error: entry.error?.slice(0, 1000) ?? null,
+    });
+    // Usage tracking must never hide the analysis result, but a failure is logged.
+    if (res.error) logger.error("ai.usage_record_failed", { message: res.error.message });
+  }
+
+  async aiUsage(): Promise<AiUsageRecord[]> {
+    const db = await this.db();
+    const res = await db.from("ai_usage").select("id, change_id, model, status, input_tokens, output_tokens, cost_usd, created_at").eq("workspace_id", this.workspaceId).order("created_at", { ascending: false }).limit(200);
+    return parseRows("aiUsage", aiUsageRow, check("aiUsage", res)).map((r) => ({
+      id: r.id, changeId: r.change_id, model: r.model, status: r.status, inputTokens: r.input_tokens, outputTokens: r.output_tokens, costUsd: r.cost_usd, createdAt: r.created_at,
+    }));
   }
 }

@@ -11,6 +11,8 @@ import { getViewer } from "../auth/session";
 import { getWorkspaceData } from "../data";
 import { UPLOAD_LIMITS } from "../intelligence/files";
 import { refreshSuggestionsSafely } from "../graph";
+import { detectChangesFromVersion } from "../changes/engine";
+import { logger } from "@/lib/logger";
 import { ingestUpload, scanWebsite } from "../intelligence/runner";
 import { takeToken } from "../rate-limit";
 import { getWorkspaceContext } from "./service";
@@ -81,16 +83,19 @@ export async function scanAssetAction(_prev: MutationState, form: FormData): Pro
     const outcome = await scanWebsite(data, asset);
     // New facts may connect this asset to others: refresh suggestions (never blocks the scan result).
     const suggested = outcome.status !== "failed" && outcome.newVersion ? await refreshSuggestionsSafely(data) : 0;
+    const detected = outcome.status !== "failed" && outcome.newVersion && outcome.assetVersion ? await detectSafely(data, ctx.viewer, asset.id, outcome.assetVersion) : 0;
     revalidatePath(`/w/${workspaceId}`, "layout");
     if (outcome.status === "failed") throw new AppError("VALIDATION_FAILED", outcome.message);
-    const extra = suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "";
+    const extra =
+      (detected ? ` ${detected} change${detected === 1 ? "" : "s"} detected since the previous version and analyzed.` : "") +
+      (suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "");
     return { message: outcome.message + extra, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
   });
 }
 
 export async function uploadAssetFileAction(_prev: MutationState, form: FormData): Promise<MutationState> {
   return runAction("asset.upload", async () => {
-    const { data, workspaceId, actorKey } = await authorize(form, "assets.write");
+    const { ctx, data, workspaceId, actorKey } = await authorize(form, "assets.write");
     const { assetId } = assetIdSchema.parse(formToObject(form));
     const file = form.get("file");
     if (!(file instanceof File) || file.size === 0) throw new AppError("VALIDATION_FAILED", "Choose a file to upload.", { fieldErrors: { file: ["Choose a file to upload."] } });
@@ -101,9 +106,12 @@ export async function uploadAssetFileAction(_prev: MutationState, form: FormData
     const outcome = await ingestUpload(data, asset, { name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) });
     // New facts may connect this asset to others: refresh suggestions (never blocks the scan result).
     const suggested = outcome.status !== "failed" && outcome.newVersion ? await refreshSuggestionsSafely(data) : 0;
+    const detected = outcome.status !== "failed" && outcome.newVersion && outcome.assetVersion ? await detectSafely(data, ctx.viewer, asset.id, outcome.assetVersion) : 0;
     revalidatePath(`/w/${workspaceId}`, "layout");
     if (outcome.status === "failed") throw new AppError("VALIDATION_FAILED", outcome.message);
-    const extra = suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "";
+    const extra =
+      (detected ? ` ${detected} change${detected === 1 ? "" : "s"} detected since the previous version and analyzed.` : "") +
+      (suggested ? ` ${suggested} new relationship suggestion${suggested === 1 ? "" : "s"} in the Change Map.` : "");
     return { message: outcome.message + extra, tone: outcome.status === "partial" ? ("warning" as const) : undefined };
   });
 }
@@ -129,4 +137,13 @@ export async function deleteFactAction(_prev: MutationState, form: FormData): Pr
     revalidatePath(`/w/${workspaceId}`, "layout");
     return { message: "Fact removed." };
   });
+}
+
+async function detectSafely(data: Parameters<typeof detectChangesFromVersion>[0], viewer: Parameters<typeof detectChangesFromVersion>[1], assetId: string, version: number) {
+  try {
+    return await detectChangesFromVersion(data, viewer, assetId, version);
+  } catch (error) {
+    logger.error("change.auto_detect_failed", { assetId, version, error });
+    return 0;
+  }
 }

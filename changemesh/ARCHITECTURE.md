@@ -32,7 +32,7 @@ The repository is a personal monorepo. CHANGEMESH is fully self-contained in `ch
 | Data visualization | Hand-built accessible SVG/CSS charts (stacked bar, donut, bar list, trend) | ✅ Stage 2 |
 | Graph UI | React Flow (`@xyflow/react`) with custom nodes, deterministic layered layout | ✅ Stage 4 |
 | Parsing | `unpdf` (PDF), `papaparse` (CSV), `node-html-parser` (HTML) | ✅ Stage 3 |
-| AI | Provider abstraction; Claude when `ANTHROPIC_API_KEY` is set, deterministic engine otherwise | ⏳ Stage 5 |
+| AI | `ChangeAnalyzer` abstraction: rule-based (default, demo) or Claude via `@anthropic-ai/sdk` structured outputs | ✅ Stage 5 |
 | Billing | Stripe (test mode), webhook signature verification | ⏳ Stage 7 |
 
 ## 3. Source layout
@@ -243,8 +243,31 @@ DB records ──► buildDependencyGraph()  (src/domain/graph/build.ts, pure)
 - **UI** (`src/components/graph/`): React Flow canvas with zoom/pan, minimap, controls; search (Enter focuses matches); asset-type filter; toggles for information nodes, suggested and rejected relationships; click a node to highlight its neighborhood up to 1/2/3/all hops; details panel for assets (health, layer, connected assets with hop distance, relationships, shared information), information (value per asset, mismatches) and relationships (direction, type, status, confidence, origin, evidence, confirm/reject/remove). A List view is the text alternative.
 - **Data**: `current_facts` view (security invoker) loaded in pages of 1,000 rows (PostgREST limit), capped at 20,000 facts per workspace.
 
-## 14. Planned engines (designed, not built)
+## 14. Change Detection & Impact Analysis (Stage 5) ✅
 
-- **Change & Impact (Stage 5):** deterministic BFS impact engine with explainable relationship paths; AI provider interface with schema-validated JSON, retries and usage tracking; AI never approves anything.
+```
+register value / new scanned version / cross-asset comparison
+        │                     │                         │
+  createChange()      diffFacts(v-1, v)       findInconsistencies()        src/domain/changes (pure)
+        └──────────────┬──────┴─────────────────────────┘
+                       ▼
+             analyzeImpact()  ── direct: assets holding the same entity·attribute fact
+                       │      ── indirect: BFS over relationships (dependents of the source; symmetric for syncs_with/duplicates; ≤4 hops)
+                       ▼
+         ChangeAnalyzer (src/server/ai): RuleBasedAnalyzer | ClaudeAnalyzer (wording only, ±1 level)
+                       ▼
+     buildProposals() → save_change_analysis() RPC (impacts + pending proposals + analysis metadata, atomic)
+```
+
+- **Change types**: `created`, `updated`, `deleted` (from version diffs or manual registration), `outdated` (source of truth disagrees with derived assets), `conflicting` (equally authoritative assets disagree).
+- **Register a value**: when a change names a source asset, entity and attribute without an old value, the current value is read from that asset's facts.
+- **Each impact** stores: affected asset, old (current) value, new value, relationship path, impact level, confidence, recommended action; the analysis metadata adds reasons, AI rationale, "unexpected value" flags and assets that already show the new value.
+- **Scoring**: asset type weight + customer-facing (+2) + holds the fact (+2) + critical attribute when held (+1) + shows a different value (+1) − (depth−1). ≥7 critical, ≥5 high, ≥3 medium. Assets only connected (no fact) never exceed medium. Confidence = fact confidence × relationship confidences (suggested ×0.7) × 0.9^(depth−1), ×0.8 for unverified scans.
+- **Proposals** are created only for assets that hold the changed value; they are always `pending` / `not_started`. Re-analysis replaces pending proposals and keeps decided ones with their approval history.
+- **AI layer**: `CHANGEMESH_AI_PROVIDER=claude` + `ANTHROPIC_API_KEY` enables Claude (`claude-opus-5-5` by default, `CHANGEMESH_AI_MODEL` to override). Requests use `client.beta.messages.parse` with a Zod output schema, `effort: "medium"`, server-side refusal fallbacks (`fallbacks: "default"`), SDK retries for 429/5xx plus one retry for unusable output. Document content is sent inside `<workspace_data>` as untrusted data; the model has no tools and can only return text. Guardrails drop unknown asset ids and level jumps over one step. Every call is recorded in `ai_usage` (tokens, estimated cost from list prices, status, attempts); failures fall back to rules with a visible warning. Demo sessions never call AI.
+- **Automation**: a scan/upload that creates version ≥2 records the differences as changes (max 10) and analyzes them with rules; "Detect inconsistencies" records outdated/conflicting facts once per open issue.
+
+## 15. Planned engines (designed, not built)
+
 - **Approval & Updates (Stage 6):** approval workflow on top of the existing constraints; internal update simulator and exportable instructions; idempotent execution.
 - **Commercial SaaS (Stage 7):** Stripe test-mode billing, plan limits, invitations, notifications, usage metering, admin area.

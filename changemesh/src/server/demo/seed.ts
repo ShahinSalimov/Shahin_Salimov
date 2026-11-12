@@ -329,6 +329,21 @@ export function buildDemoSnapshot(now: Date = new Date()): WorkspaceSnapshot {
     ev(960, maya!, "assets.insert", "assets", "a-price-csv", { name: "Master price list.csv" }),
   ];
 
+  for (const c of changes) {
+    const mine = impacts.filter((i) => i.changeId === c.id);
+    const count = (l: string) => mine.filter((i) => i.level === l).length;
+    c.analysis = mine.length
+      ? {
+          generatedBy: "demo",
+          model: null,
+          summary: "Sample analysis written for the demo. It was not computed from the data and not produced by AI — re-run the analysis to compute it from the demo records.",
+          warnings: [],
+          counts: { critical: count("critical"), high: count("high"), medium: count("medium"), low: count("low"), direct: mine.filter((i) => i.depth <= 1).length, indirect: mine.filter((i) => i.depth > 1).length, alreadyUpdated: 0, inconsistencies: 0 },
+        }
+      : null;
+    c.analyzedAt = mine.length ? c.createdAt : null;
+  }
+
   return {
     assets,
     versions,

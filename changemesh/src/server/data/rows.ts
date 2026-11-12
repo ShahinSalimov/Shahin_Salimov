@@ -33,9 +33,9 @@ export const relationshipRow = z.object({
 export const changeRow = z.object({
   id: z.string(), title: z.string(), description: nullableText, change_type: z.enum(CHANGE_TYPES), status: z.enum(CHANGE_STATUSES),
   source_asset_id: nullableText, entity_name: nullableText, attribute_name: nullableText, old_value: nullableText, new_value: nullableText,
-  origin: z.enum(RECORD_ORIGINS), created_at: z.string(),
+  origin: z.enum(RECORD_ORIGINS), created_at: z.string(), analysis: json.nullable().optional(), analyzed_at: nullableText.optional(),
 });
-const pathStep = z.object({ assetId: z.string(), relationship: z.union([z.enum(RELATIONSHIP_TYPES), z.literal("contains")]) });
+const pathStep = z.object({ assetId: z.string(), relationship: z.union([z.enum(RELATIONSHIP_TYPES), z.literal("contains"), z.literal("shares")]) });
 export const impactRow = z.object({
   id: z.string(), change_id: z.string(), asset_id: z.string(), impact_level: z.enum(IMPACT_LEVELS), depth: num, relationship_path: z.array(pathStep).catch([]),
   old_value: nullableText, new_value: nullableText, confidence: num, recommended_action: nullableText, origin: z.enum(RECORD_ORIGINS), created_at: z.string(),
@@ -80,3 +80,21 @@ export const scanRow = z.object({
   asset_version: num.nullable(), facts_count: num, error: nullableText, warnings: z.array(z.string()).catch([]), stats: json,
 });
 export const factCountRow = z.object({ asset_id: z.string(), facts_count: num });
+
+export const aiUsageRow = z.object({
+  id: z.string(), change_id: nullableText, model: z.string(), status: z.enum(["succeeded", "failed", "rejected_output"]), input_tokens: num, output_tokens: num,
+  cost_usd: num.nullable(), created_at: z.string(),
+});
+
+const levelCounts = { critical: num, high: num, medium: num, low: num };
+export const changeAnalysisSchema = z.object({
+  generatedBy: z.enum(["rules", "ai", "demo"]),
+  model: z.string().nullable().optional(),
+  summary: z.string(),
+  warnings: z.array(z.string()).catch([]),
+  counts: z.object({ ...levelCounts, direct: num, indirect: num, alreadyUpdated: num, inconsistencies: num }),
+  relatedFacts: z.array(z.string()).optional(),
+  usage: z.object({ inputTokens: num, outputTokens: num, costUsd: num.nullable() }).nullable().optional(),
+  notes: z.record(z.string(), z.object({ reasons: z.array(z.string()), rationale: z.string().nullable(), currentValue: z.string().nullable(), containsFact: z.boolean(), inconsistent: z.boolean() })).optional(),
+  skipped: z.array(z.object({ assetId: z.string(), reason: z.string() })).optional(),
+});

@@ -7,6 +7,7 @@ import { CHANGE_STATUS_META, CHANGE_TYPE_META, IMPACT_META } from "@/components/
 import { PageHeader } from "@/components/app/page-header";
 import { SampleTag, StatusPill } from "@/components/app/status-pill";
 import { CreateChangeDialog } from "@/components/forms/create-change-dialog";
+import { DetectInconsistenciesButton } from "@/components/changes/change-forms";
 import { countByLevel, isOpenChange } from "@/domain/insights/metrics";
 import { can } from "@/domain/rbac/roles";
 import { IMPACT_LEVELS, type Change } from "@/domain/workspace/model";
@@ -43,7 +44,14 @@ export default async function ChangesPage({ params, searchParams }: { params: Pr
       <PageHeader
         title="Changes"
         description="Every recorded change to your business information and what it affects."
-        actions={can(ctx.role, "changes.write") ? <CreateChangeDialog workspaceId={ctx.workspace.id} assets={snapshot.assets.map((a) => ({ id: a.id, name: a.name }))} /> : null}
+        actions={
+          can(ctx.role, "changes.write") ? (
+            <>
+              <DetectInconsistenciesButton workspaceId={ctx.workspace.id} />
+              <CreateChangeDialog workspaceId={ctx.workspace.id} assets={snapshot.assets.map((a) => ({ id: a.id, name: a.name }))} />
+            </>
+          ) : null
+        }
       />
       {snapshot.changes.length === 0 ? (
         <EmptyState icon={GitBranch} title="No changes recorded" description="Record a change — for example a new price or new opening hours — to see which assets it affects." />
@@ -76,6 +84,9 @@ export default async function ChangesPage({ params, searchParams }: { params: Pr
                             <StatusPill meta={CHANGE_TYPE_META[c.type]} size="xs" />
                             <StatusPill meta={CHANGE_STATUS_META[c.status]} size="xs" />
                             {c.origin === "demo" ? <SampleTag /> : null}
+                            {c.origin === "scan" ? <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">From new version</span> : null}
+                            {c.origin === "rule" ? <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">Detected</span> : null}
+                            {c.analysis?.generatedBy === "ai" ? <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] text-primary">AI-assisted</span> : null}
                           </div>
                           <h2 className="mt-2 font-medium group-hover:underline">{c.title}</h2>
                           {c.oldValue || c.newValue ? (
@@ -93,7 +104,7 @@ export default async function ChangesPage({ params, searchParams }: { params: Pr
                         <div className="flex shrink-0 gap-6 text-sm md:text-right">
                           <div>
                             <p className="text-xs text-muted-foreground">Impact</p>
-                            <div className="mt-1">{top ? <StatusPill meta={IMPACT_META[top]} size="xs" /> : <span className="text-xs text-muted-foreground">Not analyzed</span>}</div>
+                            <div className="mt-1">{top ? <StatusPill meta={IMPACT_META[top]} size="xs" /> : <span className="text-xs text-muted-foreground">{c.analysis ? "No impact" : "Not analyzed"}</span>}</div>
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground">Assets</p>

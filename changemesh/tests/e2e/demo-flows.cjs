@@ -63,7 +63,8 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   // Record a change
   await p.getByRole('button', { name: 'Record change' }).click();
   await p.getByRole('dialog').getByLabel('Title').fill('Spring menu launch date moved');
-  await p.getByRole('button', { name: 'Save draft' }).click();
+  await p.getByRole('dialog').getByLabel('Analyze the impact now (rule-based)').uncheck();
+  await p.getByRole('button', { name: 'Save change' }).click();
   await p.waitForURL(/\/w\/demo\/changes\/c-/, { waitUntil: 'commit' }); await p.getByText('No impact analysis yet').waitFor();
   check(await p.getByText('No impact analysis yet').isVisible(), 'new draft change shows honest empty impact state');
 
@@ -269,6 +270,41 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   await p.getByRole('link', { name: /^List/ }).click();
   await p.getByRole('heading', { name: 'Relationships' }).waitFor();
   check(true, 'list view is available as a text alternative');
+
+  // ---- Stage 5: change detection and impact analysis ----
+  await p.setViewportSize({ width: 1440, height: 1000 });
+  await p.goto(B + '/w/demo/changes/c-burger');
+  check((await p.locator('main').innerText()).includes('Sample analysis'), 'seeded demo analysis is labeled as sample');
+  await p.getByRole('button', { name: 'Re-run analysis' }).click();
+  await p.getByText(/Rule-based analysis complete: \d+ affected assets?/).waitFor({ timeout: 20000 });
+  await p.getByText('Rule-based · no AI').waitFor();
+  check(true, 're-running the analysis computes it from the data and labels it rule-based');
+  check((await p.locator('.react-flow__node').count()) >= 4, 'impact graph shows the source and affected assets');
+  const changeText = await p.locator('main').innerText();
+  check(changeText.includes('Online ordering page') && changeText.includes('Recommended:') && changeText.includes('Approval status'), 'affected assets, recommendations and approval status are shown');
+  check(!changeText.includes('Master price list.csv\nCSV'), 'the source asset is not listed as affected');
+
+  // Register a new value: old value is read from the source asset
+  await p.goto(B + '/w/demo/changes');
+  await p.getByRole('button', { name: 'Record change' }).click();
+  const d8 = p.getByRole('dialog');
+  await d8.getByLabel('Title').fill('Classic Burger price to $16');
+  await d8.getByLabel('Source asset').selectOption({ label: 'Master price list.csv' });
+  await d8.getByLabel('Entity').fill('Classic Burger');
+  await d8.getByLabel('Attribute').fill('price');
+  await d8.getByLabel('New value').fill('$16.00');
+  await d8.getByRole('button', { name: 'Save change' }).click();
+  await p.getByText(/Change recorded and analyzed: \d+ affected/).waitFor({ timeout: 20000 });
+  await p.getByRole('heading', { name: 'Classic Burger price to $16' }).waitFor();
+  const regText = await p.locator('main').innerText();
+  check(regText.includes('$15.00') && regText.includes('$16.00'), 'old value is filled from the source asset and compared with the new value');
+  check(regText.includes('Pending'), 'update proposals are created as pending');
+
+  // Detect inconsistencies across assets
+  await p.goto(B + '/w/demo/changes');
+  await p.getByRole('button', { name: 'Detect inconsistencies' }).click();
+  const incToast = await p.locator('[data-sonner-toast]').first().innerText({ timeout: 20000 });
+  check(/inconsistenc|No new inconsistencies|No inconsistencies/.test(incToast), `inconsistency detection reports its result ("${incToast.split('\n')[0]}")`);
 
   // Separate demo session is isolated
   const p2 = await (await b.newContext()).newPage();

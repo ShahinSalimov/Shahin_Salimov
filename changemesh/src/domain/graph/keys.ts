@@ -28,3 +28,16 @@ export function entityKey(entity: string): string {
 export function factKey(entity: string, attribute: string): string {
   return `${entityKey(entity)}|${attributeKey(attribute)}`;
 }
+
+/**
+ * Source-of-truth authority by asset type. Lower = closer to the source of truth.
+ * Price lists and records people maintain win over pages and documents derived from them.
+ */
+export const AUTHORITY: Record<"csv" | "manual" | "product_catalog" | "pdf" | "website" | "marketing_content", number> = {
+  csv: 0,
+  manual: 0,
+  product_catalog: 1,
+  pdf: 2,
+  website: 2,
+  marketing_content: 3,
+};

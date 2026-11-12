@@ -2,7 +2,9 @@ import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
 import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AssetIntelligence, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { ImpactDraft } from "@/domain/changes/impact";
+import type { ProposalDraft } from "@/domain/changes/proposals";
+import type { AiUsageRecord, AssetIntelligence, ChangeAnalysis, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 
 export interface StoredFile {
@@ -29,7 +31,7 @@ export interface WorkspaceData {
   createAsset(input: CreateAssetInput): Promise<{ id: string }>;
   updateAsset(input: UpdateAssetInput): Promise<void>;
   deleteAsset(assetId: string): Promise<void>;
-  createChange(input: CreateChangeInput): Promise<{ id: string }>;
+  createChange(input: CreateChangeInput, opts?: { origin?: RecordOrigin }): Promise<{ id: string }>;
   decideProposal(input: DecisionInput): Promise<void>;
   reviewRelationship(id: string, status: "confirmed" | "rejected"): Promise<void>;
   updateMemberRole(userId: string, role: WorkspaceRole): Promise<void>;
@@ -52,4 +54,28 @@ export interface WorkspaceData {
   deleteRelationship(id: string): Promise<void>;
   /** Stores rule-based suggestions; pairs that already exist are skipped. Returns how many were created. */
   addSuggestions(suggestions: RelationshipSuggestion[]): Promise<number>;
+
+  // Change engine
+  versionFacts(assetId: string, version: number): Promise<ExtractedFact[]>;
+  saveChangeAnalysis(changeId: string, payload: SavedAnalysis): Promise<{ impactsSaved: number; proposalsCreated: number; proposalsKept: number; status: string }>;
+  recordAiUsage(entry: AiUsageEntry): Promise<void>;
+  aiUsage(): Promise<AiUsageRecord[]>;
+}
+
+export interface SavedAnalysis {
+  impacts: (ImpactDraft & { origin: RecordOrigin })[];
+  proposals: (ProposalDraft & { origin: RecordOrigin })[];
+  analysis: ChangeAnalysis;
+}
+
+export interface AiUsageEntry {
+  changeId: string | null;
+  model: string;
+  status: "succeeded" | "failed" | "rejected_output";
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number | null;
+  attempts: number;
+  durationMs: number | null;
+  error: string | null;
 }

@@ -79,11 +79,39 @@ export interface Change {
   newValue: string | null;
   origin: RecordOrigin;
   createdAt: string;
+  analysis?: ChangeAnalysis | null;
+  analyzedAt?: string | null;
+}
+
+/** Metadata of the latest impact analysis of a change. */
+export interface ChangeAnalysis {
+  generatedBy: "rules" | "ai" | "demo";
+  model?: string | null;
+  summary: string;
+  warnings: string[];
+  counts: { critical: number; high: number; medium: number; low: number; direct: number; indirect: number; alreadyUpdated: number; inconsistencies: number };
+  relatedFacts?: string[];
+  usage?: { inputTokens: number; outputTokens: number; costUsd: number | null } | null;
+  /** Per affected asset: why it is affected and (for AI analyses) the model's rationale. */
+  notes?: Record<string, { reasons: string[]; rationale: string | null; currentValue: string | null; containsFact: boolean; inconsistent: boolean }>;
+  skipped?: { assetId: string; reason: string }[];
+}
+
+export interface AiUsageRecord {
+  id: string;
+  changeId: string | null;
+  model: string;
+  status: "succeeded" | "failed" | "rejected_output";
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number | null;
+  createdAt: string;
 }
 
 export interface RelationshipPathStep {
   assetId: string;
-  relationship: RelationshipType | "contains";
+  /** "contains": the changed source itself; "shares": the asset holds the same fact (no explicit relationship needed). */
+  relationship: RelationshipType | "contains" | "shares";
 }
 
 export interface ChangeImpact {

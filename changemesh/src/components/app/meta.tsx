@@ -117,7 +117,7 @@ export const RELATIONSHIP_STATUS_META: Record<RelationshipStatus, StatusMeta> = 
   rejected: { label: "Rejected", tone: "neutral", icon: XCircle },
 };
 
-export const RELATIONSHIP_LABEL: Record<RelationshipType | "contains", string> = {
+export const RELATIONSHIP_LABEL: Record<RelationshipType | "contains" | "shares", string> = {
   derived_from: "derived from",
   embeds: "embeds",
   links_to: "links to",
@@ -125,6 +125,7 @@ export const RELATIONSHIP_LABEL: Record<RelationshipType | "contains", string> =
   references: "references",
   duplicates: "duplicates",
   contains: "source",
+  shares: "same information",
 };
 
 /** Wording when reading a relationship from the target's side. */

@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 4 (Dependency Graph)._
+_Last updated: 2026-11-12 — after Stage 5 (Change Engine)._
 
 ## Roadmap
 
@@ -10,12 +10,56 @@ _Last updated: 2026-11-12 — after Stage 4 (Dependency Graph)._
 | 2 | **Premium UI** — design system, application shell, all pages | ✅ Complete |
 | 3 | **Asset Intelligence** — documents, websites, extraction | ✅ Complete |
 | 4 | **Dependency Graph** — relationships between information | ✅ Complete |
-| 5 | **AI Change Engine** — change detection, impact analysis | ⏳ Next (awaiting instruction) |
-| 6 | **Approval Engine** — approvals, update execution | Queued |
+| 5 | **AI Change Engine** — change detection, impact analysis | ✅ Complete |
+| 6 | **Approval Engine** — approvals, update execution | ⏳ In progress |
 | 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | Queued |
 | 8 | **Launch** — production-readiness audit, deploy, first customers | Queued |
 
-Stage briefs 5–8 have been received and will be executed one at a time, only after explicit instruction.
+Stage briefs 6–8 have been received and will be executed one at a time, only after explicit instruction.
+
+## Stage 5 — Change Detection & Impact Analysis ✅
+
+### Delivered
+
+| Requirement | Implementation |
+|---|---|
+| 1–3 Register value, compare with previous version, identify the changed attribute | Register dialog reads the current value from the source asset; new scanned versions are diffed against the previous version (`diffFacts`) |
+| 4 Related entities | Other attributes of the same entity are listed ("Related information") |
+| 5–6 Connected assets, direct and indirect impact | Assets holding the same fact (direct) + dependents over relationships up to 4 hops (indirect), with paths |
+| 7 Inconsistencies | "Unexpected value" flags per asset; "Detect inconsistencies" records outdated/conflicting facts across assets |
+| 8 Impact report | Change Details: summary, before/after, impact graph, affected assets, reasons, recommendations, approval status |
+| 9 Update proposals | Pending proposals for assets holding the value; re-analysis keeps decided ones |
+| Change types | created, updated, deleted, conflicting, outdated |
+| Impact result fields | affected asset, old value, new value, relationship path, impact level (critical/high/medium/low), confidence, recommended action |
+| AI abstraction | Rule-based analyzer without keys (labeled "Rule-based · no AI"); Claude when configured; Zod-validated structured JSON; retries; per-call token and cost tracking (`ai_usage`, Billing page); AI cannot approve, publish or change the set of affected assets |
+
+New database objects (`…000600_change_engine.sql`): `changes.analysis` / `analyzed_at`, `ai_usage` (insert/select only), `save_change_analysis()` RPC.
+
+### Verification (run 2026-11-12, in this environment)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` / `npm run lint` | ✅ 0 errors / 0 problems |
+| `npm test` (unit) | ✅ 28 files, 238 tests (+17 change/impact domain, +9 AI layer with a mocked client, +5 engine integration) |
+| `npm run test:db` | ✅ 6 files, 61 tests (+6: analysis save/replace, decided proposals kept, forged approval fields ignored, closed changes, ai_usage immutability and tenancy) |
+| `npm run build` | ✅ success |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+| E2E demo flows | ✅ 46/46 (+8: sample analysis label, re-run analysis, impact graph, recommendations and approval status, register value with automatic old value, pending proposals, inconsistency detection) |
+| Responsive sweep | ✅ 66 combinations, no errors, no overflow |
+
+Bugs found and fixed: connected-only assets received the "critical attribute" bonus (homepage became medium) → bonus only for assets that hold the fact.
+
+### Known limitations / honest notes
+
+1. **Claude was not called for real in this environment** (no API key; outbound access is restricted). The integration follows the SDK documentation and is tested with a mocked client: request shape, schema retries, refusals, rate limits, authentication errors, fallback pricing, guardrails.
+2. Entity matching is exact after normalization: "Burgers" in a campaign does not match "Classic Burger"; such assets appear only when connected by relationships ("check" recommendations).
+3. Automatically detected changes (new versions, inconsistencies) are analyzed with rules only, to avoid unplanned AI costs; AI can be applied with "Re-run analysis".
+4. Cost figures are estimates from list prices (cached table in `src/server/ai/pricing.ts`); they are not invoices.
+5. Registering a value does not modify the source asset's facts; the source changes when it is rescanned, re-uploaded or edited.
+
+### Recommended next stage
+
+**Stage 6 — Approval & Update Management.**
 
 ## Stage 4 — Dependency Graph ✅
 
@@ -79,9 +123,6 @@ Bugs found and fixed during this stage:
 - Tests: `tests/db/graph.test.ts`, `tests/unit/graph-service.test.ts`, e2e scripts
 - Docs: `ARCHITECTURE.md` §13, `README.md`
 
-### Recommended next stage
-
-**Stage 5 — AI Change Engine:** register new values, compare with previous versions, detect created/updated/deleted/conflicting/outdated information, compute direct and indirect impact over confirmed relationships and shared facts, impact levels and recommendations, update proposals, and an AI abstraction (demo analysis without keys, Claude when configured, schema-validated JSON, retries, usage tracking).
 
 ## Stage 3 — Asset Intelligence ✅
 

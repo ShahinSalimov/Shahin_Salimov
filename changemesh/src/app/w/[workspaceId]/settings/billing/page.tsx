@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { getPlan, PLANS, usageRatio } from "@/domain/billing/plans";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { loadSnapshot } from "@/server/data";
+import { getWorkspaceData, loadSnapshot } from "@/server/data";
 import { listWorkspaces } from "@/server/workspaces/service";
 import { loadWorkspace } from "@/server/workspaces/load";
 
@@ -17,7 +17,11 @@ export const metadata: Metadata = { title: "Billing" };
 export default async function BillingPage({ params }: { params: Promise<{ workspaceId: string }> }) {
   const { workspaceId } = await params;
   const ctx = await loadWorkspace(workspaceId);
-  const [snapshot, workspaces] = await Promise.all([loadSnapshot(ctx), listWorkspaces(ctx.viewer)]);
+  const [snapshot, workspaces, aiUsage] = await Promise.all([loadSnapshot(ctx), listWorkspaces(ctx.viewer), getWorkspaceData(ctx).aiUsage()]);
+  const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString();
+  const thisMonth = aiUsage.filter((u) => u.createdAt >= monthStart);
+  const aiCost = thisMonth.reduce((sum, u) => sum + (u.costUsd ?? 0), 0);
+  const aiTokens = thisMonth.reduce((sum, u) => sum + u.inputTokens + u.outputTokens, 0);
   const base = `/w/${ctx.workspace.id}`;
   const sub = snapshot.subscription;
   const plan = sub ? getPlan(sub.plan) : null;
@@ -72,7 +76,15 @@ export default async function BillingPage({ params }: { params: Promise<{ worksp
             <UsageMeter label="Workspaces in organization" used={orgWorkspaces} limit={plan?.limits.workspaces ?? null} />
             <UsageMeter label="Members in this workspace" used={snapshot.members.length} limit={null} />
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">Scans, AI operations and connected integrations will be metered when those features launch.</p>
+          <div className="mt-5 grid gap-1 border-t pt-4 text-sm">
+            <p className="text-xs font-medium text-muted-foreground">AI operations this month</p>
+            <p>
+              <span className="tabular font-semibold">{thisMonth.length}</span> analyses · <span className="tabular">{aiTokens.toLocaleString("en")}</span> tokens · estimated{" "}
+              <span className="tabular font-semibold">${aiCost.toFixed(4)}</span>
+              {thisMonth.some((u) => u.status !== "succeeded") ? <span className="text-muted-foreground"> · {thisMonth.filter((u) => u.status !== "succeeded").length} failed</span> : null}
+            </p>
+            <p className="text-xs text-muted-foreground">Estimates use list prices per model. Rule-based analyses are free and not counted.</p>
+          </div>
         </SectionCard>
       </div>
 

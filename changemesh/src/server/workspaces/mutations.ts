@@ -20,6 +20,8 @@ import { getViewer } from "../auth/session";
 import { getWorkspaceData } from "../data";
 import { createUserClient } from "../supabase/clients";
 import { getWorkspaceContext } from "./service";
+import { runImpactAnalysis } from "../changes/engine";
+import { attributeKey, entityKey } from "@/domain/graph/keys";
 
 export type MutationState = ActionResult<{ id?: string; message?: string; tone?: "warning" }> | null;
 
@@ -50,10 +52,23 @@ export async function createAssetAction(_prev: MutationState, form: FormData): P
 export async function createChangeAction(_prev: MutationState, form: FormData): Promise<MutationState> {
   return runAction("change.create", async () => {
     const workspaceId = workspaceIdFrom(form);
-    const { data } = await authorize(workspaceId, "changes.write");
-    const { id } = await data.createChange(createChangeSchema.parse(formToObject(form)));
+    const { ctx, data } = await authorize(workspaceId, "changes.write");
+    const input = createChangeSchema.parse(formToObject(form));
+    // Register the new value: compare with what the source asset says today.
+    if (input.sourceAssetId && input.entityName && input.attributeName && !input.oldValue) {
+      const ek = entityKey(input.entityName);
+      const ak = attributeKey(input.attributeName);
+      const current = (await data.assetIntelligence(input.sourceAssetId)).facts.find((f) => entityKey(f.entityName) === ek && attributeKey(f.attributeName) === ak);
+      if (current) input.oldValue = current.valueText;
+    }
+    const { id } = await data.createChange(input);
+    if (form.get("analyze") === "on") {
+      const out = await runImpactAnalysis(data, ctx.viewer, id, { useAi: false });
+      revalidatePath(`/w/${workspaceId}`, "layout");
+      return { id, message: `Change recorded and analyzed: ${out.impacts} affected asset${out.impacts === 1 ? "" : "s"}, ${out.proposalsCreated} update proposal${out.proposalsCreated === 1 ? "" : "s"}.` };
+    }
     revalidatePath(`/w/${workspaceId}`, "layout");
-    return { id, message: "Change recorded as a draft. Impact analysis is not run yet." };
+    return { id, message: "Change recorded as a draft. Run the impact analysis when you are ready." };
   });
 }
 

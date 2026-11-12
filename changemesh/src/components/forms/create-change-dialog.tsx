@@ -37,8 +37,8 @@ export function CreateChangeDialog({ workspaceId, assets, variant = "default", d
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Record a business change</DialogTitle>
-          <DialogDescription>The change is saved as a draft. Automatic impact analysis is added in the Change Engine stage.</DialogDescription>
+          <DialogTitle>Register a change</DialogTitle>
+          <DialogDescription>Enter the new value. If you choose a source asset and leave “Old value” empty, the current value is read from that asset.</DialogDescription>
         </DialogHeader>
         <form action={action} className="grid gap-4">
           <input type="hidden" name="workspaceId" value={workspaceId} />
@@ -85,12 +85,16 @@ export function CreateChangeDialog({ workspaceId, assets, variant = "default", d
           <Field id="change-description" label="Notes" optional errors={errors?.description}>
             {(aria) => <Textarea name="description" defaultValue={values.description} rows={2} {...aria} />}
           </Field>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="analyze" defaultChecked={values.analyze ? values.analyze === "on" : true} className="size-4 accent-[var(--primary)]" />
+            Analyze the impact now (rule-based)
+          </label>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : "Save draft"}
+              {pending ? "Saving…" : "Save change"}
             </Button>
           </DialogFooter>
         </form>
