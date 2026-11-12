@@ -306,6 +306,9 @@ Migration `20261112000800_commercial.sql`.
 
 **Demo mode.** Invitations, API keys, organization changes and payments are refused with a clear message; notifications and usage are computed from the session's sample data.
 
-## 17. Planned (Stage 8)
+## 17. Production readiness (Stage 8)
 
-- Production-readiness audit, deployment guide, API documentation, test report.
+- Rate limits (in-memory, per instance): sign-in 10 / 5 min and sign-up 5 / 10 min per address, demo sessions 30 / 10 min per address, scans, analyses, executions per actor, API 120 / min per key plus 360 / min per address.
+- Error boundaries at the root and per workspace (the shell stays usable when one page fails).
+- Acceptance flow covered by `tests/db/user-journey.test.ts` (real RPCs and RLS) and the demo E2E suite.
+- Deployment and launch checklist: DEPLOYMENT.md. Results and untested areas: TEST_REPORT.md.

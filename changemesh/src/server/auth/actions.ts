@@ -5,6 +5,7 @@ import { safeNextPath, signInSchema, signUpSchema } from "@/domain/auth/schemas"
 import { getPublicEnv } from "@/lib/env";
 import { AppError, type ActionResult } from "@/lib/errors";
 import { formToObject, runAction } from "../action";
+import { clientIp, takeToken } from "../rate-limit";
 import { createUserClient } from "../supabase/clients";
 import { headers } from "next/headers";
 
@@ -19,9 +20,15 @@ async function appOrigin(): Promise<string> {
 
 export type AuthFormState = ActionResult<{ message?: string }> | null;
 
+async function limitAuth(kind: string, max: number, windowMs: number) {
+  const ip = clientIp(await headers());
+  if (!takeToken(`auth:${kind}:${ip}`, max, windowMs).ok) throw new AppError("RATE_LIMITED", "Too many attempts. Please wait a few minutes and try again.");
+}
+
 export async function signInAction(_prev: AuthFormState, form: FormData): Promise<AuthFormState> {
   let target = "/app";
   const result = await runAction("auth.sign_in", async () => {
+    await limitAuth("sign_in", 10, 5 * 60_000);
     const input = signInSchema.parse(formToObject(form));
     const supabase = await createUserClient();
     const { error } = await supabase.auth.signInWithPassword({ email: input.email, password: input.password });
@@ -42,6 +49,7 @@ export async function signUpAction(_prev: AuthFormState, form: FormData): Promis
   const rawNext = form.get("next");
   const next = typeof rawNext === "string" && rawNext.startsWith("/invite/") ? safeNextPath(rawNext) : "/onboarding";
   const result = await runAction("auth.sign_up", async () => {
+    await limitAuth("sign_up", 5, 10 * 60_000);
     const input = signUpSchema.parse(formToObject(form));
     const supabase = await createUserClient();
     const { data, error } = await supabase.auth.signUp({

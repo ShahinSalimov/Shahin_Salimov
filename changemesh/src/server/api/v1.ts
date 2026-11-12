@@ -6,7 +6,7 @@ import { AppError, fromPostgresError, toPublicError } from "@/lib/errors";
 import { isSupabaseConfigured } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { looksLikeApiKey, sha256Hex } from "../commercial/tokens";
-import { takeToken } from "../rate-limit";
+import { clientIp, takeToken } from "../rate-limit";
 import { createServiceClient } from "../supabase/clients";
 
 export interface ApiCaller {
@@ -33,8 +33,13 @@ export async function authenticate(request: Request, scope: ApiScope): Promise<A
   if (!isSupabaseConfigured()) return apiError(503, "NOT_CONFIGURED", "The API requires a configured database.");
   const header = request.headers.get("authorization") ?? "";
   const key = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
+  // Per-address limit first, so unauthenticated floods cannot reach the key lookup.
+  const byIp = takeToken(`api-ip:${clientIp(request.headers)}`, RATE_LIMIT * 3, 60_000);
+  if (!byIp.ok) return apiError(429, "RATE_LIMITED", "Rate limit exceeded.", { "retry-after": String(Math.ceil(byIp.retryAfterMs / 1000)) });
   if (!looksLikeApiKey(key)) return apiError(401, "UNAUTHENTICATED", "Send a valid API key as 'Authorization: Bearer cm_…'.");
-  const limited = takeToken(`api:${key.slice(0, 11)}`, RATE_LIMIT, 60_000);
+  const keyHash = sha256Hex(key);
+  // Keyed by the full key's hash: the public prefix alone cannot exhaust another key's quota.
+  const limited = takeToken(`api:${keyHash}`, RATE_LIMIT, 60_000);
   if (!limited.ok) return apiError(429, "RATE_LIMITED", "Rate limit exceeded.", { "retry-after": String(Math.ceil(limited.retryAfterMs / 1000)) });
 
   let db: SupabaseClient;
@@ -46,7 +51,7 @@ export async function authenticate(request: Request, scope: ApiScope): Promise<A
   const { data, error } = await db
     .from("api_keys")
     .select("id, workspace_id, scopes, expires_at, revoked_at, last_used_at, workspaces!inner(organization_id)")
-    .eq("key_hash", sha256Hex(key))
+    .eq("key_hash", keyHash)
     .maybeSingle<{ id: string; workspace_id: string; scopes: ApiScope[]; expires_at: string | null; revoked_at: string | null; last_used_at: string | null; workspaces: { organization_id: string } }>();
   if (error) {
     logger.error("api.key_lookup_failed", { code: error.code });

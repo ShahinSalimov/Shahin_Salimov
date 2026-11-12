@@ -38,7 +38,25 @@ Open http://localhost:3000 and click **Explore the demo**.
 6. Optional Google: enable the provider in Supabase, then set `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true`.
 7. `npm run dev`, open `/signup`, confirm the email, and create your organization on the onboarding page.
 
-## 4. Quality checks
+## 4. Stripe (test mode, optional)
+
+Billing works only with **test-mode** keys; live keys are refused.
+
+1. In the Stripe dashboard (test mode) create one product per plan with a recurring monthly price; copy the price ids into `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_BUSINESS`, `STRIPE_PRICE_AGENCY`.
+2. Copy the test secret key (`sk_test_…`) into `STRIPE_SECRET_KEY`.
+3. Forward webhooks locally with the Stripe CLI and copy the printed signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/webhooks/stripe \
+     --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,customer.subscription.paused,customer.subscription.resumed,invoice.payment_failed
+   ```
+4. Settings → Billing customer portal (test mode): enable plan switching between the three prices and cancellation.
+5. Restart `npm run dev`, open Settings → Billing & plan as an organization owner and choose a plan. Pay with test card `4242 4242 4242 4242`. The plan changes after the webhook arrives.
+
+## 5. Platform admin (optional)
+
+Set `CHANGEMESH_PLATFORM_ADMIN_EMAILS=you@example.com` and open `/admin` while signed in with that email.
+
+## 6. Quality checks
 
 ```bash
 npm run typecheck   # TypeScript strict

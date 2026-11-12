@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 7 (Commercial SaaS)._
+_Last updated: 2026-11-12 — after Stage 8 (production-readiness audit)._
 
 ## Roadmap
 
@@ -13,9 +13,45 @@ _Last updated: 2026-11-12 — after Stage 7 (Commercial SaaS)._
 | 5 | **AI Change Engine** — change detection, impact analysis | ✅ Complete |
 | 6 | **Approval Engine** — approvals, update execution | ✅ Complete |
 | 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | ✅ Complete |
-| 8 | **Launch** — production-readiness audit, deploy, first customers | ⏳ In progress (authorized together with Stage 7) |
+| 8 | **Launch** — production-readiness audit, deploy, first customers | ✅ Audit complete — ⚠️ not production-ready until staging verification against real Supabase/Stripe |
 
 Stages 7 and 8 were authorized together ("Stage 7-8"). Stage 7 is committed separately before Stage 8 starts.
+
+## Stage 8 — Production-readiness audit ✅ (verdict: not production-ready yet)
+
+### Delivered
+- **Audit** of every Server Action and route handler for authentication/authorization (all mutating actions guarded; auth and locale actions public by design), export formula-injection guard, safe redirect handling, error boundaries, loading states, placeholders.
+- **Fixes**: rate limits for sign-in/sign-up and demo session creation; API limiter keyed by full-key hash plus per-address limit (prefix-based quota exhaustion closed); workspace-level error boundary; demo billing wording.
+- **Acceptance flow test** `tests/db/user-journey.test.ts`: register → organization/workspace → assets → scans → relationship → change → impact → approve → apply → invite → audit + usage (8 steps, real RPCs and RLS).
+- **Documentation**: README.md (rewritten), INSTALLATION.md (Stripe + admin sections), DEPLOYMENT.md (new: Supabase/Stripe/Vercel, serverless caveats, staging verification, launch checklist), ENVIRONMENT.md (Stripe/admin variables), ARCHITECTURE.md (§16–17), API_DOCUMENTATION.md, TEST_REPORT.md, PRODUCT_OVERVIEW.md.
+- **Demo organization**: the existing fictional "Harbor & Vine Hospitality" workspace (15 interconnected assets, open changes, pending approvals, failed scans, sample notifications) is used for the demo and E2E.
+
+### Verification (run 2026-11-12, in this environment)
+| Check | Result |
+|---|---|
+| `npm run typecheck` / `npm run lint` | ✅ 0 / 0 |
+| `npm test` | ✅ 258/258 (31 files) |
+| `npm run test:db` | ✅ 101/101 (9 files) |
+| `npm run build` (clean) | ✅ |
+| E2E demo flows | ✅ 68/68 |
+| Responsive sweep | ✅ 87 combinations |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+
+### Why it is not marked production-ready
+1. Real-account path (Supabase Auth + PostgREST + Storage) not executed end-to-end — no Supabase/Docker here; a PostgREST binary download was blocked pending the owner's permission.
+2. Stripe Checkout/Portal session creation not executed (no Stripe test account).
+3. Rate limits and demo store are in-memory per instance.
+4. No email delivery for invitations; Supabase SMTP must be configured.
+
+### Unfinished features (honest list)
+- Connectors that write to external systems (websites, POS, Google Business) — registry exists, no connector implemented.
+- Scheduled re-scans / website monitoring.
+- Invitation emails; workspace deletion UI; organization member management beyond workspace membership.
+- Nonce-based CSP; shared rate-limit store; error-monitoring integration.
+
+### Recommended next steps
+1. Staging deployment with a real Supabase project and Stripe test account; run DEPLOYMENT.md §4.
+2. Allow running PostgREST locally (or provide a Supabase staging project) so the TypeScript data layer can be tested automatically against the real API.
 
 ## Stage 7 — Commercial SaaS ✅
 

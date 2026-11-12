@@ -18,3 +18,12 @@ export function takeToken(key: string, limit: number, windowMs: number, now = Da
   w.count++;
   return { ok: true, retryAfterMs: 0 };
 }
+
+/**
+ * Best-effort client address for rate limiting. Behind a trusted proxy
+ * (Vercel, a load balancer) the first X-Forwarded-For entry is the client.
+ * Never use it for authorization.
+ */
+export function clientIp(h: Headers): string {
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
+}
