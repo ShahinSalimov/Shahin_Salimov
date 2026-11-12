@@ -5,13 +5,13 @@ import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
 import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AiUsageRecord, AssetIntelligence, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetIntelligence, ExecutionMode, ExtractedFact, RecordOrigin, UpdateExecution, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { ScanError } from "../intelligence/errors";
 import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, fromPostgresError, notFound } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { createUserClient } from "../supabase/clients";
-import { aiUsageRow, approvalRow, assetRow, auditRow, changeAnalysisSchema, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
+import { aiUsageRow, executionRow, approvalRow, assetRow, auditRow, changeAnalysisSchema, changeRow, factCountRow, factRow, impactRow, integrationRow, memberRow, proposalRow, relationshipRow, scanRow, subscriptionRow, versionRow } from "./rows";
 import type { AiUsageEntry, RecordedScan, SavedAnalysis, StoredFile, WorkspaceData } from "./source";
 
 const AUDIT_LIMIT = 300;
@@ -99,6 +99,7 @@ export class SupabaseWorkspaceData implements WorkspaceData {
         id: r.id, changeId: r.change_id, changeImpactId: r.change_impact_id, targetAssetId: r.target_asset_id, currentValue: r.current_value,
         proposedValue: r.proposed_value, reason: r.reason, evidence: r.evidence, impactLevel: r.impact_level, approvalStatus: r.approval_status,
         executionStatus: r.execution_status, origin: r.origin, createdAt: r.created_at, updatedAt: r.updated_at,
+        idempotencyKey: r.idempotency_key, executionResult: r.execution_result ?? null, executedAt: r.executed_at ?? null, revisionCount: r.revision_count ?? 0,
       })),
       approvals: parseRows("approvals", approvalRow, check("approvals", approvals)).map((r) => ({
         id: r.id, proposalId: r.proposal_id, decision: r.decision, comment: r.comment, decidedBy: r.decided_by, decidedByName: r.profiles?.full_name ?? null, createdAt: r.created_at,
@@ -405,6 +406,38 @@ export class SupabaseWorkspaceData implements WorkspaceData {
     const res = await db.from("ai_usage").select("id, change_id, model, status, input_tokens, output_tokens, cost_usd, created_at").eq("workspace_id", this.workspaceId).order("created_at", { ascending: false }).limit(200);
     return parseRows("aiUsage", aiUsageRow, check("aiUsage", res)).map((r) => ({
       id: r.id, changeId: r.change_id, model: r.model, status: r.status, inputTokens: r.input_tokens, outputTokens: r.output_tokens, costUsd: r.cost_usd, createdAt: r.created_at,
+    }));
+  }
+
+  async reviseProposal(proposalId: string, input: { proposedValue: string | null; reason: string | null; note: string }) {
+    const db = await this.db();
+    check("reviseProposal", await db.rpc("revise_update_proposal", { p_proposal_id: proposalId, p_proposed_value: input.proposedValue, p_reason: input.reason, p_note: input.note }));
+  }
+
+  async startExecution(proposalId: string, action: "execute" | "rollback", mode: ExecutionMode) {
+    const db = await this.db();
+    const row = check("startExecution", await db.rpc("start_proposal_execution", { p_proposal_id: proposalId, p_action: action, p_mode: mode }).single<{ execution_id: string; idempotency_key: string; attempt: number }>());
+    return { executionId: row.execution_id, idempotencyKey: row.idempotency_key, attempt: row.attempt };
+  }
+
+  async finishExecution(executionId: string, succeeded: boolean, result: Record<string, unknown>, error: string | null) {
+    const db = await this.db();
+    return check("finishExecution", await db.rpc("finish_proposal_execution", { p_execution_id: executionId, p_succeeded: succeeded, p_result: result, p_error: error })) as string;
+  }
+
+  async recordSimulation(proposalId: string, result: Record<string, unknown>) {
+    const db = await this.db();
+    const p = check("simProposal", await db.from("update_proposals").select("idempotency_key").eq("id", proposalId).eq("workspace_id", this.workspaceId).maybeSingle<{ idempotency_key: string }>());
+    if (!p) throw notFound("Proposal not found.");
+    check("recordSimulation", await db.from("update_executions").insert({ workspace_id: this.workspaceId, proposal_id: proposalId, action: "simulate", mode: "simulation", status: "succeeded", idempotency_key: p.idempotency_key, result, finished_at: new Date().toISOString() }));
+  }
+
+  async executions(): Promise<UpdateExecution[]> {
+    const db = await this.db();
+    const res = await db.from("update_executions").select("*, profiles!update_executions_created_by_fkey(full_name)").eq("workspace_id", this.workspaceId).order("started_at", { ascending: false }).limit(300);
+    return parseRows("executions", executionRow, check("executions", res)).map((r) => ({
+      id: r.id, proposalId: r.proposal_id, action: r.action, mode: r.mode, status: r.status, idempotencyKey: r.idempotency_key, attempt: r.attempt,
+      result: r.result, error: r.error, actorName: r.profiles?.full_name ?? null, startedAt: r.started_at, finishedAt: r.finished_at,
     }));
   }
 }

@@ -3,7 +3,7 @@ import type { WorkspaceRole } from "@/domain/rbac/roles";
 import type { FactDraft } from "@/domain/extraction/fact";
 import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
-import type { AiUsageRecord, AssetIntelligence, AssetRelationship, AuditEvent, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetIntelligence, AssetRelationship, AuditEvent, ExecutionMode, ExtractedFact, RecordOrigin, UpdateExecution, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 import { AppError, conflict, notFound } from "@/lib/errors";
 import { getDemoSession } from "./demo-store";
@@ -210,6 +210,72 @@ export class DemoWorkspaceData implements WorkspaceData {
     return structuredClone(this.session.aiUsage ?? []);
   }
 
+  async reviseProposal(proposalId: string, input: { proposedValue: string | null; reason: string | null; note: string }) {
+    const p = this.session.snapshot.proposals.find((x) => x.id === proposalId);
+    if (!p) throw notFound("Proposal not found.");
+    if (!input.note.trim()) throw new AppError("VALIDATION_FAILED", "Describe what you changed in this revision.");
+    if (p.approvalStatus !== "needs_revision") throw new AppError("VALIDATION_FAILED", "Only proposals that need a revision can be revised.");
+    const n = (p.revisionCount ?? 0) + 1;
+    Object.assign(p, { proposedValue: input.proposedValue, reason: input.reason, approvalStatus: "pending", revisionCount: n, updatedAt: new Date().toISOString(), evidence: [...p.evidence, { label: `Revision ${n}`, detail: input.note.slice(0, 500) }] });
+    this.audit("update_proposals.update", "update_proposals", p.id, { changed: ["approval_status", "proposed_value"], status: "pending" });
+    this.refreshChangeStatus(p.changeId);
+  }
+
+  async startExecution(proposalId: string, action: "execute" | "rollback", mode: ExecutionMode) {
+    const s = this.session;
+    const p = s.snapshot.proposals.find((x) => x.id === proposalId);
+    if (!p) throw notFound("Proposal not found.");
+    if (p.approvalStatus !== "approved") throw new AppError("VALIDATION_FAILED", "Only approved proposals can be executed.");
+    const runs = (s.executions ??= []);
+    const stale = runs.find((e) => e.proposalId === proposalId && e.status === "running" && e.action !== "simulate" && Date.now() - Date.parse(e.startedAt) > 10 * 60_000);
+    if (stale) {
+      Object.assign(stale, { status: "failed", finishedAt: new Date().toISOString(), error: "The execution did not finish (timed out or the server stopped). Its outcome is unknown; check the target before retrying." });
+      if (p.executionStatus === "in_progress") p.executionStatus = "failed";
+    }
+    if (action === "execute" && !["ready", "failed", "not_started"].includes(p.executionStatus)) throw conflict(`This update is ${p.executionStatus.replace(/_/g, " ")} and cannot be executed again.`);
+    if (action === "rollback" && p.executionStatus !== "completed") throw new AppError("VALIDATION_FAILED", "Only completed updates can be rolled back.");
+    p.idempotencyKey ??= crypto.randomUUID().replace(/-/g, "");
+    const attempt = runs.filter((e) => e.proposalId === proposalId && e.action !== "simulate").length + 1;
+    const id = `x-${crypto.randomUUID()}`;
+    p.executionStatus = "in_progress";
+    runs.unshift({ id, proposalId, action, mode, status: "running", idempotencyKey: p.idempotencyKey, attempt, result: {}, error: null, actorName: VISITOR.name, startedAt: new Date().toISOString(), finishedAt: null });
+    this.audit("update_executions.insert", "update_executions", id, { status: "running" });
+    return { executionId: id, idempotencyKey: p.idempotencyKey, attempt };
+  }
+
+  async finishExecution(executionId: string, succeeded: boolean, result: Record<string, unknown>, error: string | null) {
+    const s = this.session;
+    const e = (s.executions ?? []).find((x) => x.id === executionId);
+    if (!e) throw notFound("Execution not found.");
+    if (e.status !== "running") throw conflict("This execution has already finished.");
+    if (!succeeded && !error?.trim()) throw new AppError("VALIDATION_FAILED", "A failed execution needs an error message.");
+    const p = s.snapshot.proposals.find((x) => x.id === e.proposalId)!;
+    const now = new Date().toISOString();
+    const st = e.action === "execute" ? (succeeded ? "completed" : "failed") : succeeded ? "ready" : "completed";
+    Object.assign(e, { status: succeeded ? "succeeded" : "failed", result, error, finishedAt: now });
+    p.executionStatus = st;
+    p.executionResult = { action: e.action, mode: e.mode, succeeded, executionId: e.id, at: now, ...result };
+    if (e.action === "execute" && succeeded) p.executedAt = now;
+    if (e.action === "rollback" && succeeded) p.executedAt = null;
+    p.updatedAt = now;
+    this.audit("update_executions.update", "update_executions", e.id, { changed: ["status"], status: e.status });
+    this.audit("update_proposals.update", "update_proposals", p.id, { changed: ["execution_status"], execution_status: st });
+    this.refreshChangeStatus(p.changeId);
+    return st;
+  }
+
+  async recordSimulation(proposalId: string, result: Record<string, unknown>) {
+    const p = this.session.snapshot.proposals.find((x) => x.id === proposalId);
+    if (!p) throw notFound("Proposal not found.");
+    p.idempotencyKey ??= crypto.randomUUID().replace(/-/g, "");
+    const now = new Date().toISOString();
+    (this.session.executions ??= []).unshift({ id: `x-${crypto.randomUUID()}`, proposalId, action: "simulate", mode: "simulation", status: "succeeded", idempotencyKey: p.idempotencyKey, attempt: 1, result, error: null, actorName: VISITOR.name, startedAt: now, finishedAt: now });
+  }
+
+  async executions(): Promise<UpdateExecution[]> {
+    return structuredClone(this.session.executions ?? []);
+  }
+
   async addManualFact(assetId: string, fact: FactDraft) {
     this.asset(assetId);
     const f = toFact(fact, assetId, null, null, new Date().toISOString());
@@ -286,11 +352,33 @@ export class DemoWorkspaceData implements WorkspaceData {
     if (p.approvalStatus === "approved" || p.approvalStatus === "rejected") throw conflict("This proposal has already been decided.");
     const now = new Date().toISOString();
     p.approvalStatus = input.decision;
+    if (input.decision === "approved") p.executionStatus = "ready";
     p.updatedAt = now;
     const approvalId = `ap-${crypto.randomUUID()}`;
     snap.approvals.unshift({ id: approvalId, proposalId: p.id, decision: input.decision, comment: input.comment, decidedBy: VISITOR.id, decidedByName: VISITOR.name, createdAt: now });
     this.audit("update_proposals.update", "update_proposals", p.id, { changed: ["approval_status"], status: input.decision });
     this.audit("approvals.insert", "approvals", approvalId, { decision: input.decision });
+    this.refreshChangeStatus(p.changeId);
+  }
+
+  /** Mirrors public.refresh_change_status(). */
+  private refreshChangeStatus(changeId: string) {
+    const snap = this.session.snapshot;
+    const change = snap.changes.find((c) => c.id === changeId);
+    if (!change || change.status === "cancelled") return;
+    const ps = snap.proposals.filter((p) => p.changeId === changeId);
+    if (!ps.length) return;
+    const next = ps.some((p) => p.approvalStatus === "pending" || p.approvalStatus === "needs_revision")
+      ? "pending_approval"
+      : ps.some((p) => p.approvalStatus === "approved" && p.executionStatus !== "completed")
+        ? "approved"
+        : ps.some((p) => p.approvalStatus === "approved")
+          ? "completed"
+          : "rejected";
+    if (next !== change.status) {
+      change.status = next;
+      this.audit("changes.update", "changes", changeId, { changed: ["status"], status: next, name: change.title });
+    }
   }
 
   async reviewRelationship(id: string, status: "confirmed" | "rejected") {

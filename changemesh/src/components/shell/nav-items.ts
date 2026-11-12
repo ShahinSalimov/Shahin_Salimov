@@ -18,7 +18,7 @@ export function navItems(workspaceId: string): NavItem[] {
     { key: "assets", href: `${base}/assets`, icon: Boxes, match: [`${base}/assets`] },
     { key: "changeMap", href: `${base}/graph`, icon: Waypoints, match: [`${base}/graph`] },
     { key: "changes", href: `${base}/changes`, icon: GitBranch, match: [`${base}/changes`] },
-    { key: "approvals", href: `${base}/approvals`, icon: CheckSquare, match: [`${base}/approvals`, `${base}/proposals`] },
+    { key: "approvals", href: `${base}/approvals`, icon: CheckSquare, match: [`${base}/approvals`, `${base}/proposals`, `${base}/updates`] },
     { key: "integrations", href: `${base}/integrations`, icon: Plug, match: [`${base}/integrations`] },
     { key: "activity", href: `${base}/activity`, icon: Activity, match: [`${base}/activity`] },
     { key: "settings", href: `${base}/settings`, icon: Settings, match: [`${base}/settings`] },

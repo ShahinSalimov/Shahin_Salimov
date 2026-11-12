@@ -258,13 +258,15 @@ export function buildDemoSnapshot(now: Date = new Date()): WorkspaceSnapshot {
       origin: "demo",
       createdAt: i.createdAt,
       updatedAt: i.createdAt,
+      idempotencyKey: `demo${impactId.replace(/[^a-z0-9]/gi, "").slice(0, 24)}`,
+      revisionCount: 0,
       ...p,
     };
   };
 
   const proposals: UpdateProposal[] = [
     proposal("i-c-burger-a-order"),
-    proposal("i-c-burger-a-menu-page", { approvalStatus: "approved", updatedAt: ago(0, 20) }),
+    proposal("i-c-burger-a-menu-page", { approvalStatus: "approved", executionStatus: "ready", updatedAt: ago(0, 20) }),
     proposal("i-c-burger-a-dinner-pdf"),
     proposal("i-c-burger-a-pos-csv"),
     proposal("i-c-burger-a-wholesale"),
@@ -273,8 +275,8 @@ export function buildDemoSnapshot(now: Date = new Date()): WorkspaceSnapshot {
     proposal("i-c-hours-a-gbp"),
     proposal("i-c-phone-a-locations"),
     proposal("i-c-truffle-a-wholesale"),
-    proposal("i-c-risotto-a-menu-page", { approvalStatus: "approved", executionStatus: "completed", updatedAt: ago(11) }),
-    proposal("i-c-risotto-a-dinner-pdf", { approvalStatus: "approved", executionStatus: "completed", updatedAt: ago(11) }),
+    proposal("i-c-risotto-a-menu-page", { approvalStatus: "approved", executionStatus: "completed", executedAt: ago(11), executionResult: { action: "execute", mode: "manual", succeeded: true, note: "Sample: added to the website by Maya." }, updatedAt: ago(11) }),
+    proposal("i-c-risotto-a-dinner-pdf", { approvalStatus: "approved", executionStatus: "completed", executedAt: ago(11), executionResult: { action: "execute", mode: "manual", succeeded: true, note: "Sample: reprinted on Friday." }, updatedAt: ago(11) }),
   ];
 
   const approvals: Approval[] = [

@@ -4,7 +4,7 @@
 
 CHANGEMESH is a B2B SaaS for business change management. When one piece of business information changes — a menu price, opening hours, an address, a product spec — it finds every website page, PDF, spreadsheet, catalog and marketing document that carries the same information, explains the impact and routes the updates through approval. Nothing external is ever modified without explicit approval.
 
-> **Status:** Stage 5 (Change Engine) complete. See [DEVELOPMENT_STATUS.md](./DEVELOPMENT_STATUS.md) for what works today and what is not built yet.
+> **Status:** Stage 6 (Approval & Update Management) complete. See [DEVELOPMENT_STATUS.md](./DEVELOPMENT_STATUS.md) for what works today and what is not built yet.
 
 ## Documentation
 

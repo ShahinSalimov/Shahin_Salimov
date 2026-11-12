@@ -4,7 +4,7 @@ import type { RelationshipSuggestion } from "@/domain/graph/suggest";
 import type { CreateAssetInput, CreateChangeInput, CreateRelationshipInput, DecisionInput, UpdateAssetInput } from "@/domain/workspace/inputs";
 import type { ImpactDraft } from "@/domain/changes/impact";
 import type { ProposalDraft } from "@/domain/changes/proposals";
-import type { AiUsageRecord, AssetIntelligence, ChangeAnalysis, ExtractedFact, RecordOrigin, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetIntelligence, ChangeAnalysis, ExecutionMode, ExtractedFact, RecordOrigin, UpdateExecution, WorkspaceSnapshot } from "@/domain/workspace/model";
 import type { ScanResult } from "../intelligence/analyze";
 
 export interface StoredFile {
@@ -60,6 +60,14 @@ export interface WorkspaceData {
   saveChangeAnalysis(changeId: string, payload: SavedAnalysis): Promise<{ impactsSaved: number; proposalsCreated: number; proposalsKept: number; status: string }>;
   recordAiUsage(entry: AiUsageEntry): Promise<void>;
   aiUsage(): Promise<AiUsageRecord[]>;
+
+  // Approval & update execution
+  reviseProposal(proposalId: string, input: { proposedValue: string | null; reason: string | null; note: string }): Promise<void>;
+  /** Claims an approved proposal (admin only, one at a time). */
+  startExecution(proposalId: string, action: "execute" | "rollback", mode: ExecutionMode): Promise<{ executionId: string; idempotencyKey: string; attempt: number }>;
+  finishExecution(executionId: string, succeeded: boolean, result: Record<string, unknown>, error: string | null): Promise<string>;
+  recordSimulation(proposalId: string, result: Record<string, unknown>): Promise<void>;
+  executions(): Promise<UpdateExecution[]>;
 }
 
 export interface SavedAnalysis {

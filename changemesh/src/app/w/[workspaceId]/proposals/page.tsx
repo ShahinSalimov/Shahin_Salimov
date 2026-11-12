@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, FileDown, ListChecks } from "lucide-react";
+import { FileDown, ListChecks } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { FilterChips, str, withParams } from "@/components/app/filters";
 import { APPROVAL_META, EXECUTION_META, IMPACT_META } from "@/components/app/meta";
 import { PageHeader } from "@/components/app/page-header";
-import { PlannedTag, StatusPill } from "@/components/app/status-pill";
+import { StatusPill } from "@/components/app/status-pill";
+import { ApprovalsNav } from "@/components/approvals/approvals-nav";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APPROVAL_STATUSES, EXECUTION_STATUSES } from "@/domain/workspace/model";
 import { relativeTime } from "@/lib/format";
@@ -33,18 +35,25 @@ export default async function ProposalsPage({ params, searchParams }: { params: 
 
   return (
     <div className="grid gap-6">
-      <Link href={`${base}/approvals`} className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Approval Center
-      </Link>
       <PageHeader
         title="Update proposals"
         description="Every proposed update with its approval and execution status."
         actions={
-          <span className="flex items-center gap-2 text-xs text-muted-foreground">
-            <FileDown className="size-4" /> Exportable update instructions <PlannedTag stage="Stage 6" />
-          </span>
+          <>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`${base}/updates/export?format=csv&scope=all`} prefetch={false}>
+                <FileDown /> CSV
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`${base}/updates/export?format=md&scope=all`} prefetch={false}>
+                <FileDown /> Markdown
+              </Link>
+            </Button>
+          </>
         }
       />
+      <ApprovalsNav base={base} active="proposals" />
       <div className="grid gap-2">
         <FilterChips
           label="Approval status"
@@ -98,7 +107,7 @@ export default async function ProposalsPage({ params, searchParams }: { params: 
                     <StatusPill meta={IMPACT_META[p.impactLevel]} size="xs" />
                   </TableCell>
                   <TableCell>
-                    <Link href={withParams(`${base}/approvals`, {}, { tab: p.approvalStatus === "pending" ? "pending" : p.approvalStatus === "needs_revision" ? "needs_revision" : "decided" })}>
+                    <Link href={withParams(`${base}/approvals`, {}, { tab: p.approvalStatus === "approved" ? (p.executionStatus === "completed" ? "completed" : "ready") : p.approvalStatus })}>
                       <StatusPill meta={APPROVAL_META[p.approvalStatus]} size="xs" />
                     </Link>
                   </TableCell>

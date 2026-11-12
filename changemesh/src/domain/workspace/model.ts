@@ -144,6 +144,28 @@ export interface UpdateProposal {
   origin: RecordOrigin;
   createdAt: string;
   updatedAt: string;
+  /** Sent to external systems so a retried update is applied at most once. */
+  idempotencyKey?: string;
+  executionResult?: Record<string, unknown> | null;
+  executedAt?: string | null;
+  revisionCount?: number;
+}
+
+export type ExecutionMode = "internal" | "manual" | "integration" | "simulation";
+
+export interface UpdateExecution {
+  id: string;
+  proposalId: string;
+  action: "execute" | "rollback" | "simulate";
+  mode: ExecutionMode;
+  status: "running" | "succeeded" | "failed";
+  idempotencyKey: string;
+  attempt: number;
+  result: Record<string, unknown>;
+  error: string | null;
+  actorName: string | null;
+  startedAt: string;
+  finishedAt: string | null;
 }
 
 export interface Approval {

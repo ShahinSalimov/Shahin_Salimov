@@ -5,7 +5,11 @@ import { EmptyState } from "@/components/app/empty-state";
 import { FilterChips, str, withParams } from "@/components/app/filters";
 import { PageHeader } from "@/components/app/page-header";
 import { ProposalCard } from "@/components/features/proposal-card";
+import { ApprovalsNav } from "@/components/approvals/approvals-nav";
 import { Button } from "@/components/ui/button";
+import { executorFor } from "@/server/execution/executors";
+import { previewProposal } from "@/server/execution/service";
+import { getWorkspaceData } from "@/server/data";
 import { can } from "@/domain/rbac/roles";
 import type { UpdateProposal } from "@/domain/workspace/model";
 import { loadSnapshot } from "@/server/data";
@@ -17,7 +21,9 @@ const LEVEL_RANK = { critical: 0, high: 1, medium: 2, low: 3 } as const;
 const TABS = {
   pending: { label: "Pending", test: (p: UpdateProposal) => p.approvalStatus === "pending" },
   needs_revision: { label: "Needs revision", test: (p: UpdateProposal) => p.approvalStatus === "needs_revision" },
-  decided: { label: "Decided", test: (p: UpdateProposal) => p.approvalStatus === "approved" || p.approvalStatus === "rejected" },
+  ready: { label: "Ready to apply", test: (p: UpdateProposal) => p.approvalStatus === "approved" && p.executionStatus !== "completed" },
+  completed: { label: "Completed", test: (p: UpdateProposal) => p.approvalStatus === "approved" && p.executionStatus === "completed" },
+  rejected: { label: "Rejected", test: (p: UpdateProposal) => p.approvalStatus === "rejected" },
 } as const;
 type Tab = keyof typeof TABS;
 
@@ -34,21 +40,37 @@ export default async function ApprovalsPage({ params, searchParams }: { params: 
   const changes = new Map(snapshot.changes.map((c) => [c.id, c]));
   const list = snapshot.proposals.filter(TABS[tab].test).sort((a, b) => LEVEL_RANK[a.impactLevel] - LEVEL_RANK[b.impactLevel] || Date.parse(a.createdAt) - Date.parse(b.createdAt));
   const canDecide = can(ctx.role, "proposals.decide");
+  const canRevise = can(ctx.role, "proposals.write");
+  const canExecute = can(ctx.role, "proposals.execute");
+  const data = getWorkspaceData(ctx);
+  const execution = new Map(
+    await Promise.all(
+      list
+        .filter((p) => p.approvalStatus === "approved" && assets.has(p.targetAssetId))
+        .map(async (p) => {
+          const ex = executorFor(assets.get(p.targetAssetId)!);
+          const preview = await previewProposal(data, p.id).catch(() => null);
+          return [p.id, { mode: ex.mode as "internal" | "manual", label: ex.label, rollbackLabel: ex.rollbackLabel, steps: preview?.steps ?? [] }] as const;
+        }),
+    ),
+  );
+  const readyCount = snapshot.proposals.filter(TABS.ready.test).length;
 
   return (
     <div className="grid gap-6">
       <PageHeader
         title="Approval Center"
-        description="Review proposed updates before anything is changed. Most severe first."
+        description="Review proposed updates, then apply the approved ones. Nothing is published automatically."
         actions={
           <Button asChild variant="outline">
-            <Link href={`${base}/proposals`}>
+            <Link href={`${base}/updates/export?format=md`} prefetch={false}>
               <ListChecks />
-              All update proposals
+              Export open instructions
             </Link>
           </Button>
         }
       />
+      <ApprovalsNav base={base} active="center" counts={{ ready: readyCount }} />
       <FilterChips
         label="Approval status"
         active={tab}
@@ -57,7 +79,7 @@ export default async function ApprovalsPage({ params, searchParams }: { params: 
       {list.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
-          title={tab === "pending" ? "You're all caught up" : "Nothing here"}
+          title={tab === "pending" ? "You're all caught up" : tab === "ready" ? "Nothing waiting to be applied" : "Nothing here"}
           description={tab === "pending" ? "No update proposals are waiting for a decision." : undefined}
         />
       ) : (
@@ -72,6 +94,9 @@ export default async function ApprovalsPage({ params, searchParams }: { params: 
               base={base}
               workspaceId={ctx.workspace.id}
               canDecide={canDecide}
+              canRevise={canRevise}
+              canExecute={canExecute}
+              execution={execution.get(p.id)}
               now={now}
             />
           ))}

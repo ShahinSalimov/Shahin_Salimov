@@ -25,6 +25,7 @@ const CATEGORY: Record<string, ActivityCategory> = {
   organization_members: "team",
   workspaces: "workspace",
   extracted_facts: "assets",
+  update_executions: "approvals",
   organizations: "workspace",
   integrations: "workspace",
 };
@@ -102,6 +103,11 @@ export function describeEvent(event: AuditEvent, snapshot: Pick<WorkspaceSnapsho
       targetHref = `${base}/settings/team`;
       break;
     }
+    case "update_executions":
+      verb = op === "insert" ? "started an update" : status === "succeeded" ? "finished an update" : status === "failed" ? "had an update fail" : "updated an execution";
+      target = null;
+      targetHref = `${base}/updates`;
+      break;
     case "extracted_facts":
       verb = op === "delete" ? "removed a manually entered fact" : "added a fact manually";
       target = null;

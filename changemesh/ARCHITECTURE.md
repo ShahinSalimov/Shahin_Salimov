@@ -267,7 +267,25 @@ register value / new scanned version / cross-asset comparison
 - **AI layer**: `CHANGEMESH_AI_PROVIDER=claude` + `ANTHROPIC_API_KEY` enables Claude (`claude-opus-5-5` by default, `CHANGEMESH_AI_MODEL` to override). Requests use `client.beta.messages.parse` with a Zod output schema, `effort: "medium"`, server-side refusal fallbacks (`fallbacks: "default"`), SDK retries for 429/5xx plus one retry for unusable output. Document content is sent inside `<workspace_data>` as untrusted data; the model has no tools and can only return text. Guardrails drop unknown asset ids and level jumps over one step. Every call is recorded in `ai_usage` (tokens, estimated cost from list prices, status, attempts); failures fall back to rules with a visible warning. Demo sessions never call AI.
 - **Automation**: a scan/upload that creates version ≥2 records the differences as changes (max 10) and analyzes them with rules; "Detect inconsistencies" records outdated/conflicting facts once per open issue.
 
-## 15. Planned engines (designed, not built)
+## 15. Approval & Update Management (Stage 6) ✅
 
-- **Approval & Updates (Stage 6):** approval workflow on top of the existing constraints; internal update simulator and exportable instructions; idempotent execution.
+```
+proposal ──(admin)──► approved ─► execution: ready ──(admin claims)──► in_progress ──► completed ──(rollback)──► ready
+   │                     │                                    └──► failed ──(retry, same idempotency key)──┘
+   └─(admin) needs_revision ──(editor revises, note required)──► pending          rejected (final)
+```
+
+- **Statuses**: approval `pending / approved / rejected / needs_revision`; execution `not_started / ready / in_progress / completed / failed`. Approval only sets execution to `ready`; nothing runs automatically.
+- **Claiming** (`start_proposal_execution`): admin-only, approved-only, row lock + partial unique index (one running execution per proposal) → duplicate execution is impossible, even from two tabs. An execution stuck for 10 minutes is closed as failed with "outcome unknown". Every claim returns the proposal's **immutable idempotency key** and the attempt number.
+- **Finishing** (`finish_proposal_execution`): records result or error (an error message is mandatory for failures), sets the proposal status, and `refresh_change_status()` moves the change to `pending_approval / approved / completed / rejected`.
+- **Executors** (`src/server/execution/executors.ts`):
+  - `InternalRecordExecutor` — manual records owned by CHANGEMESH: replaces the manual fact, keeps the previous value, **Undo** restores it; idempotent when the value is already applied.
+  - `ManualConfirmationExecutor` — websites, PDFs, spreadsheets, catalogs, marketing content: a person applies the update outside CHANGEMESH and confirms with a note; **Reopen** marks it not applied. CHANGEMESH never publishes externally.
+  - `IntegrationConnector` interface (empty registry) — contract for future connectors: send the idempotency key, read back the value, return rollback data.
+- **Preview** (simulation): dry run showing target, before → after and steps; recorded in history; changes nothing.
+- **Exports**: `/w/[id]/updates/export?format=csv|md&scope=open|all` — formula-safe CSV and escaped Markdown instructions.
+- **History**: `update_executions` (insert/update via RPCs, audited by trigger) shown on the Update history page.
+
+## 16. Planned engines (designed, not built)
+
 - **Commercial SaaS (Stage 7):** Stripe test-mode billing, plan limits, invitations, notifications, usage metering, admin area.

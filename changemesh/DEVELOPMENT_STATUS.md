@@ -1,6 +1,6 @@
 # CHANGEMESH — Development Status
 
-_Last updated: 2026-11-12 — after Stage 5 (Change Engine)._
+_Last updated: 2026-11-12 — after Stage 6 (Approval & Update Management)._
 
 ## Roadmap
 
@@ -11,11 +11,59 @@ _Last updated: 2026-11-12 — after Stage 5 (Change Engine)._
 | 3 | **Asset Intelligence** — documents, websites, extraction | ✅ Complete |
 | 4 | **Dependency Graph** — relationships between information | ✅ Complete |
 | 5 | **AI Change Engine** — change detection, impact analysis | ✅ Complete |
-| 6 | **Approval Engine** — approvals, update execution | ⏳ In progress |
-| 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | Queued |
+| 6 | **Approval Engine** — approvals, update execution | ✅ Complete |
+| 7 | **Commercial SaaS** — subscriptions, billing, roles, invitations | ⏳ Next (awaiting instruction) |
 | 8 | **Launch** — production-readiness audit, deploy, first customers | Queued |
 
-Stage briefs 6–8 have been received and will be executed one at a time, only after explicit instruction.
+Stage briefs 7–8 have been received and will be executed one at a time, only after explicit instruction.
+
+## Stage 6 — Approval & Update Management ✅
+
+### Delivered
+
+| Requirement | Implementation |
+|---|---|
+| Workflow 1–8 | change → impact analysis → proposals → review → approve / reject / request changes → execute where supported → results recorded → audit (triggers on proposals, approvals, executions) |
+| Proposal contents | target asset, current value, proposed value, reason, evidence, impact level, approval status, execution status (+ idempotency reference, revisions, last result) |
+| Approval statuses | Pending, Approved, Rejected, Needs Revision — with a revision loop (editor revises with a note → Pending) |
+| Execution statuses | Not Started, Ready, In Progress, Completed, Failed |
+| No automatic publishing | Approval only marks "Ready"; execution is an explicit admin action; external assets are confirmed manually |
+| Permissions before execution | Server Action checks `proposals.execute` (admin+); the RPC checks again |
+| Duplicate execution | Row lock + status check + partial unique index; completed updates cannot run again |
+| Audit | Every execution, rollback and preview is a history row and an audit event |
+| Rollback | Internal records: Undo (restores the previous value); manual confirmations: Reopen |
+| Honest errors | Failures need a message; stuck executions are closed as "outcome unknown"; unexpected errors never report success |
+| Idempotency keys | Immutable per proposal, reused on retries, passed to every executor, shown as a reference and in exports |
+| Internal update simulator | Preview (dry run) with before → after and steps; InternalRecordExecutor really updates CHANGEMESH records |
+| Exportable instructions | CSV (formula-safe) and Markdown, open or all proposals |
+| Future integrations | `IntegrationConnector` contract and executor selection point; no connector implemented |
+| UI | Approval Center tabs (Pending, Needs revision, Ready to apply, Completed, Rejected) with revise / preview / apply / retry / undo; All proposals; Update history with filters and exports |
+
+New database objects (`…000700_update_execution.sql`): `update_executions`, `revision_count`, `execution_attempts`, `revise_update_proposal()`, `start_proposal_execution()`, `finish_proposal_execution()`, `refresh_change_status()`; `decide_update_proposal()` now marks approved proposals ready and updates the change status; the decision guard allows editors exactly one transition (needs_revision → pending).
+
+### Verification (run 2026-11-12, in this environment)
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` / `npm run lint` | ✅ 0 errors / 0 problems |
+| `npm test` (unit) | ✅ 30 files, 245 tests (+4 execution service, +3 export) |
+| `npm run test:db` | ✅ 7 files, 74 tests (+13: revision loop, approval-before-execution, admin-only, duplicate prevention, retries with the same key, mandatory error messages, change status, rollback, stale executions, history/audit, simulation permissions, rejection) |
+| `npm run build` | ✅ success |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+| E2E demo flows | ✅ 56/56 (+10: ready tab, preview, note required, manual confirmation, no second run, reopen, revision, history, CSV and Markdown exports) |
+| Responsive sweep (24 routes × 3 sizes) | ✅ 72 combinations, no errors, no overflow |
+
+### Known limitations / honest notes
+
+1. **No external system is updated by CHANGEMESH.** Websites, documents and catalogs are updated by people and confirmed; connectors (with the idempotency contract) are a later stage.
+2. "Mark as applied" is a human confirmation; verification happens when the asset is rescanned or re-uploaded (the next analysis then skips it as "already shows the new value").
+3. Only manual records are updated internally. Uploaded files are not rewritten (CHANGEMESH keeps the original as evidence).
+4. No bulk approve/apply yet; each proposal is decided and applied individually.
+5. No notifications (email/Slack) when proposals need review — planned with the commercial stage.
+
+### Recommended next stage
+
+**Stage 7 — Commercial SaaS:** organization management, plans and usage limits, Stripe test-mode billing with verified webhooks, invitations, notifications, API architecture, usage analytics and admin management.
 
 ## Stage 5 — Change Detection & Impact Analysis ✅
 
@@ -57,9 +105,6 @@ Bugs found and fixed: connected-only assets received the "critical attribute" bo
 4. Cost figures are estimates from list prices (cached table in `src/server/ai/pricing.ts`); they are not invoices.
 5. Registering a value does not modify the source asset's facts; the source changes when it is rescanned, re-uploaded or edited.
 
-### Recommended next stage
-
-**Stage 6 — Approval & Update Management.**
 
 ## Stage 4 — Dependency Graph ✅
 

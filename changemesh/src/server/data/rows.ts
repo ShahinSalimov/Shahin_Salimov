@@ -44,6 +44,7 @@ export const proposalRow = z.object({
   id: z.string(), change_id: z.string(), change_impact_id: nullableText, target_asset_id: z.string(), current_value: nullableText, proposed_value: nullableText,
   reason: nullableText, evidence: z.array(z.object({ label: z.string(), detail: z.string().optional() })).catch([]), impact_level: z.enum(IMPACT_LEVELS),
   approval_status: z.enum(APPROVAL_STATUSES), execution_status: z.enum(EXECUTION_STATUSES), origin: z.enum(RECORD_ORIGINS), created_at: z.string(), updated_at: z.string(),
+  idempotency_key: z.string().optional(), execution_result: json.nullable().optional(), executed_at: nullableText.optional(), revision_count: num.optional(),
 });
 const profileRef = z.object({ full_name: nullableText, email: z.string().optional() }).nullable();
 export const approvalRow = z.object({
@@ -97,4 +98,10 @@ export const changeAnalysisSchema = z.object({
   usage: z.object({ inputTokens: num, outputTokens: num, costUsd: num.nullable() }).nullable().optional(),
   notes: z.record(z.string(), z.object({ reasons: z.array(z.string()), rationale: z.string().nullable(), currentValue: z.string().nullable(), containsFact: z.boolean(), inconsistent: z.boolean() })).optional(),
   skipped: z.array(z.object({ assetId: z.string(), reason: z.string() })).optional(),
+});
+
+export const executionRow = z.object({
+  id: z.string(), proposal_id: z.string(), action: z.enum(["execute", "rollback", "simulate"]), mode: z.enum(["internal", "manual", "integration", "simulation"]),
+  status: z.enum(["running", "succeeded", "failed"]), idempotency_key: z.string(), attempt: num, result: json, error: nullableText, started_at: z.string(), finished_at: nullableText,
+  profiles: z.object({ full_name: nullableText }).nullable().optional(),
 });

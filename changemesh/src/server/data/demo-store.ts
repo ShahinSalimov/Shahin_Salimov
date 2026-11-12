@@ -1,5 +1,5 @@
 import "server-only";
-import type { AiUsageRecord, AssetScan, ExtractedFact, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { AiUsageRecord, AssetScan, ExtractedFact, UpdateExecution, WorkspaceSnapshot } from "@/domain/workspace/model";
 import { demoWorkspace } from "../demo/fixture";
 import { buildDemoSnapshot } from "../demo/seed";
 import { buildDemoIntelligence } from "../demo/seed-intelligence";
@@ -14,6 +14,7 @@ export interface DemoSession {
   facts: ExtractedFact[];
   scans: AssetScan[];
   aiUsage?: AiUsageRecord[];
+  executions?: UpdateExecution[];
   workspaceName: string;
   touchedAt: number;
 }
@@ -40,7 +41,24 @@ export function getDemoSession(sessionId: string): DemoSession {
     const snapshot = buildDemoSnapshot(new Date(now));
     const { facts, scans, versions } = buildDemoIntelligence(snapshot.assets, new Date(now), snapshot.versions);
     snapshot.versions.push(...versions);
-    session = { snapshot, facts, scans, workspaceName: demoWorkspace.name, touchedAt: now };
+    // Sample execution history for updates that the seed marks as completed.
+    const executions = snapshot.proposals
+      .filter((p) => p.executionStatus === "completed")
+      .map((p) => ({
+        id: `x-${p.id}`,
+        proposalId: p.id,
+        action: "execute" as const,
+        mode: "manual" as const,
+        status: "succeeded" as const,
+        idempotencyKey: p.idempotencyKey ?? p.id,
+        attempt: 1,
+        result: { ...(p.executionResult ?? {}), confirmedBy: "Maya Chen" },
+        error: null,
+        actorName: "Maya Chen",
+        startedAt: p.executedAt ?? p.updatedAt,
+        finishedAt: p.executedAt ?? p.updatedAt,
+      }));
+    session = { snapshot, facts, scans, executions, workspaceName: demoWorkspace.name, touchedAt: now };
     sessions.set(sessionId, session);
   }
   session.touchedAt = now;

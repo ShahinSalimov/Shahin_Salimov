@@ -306,6 +306,55 @@ const check = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if
   const incToast = await p.locator('[data-sonner-toast]').first().innerText({ timeout: 20000 });
   check(/inconsistenc|No new inconsistencies|No inconsistencies/.test(incToast), `inconsistency detection reports its result ("${incToast.split('\n')[0]}")`);
 
+  // ---- Stage 6: approval & update management ----
+  await p.goto(B + '/w/demo/approvals?tab=ready');
+  await p.getByRole('heading', { name: 'Approval Center' }).waitFor();
+  const readyText = await p.locator('main').innerText();
+  check(readyText.includes('Online ordering page') && readyText.includes('ready'), 'approved updates appear under "Ready to apply"');
+  const card = p.locator('article', { hasText: 'Online ordering page' }).first();
+  await card.getByRole('button', { name: 'Preview' }).click();
+  await p.getByText(/Preview: Online ordering page .* Nothing was changed\./).waitFor();
+  check(true, 'preview (dry run) shows before/after without changing anything');
+  await card.getByRole('button', { name: /Mark as applied: Online ordering page/ }).click();
+  const d9 = p.getByRole('dialog');
+  await d9.getByRole('button', { name: 'Confirm applied' }).click();
+  check((await d9.locator('textarea:invalid').count()) === 1, 'confirming a manual update requires a note');
+  await d9.getByLabel('How was it applied?').fill('Updated the price in the ordering system');
+  await d9.getByRole('button', { name: 'Confirm applied' }).click();
+  await p.getByText('Marked as applied for Online ordering page. Rescan it to verify.').waitFor();
+  check(true, 'manual update is confirmed and recorded');
+
+  await p.goto(B + '/w/demo/approvals?tab=completed');
+  const doneCard = p.locator('article', { hasText: 'Online ordering page' }).first();
+  await doneCard.getByText(/Updated the price in the ordering system/).waitFor();
+  check((await doneCard.getByRole('button', { name: /Execute|Mark as applied/ }).count()) === 0, 'a completed update cannot be applied twice');
+  await doneCard.getByRole('button', { name: /Reopen: Online ordering page/ }).click();
+  await doneCard.getByRole('button', { name: 'Confirm reopen' }).click();
+  await p.getByText(/Reopened: Online ordering page is marked as not applied/).waitFor();
+  check(true, 'a completed update can be reopened (rollback)');
+
+  // Revision loop
+  await p.goto(B + '/w/demo/approvals?tab=needs_revision');
+  const revCard = p.locator('article').first();
+  const revTarget = (await revCard.locator('a').first().innerText()).trim();
+  await revCard.getByRole('button', { name: 'Revise' }).click();
+  const d10 = p.getByRole('dialog');
+  await d10.getByLabel('What did you change?').fill('Used the wording Marketing approved');
+  await d10.getByRole('button', { name: 'Submit revision' }).click();
+  await p.getByText('Revision submitted. The proposal is waiting for approval again.').waitFor();
+  await p.goto(B + '/w/demo/approvals?tab=pending');
+  check((await p.locator('article', { hasText: revTarget }).count()) > 0, 'a revised proposal returns to pending');
+
+  // Update history and exports
+  await p.goto(B + '/w/demo/updates');
+  const hist = await p.locator('main').innerText();
+  check(hist.includes('Confirmed manually') && hist.includes('Rolled back / reopened') && hist.includes('Preview'), 'update history lists applied, rolled back and preview entries');
+  const csv = await p.request.get(B + '/w/demo/updates/export?format=csv&scope=all');
+  const csvBody = await csv.text();
+  check(csv.status() === 200 && /text\/csv/.test(csv.headers()['content-type']) && csvBody.includes('Reference,Asset,Type'), 'update instructions export as CSV');
+  const mdRes = await p.request.get(B + '/w/demo/updates/export?format=md');
+  check(mdRes.status() === 200 && (await mdRes.text()).startsWith('# Update instructions'), 'update instructions export as Markdown');
+
   // Separate demo session is isolated
   const p2 = await (await b.newContext()).newPage();
   await p2.goto(B); await p2.click('text=Explore the demo'); await p2.waitForURL('**/w/demo');
