@@ -5,6 +5,13 @@ import { z } from "zod";
  * Server-only environment. Importing this file from a Client Component fails the
  * build ("server-only"), which keeps SUPABASE_SERVICE_ROLE_KEY out of the browser.
  */
+const optional = () =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : undefined));
+
 export const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   SUPABASE_SERVICE_ROLE_KEY: z
@@ -27,6 +34,22 @@ export const serverEnvSchema = z.object({
     .trim()
     .optional()
     .transform((v) => (v ? v : undefined)),
+  /** Stripe TEST MODE only. Live keys are refused (see src/server/commercial/stripe.ts). */
+  STRIPE_SECRET_KEY: optional(),
+  STRIPE_WEBHOOK_SECRET: optional(),
+  STRIPE_PRICE_STARTER: optional(),
+  STRIPE_PRICE_BUSINESS: optional(),
+  STRIPE_PRICE_AGENCY: optional(),
+  /** Comma-separated emails allowed to open /admin (platform operators). */
+  CHANGEMESH_PLATFORM_ADMIN_EMAILS: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? "")
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean),
+    ),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
