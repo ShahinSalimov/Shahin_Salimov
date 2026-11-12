@@ -11,6 +11,8 @@ Bot linki: https://poe.com/AdReel-Director (base model: Claude Haiku 5.5, temper
 
 Ölçülmüş xərc: tam cavab (15s reklam paketi) = 128 point (~0.0039 USD). Pulsuz plan gündə 300 point verir, yəni pulsuz istifadəçi gündə 2 tam cavab ala bilir. Poe abunəsi Azərbaycanda əlçatan deyil (2026-11).
 
+Creator monetization: Azərbaycan hələ dəstəklənmir (2026-11-12 yoxlanılıb, "Notify me" seçilib). Bot hazırda pulsuz funnel kimi işləyir: gəlir sifariş linkindən gəlir.
+
 İkinci məkan: ChatGPT GPT Store. Eyni prompt ilə Custom GPT yaradılır. Orada birbaşa ödəniş zəmanətli deyil, ona görə funnel (müştəri cəlbi) kimi işlədilir.
 
 Diqqət: Poe-nun ödəniş proqramı əvvəlcə yalnız ABŞ yaradıcıları üçün idi, sonradan genişləndiyi bildirilir. Azərbaycandan qoşulmanın mümkün olub-olmadığını hesab açanda yoxla: Creator / Monetization bölməsi. Proqram əlçatan olmasa da, bot funnel kimi işləyəcək.
