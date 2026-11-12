@@ -61,7 +61,7 @@ describe("plan limits", () => {
     // A canceled subscription falls back to Starter limits.
     await pool.query("update public.subscriptions set status = 'canceled' where organization_id = $1", [org]);
     const lim = await asUser(pool, owner, async (q) => (await q("select plan from public.organization_limits($1)", [org])).rows[0]);
-    expect(lim.plan).toBe("starter");
+    expect(lim?.plan).toBe("starter");
     await pool.query("update public.subscriptions set status = 'active' where organization_id = $1", [org]);
   });
 
@@ -177,5 +177,15 @@ describe("stripe events", () => {
   it("are invisible to signed-in users", async () => {
     await pool.query("insert into public.stripe_events (id, type) values ('evt_1','checkout.session.completed')");
     expect((await expectDbError(asUser(pool, owner, (q) => q("select * from public.stripe_events")))).code).toBe("42501");
+  });
+});
+
+describe("usage metering", () => {
+  it("counts organization-wide usage for members and hides it from outsiders", async () => {
+    const usage = await asUser(pool, editor, async (q) => (await q("select * from public.organization_usage($1)", [org])).rows[0]);
+    expect(usage).toMatchObject({ workspaces: 2, members: 3, scans_this_month: 0, ai_operations_this_month: 0, connected_integrations: 0, active_api_keys: 0 });
+    expect(usage?.assets).toBe(26); // 25 seeded − 1 archived + "Replacement" + "Now allowed"
+    const outsider = await createAuthUser(pool, "outsider@c.test");
+    expect((await expectDbError(asUser(pool, outsider, (q) => q("select * from public.organization_usage($1)", [org])))).code).toBe("42501");
   });
 });

@@ -1,5 +1,6 @@
 import "server-only";
 import type { AiUsageRecord, AssetScan, ExtractedFact, UpdateExecution, WorkspaceSnapshot } from "@/domain/workspace/model";
+import type { NotificationView } from "../commercial/views";
 import { demoWorkspace } from "../demo/fixture";
 import { buildDemoSnapshot } from "../demo/seed";
 import { buildDemoIntelligence } from "../demo/seed-intelligence";
@@ -15,6 +16,7 @@ export interface DemoSession {
   scans: AssetScan[];
   aiUsage?: AiUsageRecord[];
   executions?: UpdateExecution[];
+  notifications?: NotificationView[];
   workspaceName: string;
   touchedAt: number;
 }
@@ -58,7 +60,15 @@ export function getDemoSession(sessionId: string): DemoSession {
         startedAt: p.executedAt ?? p.updatedAt,
         finishedAt: p.executedAt ?? p.updatedAt,
       }));
-    session = { snapshot, facts, scans, executions, workspaceName: demoWorkspace.name, touchedAt: now };
+    const ago = (min: number) => new Date(now - min * 60_000).toISOString();
+    const pending = snapshot.changes.find((c) => c.status === "pending_approval");
+    const failed = snapshot.assets.find((a) => a.scanStatus === "failed");
+    // Sample notifications that mirror what the database triggers create for real accounts.
+    const notifications: NotificationView[] = [
+      ...(pending ? [{ id: "n-1", kind: "approval_needed" as const, title: "Updates need your approval", body: pending.title, link: `/w/${demoWorkspace.id}/approvals`, readAt: null, createdAt: ago(42) }] : []),
+      ...(failed ? [{ id: "n-2", kind: "scan_failed" as const, title: `A scan failed: ${failed.name}`, body: failed.lastScanError, link: `/w/${demoWorkspace.id}/assets/${failed.id}`, readAt: null, createdAt: ago(180) }] : []),
+    ];
+    session = { snapshot, facts, scans, executions, notifications, workspaceName: demoWorkspace.name, touchedAt: now };
     sessions.set(sessionId, session);
   }
   session.touchedAt = now;

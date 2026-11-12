@@ -306,3 +306,47 @@ create policy api_keys_revoke on public.api_keys for update to authenticated
   using (public.has_workspace_role(workspace_id, 'admin')) with check (public.has_workspace_role(workspace_id, 'admin'));
 grant select, insert, update (revoked_at, name) on public.api_keys to authenticated;
 grant all on public.api_keys to service_role;
+
+-- ---------------------------------------------------------------------------
+-- Usage metering: organization-wide aggregate counts (no row data).
+-- Visible to anyone who can view the organization.
+-- ---------------------------------------------------------------------------
+create or replace function public.organization_usage(org uuid)
+returns table (
+  assets integer,
+  workspaces integer,
+  members integer,
+  scans_this_month integer,
+  failed_scans_this_month integer,
+  ai_operations_this_month integer,
+  ai_cost_this_month numeric,
+  connected_integrations integer,
+  active_api_keys integer
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  month_start timestamptz := date_trunc('month', now() at time zone 'utc') at time zone 'utc';
+begin
+  if not public.can_view_organization(org) then
+    raise exception 'Organization not found' using errcode = '42501';
+  end if;
+  return query
+  with ws as (select id from public.workspaces where organization_id = org)
+  select
+    (select count(*)::int from public.assets a where a.workspace_id in (select id from ws) and a.status = 'active'),
+    (select count(*)::int from ws),
+    (select count(distinct m.user_id)::int from public.workspace_members m where m.workspace_id in (select id from ws)),
+    (select count(*)::int from public.asset_scans s where s.workspace_id in (select id from ws) and s.started_at >= month_start),
+    (select count(*)::int from public.asset_scans s where s.workspace_id in (select id from ws) and s.started_at >= month_start and s.status = 'failed'),
+    (select count(*)::int from public.ai_usage u where u.workspace_id in (select id from ws) and u.created_at >= month_start),
+    (select coalesce(sum(u.cost_usd), 0) from public.ai_usage u where u.workspace_id in (select id from ws) and u.created_at >= month_start),
+    (select count(*)::int from public.integrations i where i.workspace_id in (select id from ws) and i.status = 'connected'),
+    (select count(*)::int from public.api_keys k where k.workspace_id in (select id from ws) and k.revoked_at is null and (k.expires_at is null or k.expires_at > now()));
+end;
+$$;
+revoke all on function public.organization_usage(uuid) from public, anon;
+grant execute on function public.organization_usage(uuid) to authenticated, service_role;

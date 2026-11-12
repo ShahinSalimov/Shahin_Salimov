@@ -45,6 +45,8 @@ export const PERMISSIONS = {
   "integrations.view": "viewer",
   "integrations.manage": "admin",
   "audit.view": "admin",
+  "api_keys.manage": "admin",
+  "billing.manage": "admin",
 } as const satisfies Record<string, WorkspaceRole>;
 
 export type Permission = keyof typeof PERMISSIONS;
