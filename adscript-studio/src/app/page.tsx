@@ -9,6 +9,33 @@ const STEPS = [
   { n: "3", title: "Get your ad pack", text: "3 hooks, a second-by-second script, AI image & video prompts, caption and hashtags." },
 ];
 
+const FAQ = [
+  {
+    q: "What do I get for 1 credit?",
+    a: "One complete ad pack: 3 hooks, a second-by-second script with camera directions, on-screen text and voiceover, an AI image prompt and an AI video prompt for every scene, plus caption, hashtags, CTA and a music suggestion.",
+  },
+  {
+    q: "Does it create the video too?",
+    a: "No. It writes everything you need to shoot the ad yourself or to generate it with the AI image and video tools you already use. That's why it costs cents instead of dollars per ad.",
+  },
+  {
+    q: "Which AI tools do the prompts work with?",
+    a: "The prompts are plain, detailed English, so they work with any modern image or image-to-video generator. Each prompt describes your product the same way so scenes stay consistent.",
+  },
+  {
+    q: "How do I add credits after buying?",
+    a: "Gumroad emails you a license key right after checkout. Sign in, paste it into \"Redeem license key\", and the credits appear instantly.",
+  },
+  {
+    q: "Do credits expire? Is there a subscription?",
+    a: "No subscription, and credits never expire. If a generation fails, the credit is returned automatically.",
+  },
+  {
+    q: "Will it invent reviews, prices or claims?",
+    a: "No. The writer only uses facts you give it. Anything unknown, like a discount code, is left as a [PLACEHOLDER] for you to fill in.",
+  },
+];
+
 const INCLUDED = [
   "3 scroll-stopping hook variations",
   "Second-by-second scene script with camera directions",
@@ -94,6 +121,25 @@ export default function Home() {
         <p className="mt-6 text-center text-sm text-muted">
           After checkout you receive a license key by email. Paste it into the app to add your credits.
         </p>
+      </section>
+
+      <section id="faq" className="mx-auto mt-20 max-w-3xl scroll-mt-10">
+        <h2 className="text-center text-3xl font-bold">Questions</h2>
+        <div className="mt-8 space-y-3">
+          {FAQ.map((f) => (
+            <details key={f.q} className="card group p-5">
+              <summary className="cursor-pointer list-none font-semibold marker:hidden">
+                <span className="mr-2 text-brand group-open:hidden">+</span>
+                <span className="mr-2 hidden text-brand group-open:inline">−</span>
+                {f.q}
+              </summary>
+              <p className="mt-3 text-sm text-muted">{f.a}</p>
+            </details>
+          ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Link href="/login" className="btn-primary">Get 3 free ad packs</Link>
+        </div>
       </section>
     </main>
   );

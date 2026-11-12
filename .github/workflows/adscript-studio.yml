@@ -1,0 +1,25 @@
+name: AdScript Studio CI
+
+on:
+  push:
+    paths: ["adscript-studio/**", ".github/workflows/adscript-studio.yml"]
+  pull_request:
+    paths: ["adscript-studio/**", ".github/workflows/adscript-studio.yml"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: adscript-studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: adscript-studio/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

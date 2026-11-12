@@ -7,7 +7,7 @@ Xarici (ingilisdilli) bazar üçün AI veb tətbiqi. İstifadəçi məhsulunu t�
 - Hər səhnə üçün hazır **image prompt** və **video prompt**
 - Caption, hashtag-lər, CTA, musiqi tövsiyəsi
 
-**Gəlir modeli:** kredit paketləri Gumroad-da satılır. 1 generasiya = 1 kredit. Yeni hesab 3 pulsuz kredit alır.
+**Gəlir modeli:** kredit paketləri Gumroad-da satılır. 1 generasiya = 1 kredit. Yeni hesab 3 pulsuz kredit alır. Refund olunan alışların kreditləri avtomatik geri götürülür.
 
 ## Necə işləyir
 
@@ -41,14 +41,12 @@ Xarici (ingilisdilli) bazar üçün AI veb tətbiqi. İstifadəçi məhsulunu t�
 5. **Project Settings → API**: `URL`, `anon key` və `service_role key`-i götür.
 
 ### 2. Gumroad (kredit paketləri)
-Hər paket üçün ayrıca məhsul yarat (məsələn Starter, Creator, Agency):
-1. Məhsulu yarat, qiyməti qoy.
-2. Məhsulun parametrlərində **"Generate a unique license key per sale"** seçimini aktiv et.
-3. Həmin bölmədə göstərilən **product ID**-ni kopyala.
-4. Məhsulun linkini (`https://ADIN.gumroad.com/l/...`) kopyala.
-5. Məhsul təsvirinə yaz: *"After purchase, copy your license key and paste it in AdScript Studio → Redeem license key."*
-
-> Gumroad-ın hazırkı komissiyasını və Azərbaycana payout şərtlərini hesabında yoxla. Qiymətləri bu xərclərə görə təyin et.
+Tam təlimat və hazır mətnlər: **[docs/GUMROAD.md](docs/GUMROAD.md)**. Orada bunlar var:
+- 3 məhsulun (Starter, Creator, Agency) addım-addım yaradılması və license key ayarı
+- kopyala-yapışdır üçün ingiliscə məhsul adı, summary, description və alışdan sonrakı mesaj
+- refund webhook-unun qoşulması
+- test alışı qaydası
+- cover və thumbnail şəkilləri üçün prompt-lar
 
 ### 3. Anthropic API açarı
 [platform.claude.com](https://platform.claude.com)-da API key yarat və balans əlavə et.
@@ -88,6 +86,7 @@ src/
     dashboard/            generator, nəticə, kredit, redeem, tarixçə
     api/generate/         kredit çıx → Claude → nəticəni saxla (xətada geri qaytar)
     api/redeem/           Gumroad license key → kredit
+    api/gumroad/webhook/  refund/dispute → kreditlər geri götürülür
     auth/callback/        Supabase giriş callback
     privacy/, terms/      hüquqi səhifələr ([PLACEHOLDER]-ləri doldur)
   lib/
@@ -95,20 +94,23 @@ src/
     schema.ts             forma və nəticə sxemləri
     claude.ts             Claude çağırışı
     gumroad.ts            license key yoxlaması
+    refunds.ts            refund bildirişinin emalı
   proxy.ts                sessiya yenilənməsi, /dashboard qoruması
 supabase/schema.sql       cədvəllər, RLS, kredit funksiyaları
+docs/GUMROAD.md           Gumroad quraşdırması və hazır satış mətnləri
 ```
 
 ## Təhlükəsizlik qeydləri
 
 - Kredit balansı yalnız serverdə dəyişir (`service_role` + `security definer` funksiyalar). İstifadəçi brauzerdən balansı dəyişə bilməz.
 - Hər license key bazada bir dəfə qeyd olunur, ikinci istifadə rədd edilir.
-- Refund olunmuş və ya mübahisəli (dispute) alışlar qəbul edilmir. Kredit əlavə edildikdən **sonra** edilən refund-lar avtomatik geri alınmır. Gumroad-da refund edəndə həmin istifadəçinin kreditini Supabase-də əl ilə azalt.
+- Refund olunmuş və ya mübahisəli (dispute) alışlar redeem zamanı qəbul edilmir.
+- Kredit əlavə edildikdən **sonra** refund və ya dispute olsa, Gumroad webhook-u (`/api/gumroad/webhook`) kreditləri avtomatik geri götürür. Balans 0-dan aşağı düşmür. Webhook bildirişinə kor-koranə inanılmır: tətbiq hər dəfə Gumroad API-dan alışın vəziyyətini özü yoxlayır. URL gizli token ilə qorunur.
 - `SUPABASE_SERVICE_ROLE_KEY` və `ANTHROPIC_API_KEY` heç vaxt brauzerə getmir.
 
 ## Launch-dan əvvəl
 
 - [ ] `privacy` və `terms` səhifələrindəki `[...]` yerləri doldur
-- [ ] Gumroad-da test alışı et və license key-i redeem et
+- [ ] [docs/GUMROAD.md](docs/GUMROAD.md)-dəki yoxlama siyahısını tamamla (məhsullar, webhook, test alışı)
 - [ ] 5–10 real məhsulla generasiya edib `src/lib/prompt.ts`-i öz üslubuna görə tənzimlə
 - [ ] Öz Instagram/TikTok səhifəndə tətbiqin çıxardığı ssenari ilə AI video paylaş (əsas marketinq kanalı)

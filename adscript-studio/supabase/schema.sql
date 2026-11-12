@@ -130,3 +130,41 @@ revoke execute on function public.redeem_license(uuid, text, text, text, integer
 grant execute on function public.spend_credits(uuid, integer) to service_role;
 grant execute on function public.refund_credits(uuid, integer) to service_role;
 grant execute on function public.redeem_license(uuid, text, text, text, integer) to service_role;
+
+-- ---------------------------------------------------------------
+-- Refund / chargeback handling (Gumroad webhook -> /api/gumroad/webhook)
+-- ---------------------------------------------------------------
+alter table public.redemptions add column if not exists revoked_at timestamptz;
+create index if not exists redemptions_sale_id_idx on public.redemptions (sale_id);
+
+-- Take back the credits of a refunded purchase (never below 0). Idempotent.
+-- Returns the user's new balance, or null if nothing changed.
+create or replace function public.revoke_redemption(p_license_key text)
+returns integer
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  r public.redemptions%rowtype;
+  new_balance integer;
+begin
+  update public.redemptions
+     set revoked_at = now()
+   where license_key = p_license_key and revoked_at is null
+  returning * into r;
+
+  if not found then
+    return null;
+  end if;
+
+  update public.profiles
+     set credits = greatest(credits - r.credits, 0)
+   where id = r.user_id
+  returning credits into new_balance;
+
+  return new_balance;
+end;
+$$;
+
+revoke execute on function public.revoke_redemption(text) from public, anon, authenticated;
+grant execute on function public.revoke_redemption(text) to service_role;

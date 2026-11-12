@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   description:
     "Turn any product into a scroll-stopping TikTok or Instagram Reels ad: hooks, second-by-second script, and ready-to-use AI image & video prompts in seconds.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  openGraph: {
+    title: "AdScript Studio: AI video ad scripts for TikTok & Reels",
+    description: "Hooks, second-by-second script and AI image & video prompts for your product in 30 seconds.",
+    type: "website",
+  },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +24,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             AdScript<span className="text-brand">Studio</span>
           </Link>
           <nav className="flex items-center gap-5 text-sm text-muted">
-            <Link href="/#pricing" className="hover:text-white">Pricing</Link>
+            <Link href="/#pricing" className="hidden hover:text-white sm:inline">Pricing</Link>
+            <Link href="/#faq" className="hidden hover:text-white sm:inline">FAQ</Link>
             <Link href="/dashboard" className="rounded-lg bg-white/10 px-4 py-2 text-white hover:bg-white/15">
               Open app
             </Link>
