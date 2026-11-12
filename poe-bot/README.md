@@ -7,6 +7,8 @@ Niyə Poe:
 - Bot sahiblərinə pul ödəyir: hər mesaja görə qiymət təyin etmək (price per message) və bot sayəsində abunə olan istifadəçiyə görə bonus.
 - Prompt bot yaratmaq üçün kod lazım deyil, bir gündə buraxmaq olar.
 
+Sifariş saytı: https://salimofff-ai.netlify.app (Netlify project: salimofff-ai)
+
 Bot linki: https://poe.com/AdReel-Director (base model: Claude Haiku 5.5, temperature 0.7)
 
 Ölçülmüş xərc: tam cavab (15s reklam paketi) = 128 point (~0.0039 USD). Pulsuz plan gündə 300 point verir, yəni pulsuz istifadəçi gündə 2 tam cavab ala bilir. Poe abunəsi Azərbaycanda əlçatan deyil (2026-11).
