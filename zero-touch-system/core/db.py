@@ -1,1 +1,310 @@
-"""JobStore on SQLite (WAL): runs, jobs, ledger, products, videos, directives, budget tables."""
+"""JobStore on SQLite (WAL): runs, jobs, ledger, products, videos, directives, budget tables.
+
+The jobs table is the queue. ``claim_next`` is atomic (single UPDATE ... RETURNING inside
+BEGIN IMMEDIATE), so several workers never get the same job. Fan-out steps are joined with the
+``step_joins`` table: ``complete`` returns True only for the job that finishes its group.
+Spec: 02-orchestration-architecture.md, 2.7.
+"""
+from __future__ import annotations
+
+import json
+import sqlite3
+import threading
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Iterable
+
+from ulid import ULID
+
+from core.envelope import Envelope, to_iso, utc_now_iso
+
+RUN_STATUSES = {"running", "done", "failed", "rejected"}
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS runs (
+  id TEXT PRIMARY KEY, org TEXT NOT NULL, pipeline TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'running',
+  state_json TEXT NOT NULL DEFAULT '{}', reason TEXT,
+  created_at TEXT NOT NULL, finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS runs_org_created ON runs(org, created_at);
+CREATE TABLE IF NOT EXISTS jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, org TEXT NOT NULL, run_id TEXT NOT NULL REFERENCES runs(id),
+  step TEXT NOT NULL, envelope_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  attempt INTEGER NOT NULL DEFAULT 1, run_after TEXT NOT NULL,
+  output_json TEXT, meta_json TEXT, error TEXT, idempotency_key TEXT UNIQUE,
+  join_group INTEGER, created_at TEXT NOT NULL, finished_at TEXT
+);
+CREATE INDEX IF NOT EXISTS jobs_claim ON jobs(org, status, run_after);
+CREATE INDEX IF NOT EXISTS jobs_run ON jobs(run_id, step);
+CREATE TABLE IF NOT EXISTS step_joins (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, run_id TEXT NOT NULL, step TEXT NOT NULL,
+  expected INTEGER NOT NULL, done INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS ledger (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL,
+  amount_usd REAL NOT NULL, ref TEXT UNIQUE, product_id TEXT, created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, run_id TEXT, name TEXT, topic_key TEXT UNIQUE,
+  price_usd REAL, gumroad_url TEXT, status TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS videos (id TEXT PRIMARY KEY, run_id TEXT, title TEXT, topic_key TEXT UNIQUE,
+  youtube_video_id TEXT, publish_at TEXT, status TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS directives (org TEXT, target_agent TEXT, text TEXT, created_at TEXT, expires_at TEXT);
+CREATE TABLE IF NOT EXISTS budget_daily (org TEXT, day TEXT, spent_usd REAL, PRIMARY KEY (org, day));
+"""
+
+
+@dataclass(frozen=True)
+class Run:
+    id: str
+    org: str
+    pipeline: str
+    status: str
+    state: dict[str, Any]
+    reason: Any
+    created_at: str
+    finished_at: str | None
+
+
+@dataclass(frozen=True)
+class Job:
+    id: int
+    org: str
+    run_id: str
+    step: str
+    envelope: Envelope
+    status: str
+    attempt: int
+    run_after: str
+    output: dict[str, Any] | None
+    meta: dict[str, Any] | None
+    error: str | None
+    idempotency_key: str
+    join_group: int | None
+
+
+def _loads(raw: str | None) -> Any:
+    return None if raw is None else json.loads(raw)
+
+
+def _dumps(obj: Any) -> str:
+    return json.dumps(obj, ensure_ascii=False)
+
+
+class JobStore:
+    def __init__(self, path: str | Path, org: str | None = None):
+        """``org`` binds the store to one organization: foreign runs/envelopes are rejected."""
+        self.path = str(path)
+        self.org = org
+        self._lock = threading.RLock()
+        self._conn = sqlite3.connect(self.path, timeout=30, isolation_level=None,
+                                     check_same_thread=False)
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA busy_timeout=30000")
+        self._conn.execute("PRAGMA foreign_keys=ON")
+        self._conn.executescript(SCHEMA)
+
+    # -- infrastructure -------------------------------------------------------------
+
+    def close(self) -> None:
+        self._conn.close()
+
+    def journal_mode(self) -> str:
+        return self._conn.execute("PRAGMA journal_mode").fetchone()[0]
+
+    def tables(self) -> set[str]:
+        rows = self._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        return {r[0] for r in rows}
+
+    def _tx(self):
+        return _Transaction(self._conn, self._lock)
+
+    def _check_org(self, org: str) -> None:
+        if self.org is not None and org != self.org:
+            raise ValueError(f"store bound to org {self.org!r} rejects org {org!r}")
+
+    # -- runs -------------------------------------------------------------------------
+
+    def create_run(self, org: str, pipeline: str, state: dict[str, Any] | None = None) -> str:
+        self._check_org(org)
+        run_id = f"{org}-{ULID()}"
+        with self._tx() as c:
+            c.execute("INSERT INTO runs (id, org, pipeline, state_json, created_at) VALUES (?,?,?,?,?)",
+                      (run_id, org, pipeline, _dumps(state or {}), utc_now_iso()))
+        return run_id
+
+    def get_run(self, run_id: str) -> Run:
+        row = self._conn.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
+        if row is None:
+            raise KeyError(run_id)
+        return Run(id=row["id"], org=row["org"], pipeline=row["pipeline"], status=row["status"],
+                   state=json.loads(row["state_json"]), reason=_loads(row["reason"]),
+                   created_at=row["created_at"], finished_at=row["finished_at"])
+
+    def save_state(self, run_id: str, state: dict[str, Any]) -> None:
+        with self._tx() as c:
+            c.execute("UPDATE runs SET state_json=? WHERE id=?", (_dumps(state), run_id))
+
+    def finish_run(self, run_id: str, status: str, reason: Any = None) -> None:
+        if status not in RUN_STATUSES - {"running"}:
+            raise ValueError(f"invalid final status {status!r}")
+        with self._tx() as c:
+            c.execute("UPDATE runs SET status=?, reason=?, finished_at=? WHERE id=?",
+                      (status, None if reason is None else _dumps(reason), utc_now_iso(), run_id))
+
+    def last_run(self, org: str) -> dict[str, Any] | None:
+        row = self._conn.execute(
+            "SELECT id, pipeline, status, created_at, finished_at FROM runs WHERE org=? "
+            "ORDER BY created_at DESC, id DESC LIMIT 1", (org,)).fetchone()
+        return dict(row) if row else None
+
+    # -- queue ------------------------------------------------------------------------
+
+    def enqueue(self, env: Envelope, run_after: datetime | None = None) -> int:
+        return self.enqueue_group([env], run_after=run_after)[0]
+
+    def enqueue_group(self, envs: Iterable[Envelope], run_after: datetime | None = None) -> list[int]:
+        """Enqueue jobs of one step as a join group. Duplicate idempotency keys are no-ops."""
+        envs = list(envs)
+        if not envs:
+            return []
+        steps = {e.step for e in envs}
+        runs = {e.run_id for e in envs}
+        if len(steps) != 1 or len(runs) != 1:
+            raise ValueError("enqueue_group needs envelopes of one run and one step")
+        run = self.get_run(envs[0].run_id)
+        for e in envs:
+            self._check_org(e.org)
+            if e.org != run.org:
+                raise ValueError(f"envelope org {e.org!r} does not match run org {run.org!r}")
+        after = to_iso(run_after) if run_after else utc_now_iso()
+
+        ids: list[int] = []
+        with self._tx() as c:
+            existing = {}
+            for e in envs:
+                row = c.execute("SELECT id FROM jobs WHERE idempotency_key=?",
+                                (e.idempotency_key,)).fetchone()
+                if row:
+                    existing[e.idempotency_key] = row["id"]
+            new = [e for e in envs if e.idempotency_key not in existing]
+            group = None
+            if new:
+                group = c.execute("INSERT INTO step_joins (run_id, step, expected) VALUES (?,?,?)",
+                                  (run.id, envs[0].step, len(new))).lastrowid
+            for e in envs:
+                if e.idempotency_key in existing:
+                    ids.append(existing[e.idempotency_key])
+                    continue
+                ids.append(c.execute(
+                    "INSERT INTO jobs (org, run_id, step, envelope_json, attempt, run_after, "
+                    "idempotency_key, join_group, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                    (e.org, e.run_id, e.step, e.to_json(), e.attempt, after,
+                     e.idempotency_key, group, utc_now_iso())).lastrowid)
+        return ids
+
+    def claim_next(self, org: str) -> Job | None:
+        with self._tx() as c:
+            row = c.execute(
+                "UPDATE jobs SET status='running' WHERE id = ("
+                "  SELECT id FROM jobs WHERE org=? AND status='queued' AND run_after<=? "
+                "  ORDER BY run_after, id LIMIT 1) RETURNING *",
+                (org, utc_now_iso())).fetchone()
+        return self._job(row) if row else None
+
+    def complete(self, job: Job, output: dict[str, Any], meta: dict[str, Any] | None = None) -> bool:
+        """Mark job done. Returns True if this completion finishes the job's join group."""
+        with self._tx() as c:
+            c.execute("UPDATE jobs SET status='done', output_json=?, meta_json=?, finished_at=? "
+                      "WHERE id=?", (_dumps(output), _dumps(meta or {}), utc_now_iso(), job.id))
+            if job.join_group is None:
+                return True
+            c.execute("UPDATE step_joins SET done = done + 1 WHERE id=?", (job.join_group,))
+            j = c.execute("SELECT expected, done FROM step_joins WHERE id=?",
+                          (job.join_group,)).fetchone()
+            return j["done"] == j["expected"]
+
+    def retry(self, job: Job, delay_s: float, attempt: int, error: str | None = None) -> None:
+        after = to_iso(datetime.now(timezone.utc) + timedelta(seconds=delay_s))
+        env = job.envelope.with_attempt(attempt)
+        with self._tx() as c:
+            c.execute("UPDATE jobs SET status='queued', attempt=?, run_after=?, envelope_json=?, "
+                      "error=? WHERE id=?", (attempt, after, env.to_json(), error, job.id))
+
+    def fail(self, job: Job, error: str) -> None:
+        with self._tx() as c:
+            c.execute("UPDATE jobs SET status='failed', error=?, finished_at=? WHERE id=?",
+                      (error, utc_now_iso(), job.id))
+
+    def requeue_stale(self, org: str) -> int:
+        """Put jobs left in 'running' by a crashed process back in the queue. Call on startup."""
+        with self._tx() as c:
+            return c.execute("UPDATE jobs SET status='queued' WHERE org=? AND status='running'",
+                             (org,)).rowcount
+
+    # -- reads ------------------------------------------------------------------------
+
+    def get_job(self, job_id: int) -> Job:
+        row = self._conn.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+        if row is None:
+            raise KeyError(job_id)
+        return self._job(row)
+
+    def has_completed(self, key: str) -> bool:
+        row = self._conn.execute("SELECT 1 FROM jobs WHERE idempotency_key=? AND status='done'",
+                                 (key,)).fetchone()
+        return row is not None
+
+    def get_output(self, key: str) -> dict[str, Any] | None:
+        row = self._conn.execute("SELECT output_json FROM jobs WHERE idempotency_key=? AND status='done'",
+                                 (key,)).fetchone()
+        return _loads(row["output_json"]) if row else None
+
+    def outputs_of(self, run_id: str) -> dict[str, dict[str, Any]]:
+        """Latest completed output per step of a run."""
+        rows = self._conn.execute("SELECT step, output_json FROM jobs WHERE run_id=? AND status='done' "
+                                  "ORDER BY finished_at, id", (run_id,))
+        return {r["step"]: json.loads(r["output_json"]) for r in rows}
+
+    def outputs_list(self, run_id: str, step: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute("SELECT output_json FROM jobs WHERE run_id=? AND step=? AND status='done' "
+                                  "ORDER BY id", (run_id, step))
+        return [json.loads(r["output_json"]) for r in rows]
+
+    def queue_depth(self, org: str) -> int:
+        return self._conn.execute("SELECT COUNT(*) FROM jobs WHERE org=? AND status='queued'",
+                                  (org,)).fetchone()[0]
+
+    @staticmethod
+    def _job(row: sqlite3.Row) -> Job:
+        return Job(id=row["id"], org=row["org"], run_id=row["run_id"], step=row["step"],
+                   envelope=Envelope.from_json(row["envelope_json"]), status=row["status"],
+                   attempt=row["attempt"], run_after=row["run_after"],
+                   output=_loads(row["output_json"]), meta=_loads(row["meta_json"]),
+                   error=row["error"], idempotency_key=row["idempotency_key"],
+                   join_group=row["join_group"])
+
+
+class _Transaction:
+    """BEGIN IMMEDIATE ... COMMIT/ROLLBACK, serialized within the process by an RLock."""
+
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock):
+        self.conn, self.lock = conn, lock
+
+    def __enter__(self) -> sqlite3.Connection:
+        self.lock.acquire()
+        try:
+            self.conn.execute("BEGIN IMMEDIATE")
+        except Exception:
+            self.lock.release()
+            raise
+        return self.conn
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        try:
+            self.conn.execute("ROLLBACK" if exc_type else "COMMIT")
+        finally:
+            self.lock.release()

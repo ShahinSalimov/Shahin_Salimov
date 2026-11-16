@@ -7,7 +7,7 @@ Two isolated autonomous organizations on one codebase:
 
 Spec: [`../zero-touch/`](../zero-touch/README.md). Build stages: `../zero-touch/03-prd-claude-code.md` section 3.3.
 
-Status: Stage 0 — skeleton only, no logic yet.
+Status: Stage 1 done — envelope, pipeline definitions and SQLite JobStore (tests green). Stage 2 next.
 
 ```bash
 pip install -r requirements.txt
