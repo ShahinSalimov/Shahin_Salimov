@@ -355,3 +355,48 @@ def test_jobs_of_run(store):
     assert store.pending_count(run_id) == 2
     store.complete(store.claim_next("studio"), {})
     assert store.pending_count(run_id) == 1
+
+
+# --- Stage 4 additions: ledger, products, directives, spend totals ---------------------------
+
+def test_ledger_insert_is_idempotent_by_ref(store):
+    assert store.insert_ledger("sale", 19.0, ref="sale:S1", product_id="p1", created_at="2026-11-16T10:00:00.000000Z")
+    assert not store.insert_ledger("sale", 19.0, ref="sale:S1", product_id="p1", created_at="2026-11-16T10:00:00.000000Z")
+    store.insert_ledger("fee", -2.4, ref="fee:S1", product_id="p1", created_at="2026-11-16T10:00:00.000000Z")
+    store.insert_ledger("sale", 9.0, ref="sale:S2", product_id="p2", created_at="2026-11-17T10:00:00.000000Z")
+    rows = store.ledger_rows("2026-11-16T00:00:00.000000Z", "2026-11-17T00:00:00.000000Z")
+    assert [r["ref"] for r in rows] == ["sale:S1", "fee:S1"]
+    assert store.ledger_total() == pytest.approx(19.0 - 2.4 + 9.0)
+
+
+def test_products_insert_and_topic_uniqueness(store):
+    assert store.insert_product(id="p1", run_id="r", name="Kit", topic_key="kit", price_usd=19.0,
+                                gumroad_url=None, status="draft_ready")
+    assert not store.insert_product(id="p2", run_id="r", name="Kit 2", topic_key="kit", price_usd=9.0,
+                                    gumroad_url=None, status="draft_ready")
+    assert store.topic_exists("kit")
+    assert store.products()[0]["name"] == "Kit"
+
+
+def test_products_created_on_day(store):
+    with freeze_time("2026-11-16 08:00:00"):
+        store.insert_product(id="p1", run_id="r", name="A", topic_key="a", price_usd=1, gumroad_url=None, status="s")
+    with freeze_time("2026-11-17 08:00:00"):
+        store.insert_product(id="p2", run_id="r", name="B", topic_key="b", price_usd=1, gumroad_url=None, status="s")
+    assert [p["id"] for p in store.products_created_on("2026-11-17")] == ["p2"]
+
+
+def test_directives_active_until_expiry(store):
+    with freeze_time("2026-11-16 08:00:00"):
+        store.add_directive("studio", "ceo", "Try bundles", expires_at="2026-11-30T00:00:00.000000Z")
+        store.add_directive("studio", "ceo", "Old idea", expires_at="2026-11-10T00:00:00.000000Z")
+        store.add_directive("studio", "banker", "Other", expires_at="2026-11-30T00:00:00.000000Z")
+        assert store.active_directives("studio", "ceo") == ["Try bundles"]
+
+
+def test_total_spend_and_by_day(store):
+    store.add_spend("studio", "2026-11-15", 1.0)
+    store.add_spend("studio", "2026-11-16", 2.0)
+    store.add_spend("youtube", "2026-11-16", 5.0)
+    assert store.total_spend("studio") == pytest.approx(3.0)
+    assert store.spend_by_day("studio", "2026-11-16") == {"2026-11-16": 2.0}

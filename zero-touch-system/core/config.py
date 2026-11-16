@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     admin_token: SecretStr | None = None
     daily_budget_usd: float = 5.0
     db_path: str | None = None  # default: data/<org>.db
+    data_dir: str | None = None  # default: <repo>/data
+    market_language: str = "en"
 
     # LLM
     llm_model_heavy: str = "claude-opus-5-5"
@@ -42,6 +44,11 @@ class Settings(BaseSettings):
     gumroad_access_token: SecretStr | None = None
     gumroad_ping_secret: SecretStr | None = None
     gumroad_publish_mode: Literal["api", "browser", "draft"] = "draft"
+    gumroad_fee_percent: float = 10.0      # estimate; Gumroad does not send its fee in the ping
+    gumroad_fee_fixed_usd: float = 0.50    # estimate; check your Gumroad plan and adjust
+    max_products_per_day: int = 1
+    signal_sources: str = "reddit,hackernews,google_trends"
+    pdf_font_path: str | None = None
 
     # youtube
     yt_client_id: SecretStr | None = None

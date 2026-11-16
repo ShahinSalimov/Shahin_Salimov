@@ -4,7 +4,8 @@ Only ``orgs.<org>`` modules are imported (dynamically), so the other organizatio
 loaded. Each org package provides:
 
 - ``orgs.<org>.schemas``: ``SCHEMAS``, ``AGENT_TIER``
-- ``orgs.<org>.pipeline``: ``PIPELINES``, optional ``ALLOWED_WHEN_KILLED``
+- ``orgs.<org>.pipeline``: ``PIPELINES``, optional ``ALLOWED_WHEN_KILLED`` and
+  ``build_context_provider(store, settings)`` (context merged into every new run)
 - ``orgs.<org>.schedule``: ``SCHEDULE`` (list of ScheduleEntry)
 - ``orgs.<org>.tools``: optional ``register_tools(registry, settings, store)``
 - ``orgs.<org>.webhooks``: optional ``WEBHOOKS`` {name: handler(form, runtime) -> dict}
@@ -104,7 +105,7 @@ def build_runtime(org: str, settings: Settings | None = None, *, llm: Any = None
     tools_mod = _optional(f"orgs.{org}.tools")
     webhooks_mod = _optional(f"orgs.{org}.webhooks")
 
-    path = Path(db_path or settings.db_path or ROOT / "data" / f"{org}.db")
+    path = Path(db_path or settings.db_path or Path(settings.data_dir or ROOT / "data") / f"{org}.db")
     path.parent.mkdir(parents=True, exist_ok=True)
     store = JobStore(path, org=org)
 
@@ -126,8 +127,10 @@ def build_runtime(org: str, settings: Settings | None = None, *, llm: Any = None
     pipes = pipelines if pipelines is not None else pipeline_mod.PIPELINES
     allowed = (allowed_when_killed if allowed_when_killed is not None
                else set(getattr(pipeline_mod, "ALLOWED_WHEN_KILLED", set())))
+    provider = (pipeline_mod.build_context_provider(store, settings)
+                if hasattr(pipeline_mod, "build_context_provider") else None)
     runner = Runner(org=org, pipelines=pipes, store=store, agents=agents, tools=tools, budget=budget,
-                    kill=kill, notifier=notifier, allowed_when_killed=allowed)
+                    kill=kill, notifier=notifier, allowed_when_killed=allowed, context_provider=provider)
 
     return Runtime(org=org, settings=settings, store=store, llm=llm, agents=agents, tools=tools,
                    budget=budget, kill=kill, notifier=notifier, runner=runner,

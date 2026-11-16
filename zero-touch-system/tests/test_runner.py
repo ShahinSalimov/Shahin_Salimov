@@ -426,3 +426,13 @@ def test_restart_continues_run_from_same_db(tmp_path):
     h2.drain()
     assert h2.store.get_run(run_id).status == "done"
     assert calls == ["worker", "notify"]
+
+
+def test_context_provider_is_merged_into_run_context(tmp_path):
+    pipes = {"p": Pipeline(name="p", start="a", steps={"a": Step(agent="ceo", next=lambda o, s: None)})}
+    agents = FakeAgents({"ceo": [OK]})
+    h = Harness(tmp_path / "r.db", pipes, agents)
+    h.runner.context_provider = lambda name: {"learned_directives": ["x"], "market_language": "en"}
+    h.runner.start_run("p", {}, context={"market_language": "az"})
+    h.drain()
+    assert agents.calls[0][3] == {"learned_directives": ["x"], "market_language": "az"}

@@ -44,12 +44,14 @@ class _EndRun(Exception):
 class Runner:
     def __init__(self, *, org: str, pipelines: dict[str, Pipeline], store: JobStore, agents: Any,
                  tools: ToolRegistry, budget: BudgetGuard, kill: KillSwitch, notifier: Any = None,
-                 allowed_when_killed: set[str] | tuple = (), retry_delays: tuple[int, ...] = RETRY_DELAYS_S):
+                 allowed_when_killed: set[str] | tuple = (), retry_delays: tuple[int, ...] = RETRY_DELAYS_S,
+                 context_provider: Any = None):
         self.org, self.pipelines, self.store = org, pipelines, store
         self.agents, self.tools, self.budget, self.kill = agents, tools, budget, kill
         self.notifier = notifier
         self.allowed_when_killed = set(allowed_when_killed)
         self.retry_delays = retry_delays
+        self.context_provider = context_provider  # callable(pipeline_name) -> dict merged into run context
 
     # -- public -----------------------------------------------------------------------
 
@@ -58,9 +60,10 @@ class Runner:
         pipeline = self.pipelines[pipeline_name]
         if self.kill.is_active(self.org) and pipeline_name not in self.allowed_when_killed:
             raise KillSwitchActive(f"{self.org}: kill switch active, {pipeline_name} not started")
+        base = self.context_provider(pipeline_name) if self.context_provider else {}
         run_id = self.store.create_run(self.org, pipeline_name, state={})
         self.store.enqueue(new_envelope(self.org, run_id, step=pipeline.start, from_agent="scheduler",
-                                        payload=payload, context=context or {}))
+                                        payload=payload, context={**base, **(context or {})}))
         log.info("run started", extra={"run_id": run_id, "pipeline": pipeline_name})
         return run_id
 

@@ -174,5 +174,6 @@ def test_gumroad_webhook_calls_org_hook(client, runtime):
     assert received == [{"sale_id": "S1"}]
 
 
-def test_gumroad_webhook_404_when_org_has_no_hook(client):
+def test_gumroad_webhook_404_when_org_has_no_hook(client, runtime):
+    runtime.webhooks.pop("gumroad", None)
     assert client.post("/webhooks/gumroad/ping-xyz", data={"sale_id": "S1"}).status_code == 404

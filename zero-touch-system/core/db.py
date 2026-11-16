@@ -335,6 +335,62 @@ class JobStore:
         row = self._conn.execute("SELECT value_json FROM control WHERE key=?", (key,)).fetchone()
         return _loads(row["value_json"]) if row else None
 
+    def total_spend(self, org: str) -> float:
+        row = self._conn.execute("SELECT COALESCE(SUM(spent_usd), 0) FROM budget_daily WHERE org=?", (org,)).fetchone()
+        return float(row[0])
+
+    def spend_by_day(self, org: str, since_day: str) -> dict[str, float]:
+        rows = self._conn.execute("SELECT day, spent_usd FROM budget_daily WHERE org=? AND day>=? ORDER BY day",
+                                  (org, since_day))
+        return {r["day"]: float(r["spent_usd"]) for r in rows}
+
+    # -- ledger, products, directives (org data) ---------------------------------------
+
+    def insert_ledger(self, kind: str, amount_usd: float, *, ref: str, product_id: str | None,
+                      created_at: str) -> bool:
+        """Insert a ledger row. Returns False if ``ref`` was already recorded (dedup)."""
+        with self._tx() as c:
+            cur = c.execute("INSERT OR IGNORE INTO ledger (kind, amount_usd, ref, product_id, created_at) "
+                            "VALUES (?,?,?,?,?)", (kind, float(amount_usd), ref, product_id, created_at))
+            return cur.rowcount == 1
+
+    def ledger_rows(self, since: str, until: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute("SELECT * FROM ledger WHERE created_at>=? AND created_at<? ORDER BY id",
+                                  (since, until))
+        return [dict(r) for r in rows]
+
+    def ledger_total(self) -> float:
+        return float(self._conn.execute("SELECT COALESCE(SUM(amount_usd), 0) FROM ledger").fetchone()[0])
+
+    def insert_product(self, *, id: str, run_id: str, name: str, topic_key: str, price_usd: float,
+                       gumroad_url: str | None, status: str) -> bool:
+        with self._tx() as c:
+            cur = c.execute("INSERT OR IGNORE INTO products (id, run_id, name, topic_key, price_usd, gumroad_url, "
+                            "status, created_at) VALUES (?,?,?,?,?,?,?,?)",
+                            (id, run_id, name, topic_key, price_usd, gumroad_url, status, utc_now_iso()))
+            return cur.rowcount == 1
+
+    def topic_exists(self, topic_key: str) -> bool:
+        return self._conn.execute("SELECT 1 FROM products WHERE topic_key=?", (topic_key,)).fetchone() is not None
+
+    def products(self) -> list[dict[str, Any]]:
+        return [dict(r) for r in self._conn.execute("SELECT * FROM products ORDER BY created_at, id")]
+
+    def products_created_on(self, day: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute("SELECT * FROM products WHERE substr(created_at, 1, 10)=? ORDER BY created_at",
+                                  (day,))
+        return [dict(r) for r in rows]
+
+    def add_directive(self, org: str, target_agent: str, text: str, expires_at: str) -> None:
+        with self._tx() as c:
+            c.execute("INSERT INTO directives (org, target_agent, text, created_at, expires_at) VALUES (?,?,?,?,?)",
+                      (org, target_agent, text, utc_now_iso(), expires_at))
+
+    def active_directives(self, org: str, target_agent: str) -> list[str]:
+        rows = self._conn.execute("SELECT text FROM directives WHERE org=? AND target_agent=? AND expires_at>? "
+                                  "ORDER BY created_at", (org, target_agent, utc_now_iso()))
+        return [r["text"] for r in rows]
+
     @staticmethod
     def _job(row: sqlite3.Row) -> Job:
         return Job(id=row["id"], org=row["org"], run_id=row["run_id"], step=row["step"],
