@@ -7,7 +7,7 @@ Two isolated autonomous organizations on one codebase:
 
 Spec: [`../zero-touch/`](../zero-touch/README.md). Build stages: `../zero-touch/03-prd-claude-code.md` section 3.3.
 
-Status: Stage 1 done — envelope, pipeline definitions and SQLite JobStore (tests green). Stage 2 next.
+Status: Stage 2 done — LLM client, agent JSON validation and 15 agent output schemas (tests green). Stage 3 next.
 
 ```bash
 pip install -r requirements.txt

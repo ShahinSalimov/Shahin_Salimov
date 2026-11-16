@@ -1,0 +1,37 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "plan",
+  "research_brief": [
+    {
+      "direction_id": "d1",
+      "buyer_persona": "freelance designers",
+      "category": "notion_template",
+      "hypothesis": "Client onboarding is a recurring pain point",
+      "keywords": [
+        "notion client portal",
+        "freelance onboarding"
+      ]
+    },
+    {
+      "direction_id": "d2",
+      "buyer_persona": "small online shops",
+      "category": "spreadsheet_template",
+      "hypothesis": "Inventory tracking in spreadsheets is error-prone",
+      "keywords": [
+        "inventory spreadsheet"
+      ]
+    },
+    {
+      "direction_id": "d3",
+      "buyer_persona": "content creators",
+      "category": "prompt_pack",
+      "hypothesis": "Creators need repeatable hook prompts",
+      "keywords": [
+        "viral hook prompts"
+      ]
+    }
+  ],
+  "portfolio_notes": "Prompt packs sell best; templates under-represented."
+}

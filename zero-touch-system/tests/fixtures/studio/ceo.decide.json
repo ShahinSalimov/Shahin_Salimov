@@ -1,0 +1,54 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "decide",
+  "scores": [
+    {
+      "opportunity_id": "o1",
+      "demand_score": 8,
+      "competition_score": 7,
+      "production_feasibility": 9,
+      "fit_with_portfolio": 6,
+      "weighted_score": 7.7
+    },
+    {
+      "opportunity_id": "o2",
+      "demand_score": 5,
+      "competition_score": 4,
+      "production_feasibility": 8,
+      "fit_with_portfolio": 5,
+      "weighted_score": 5.5
+    }
+  ],
+  "selected_opportunity_id": "o1",
+  "product_spec": {
+    "working_title": "Freelance Client Portal Kit",
+    "category": "notion_template",
+    "buyer_persona": "freelance designers",
+    "core_promise": "Onboard a client in 10 minutes",
+    "deliverables": [
+      {
+        "file_name": "guide.pdf",
+        "format": "pdf",
+        "description": "Setup guide"
+      },
+      {
+        "file_name": "portal.csv",
+        "format": "csv",
+        "description": "Database template"
+      }
+    ],
+    "outline": [
+      "Setup",
+      "Intake form",
+      "Project tracker"
+    ],
+    "length_target": "20 pages",
+    "tone": "practical",
+    "market_language": "en",
+    "must_not_include": [
+      "Notion logo"
+    ]
+  }
+}

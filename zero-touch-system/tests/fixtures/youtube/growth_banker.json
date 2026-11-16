@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "classification": [
+    {
+      "video_id": "v1",
+      "label": "winner",
+      "reason": "CTR 6.1, AVP 71"
+    }
+  ],
+  "directives": {
+    "trend_scout": [
+      "More money-mistake hooks"
+    ],
+    "script_writer": [
+      "Open with the payoff"
+    ],
+    "media_producer": []
+  },
+  "unit_economics": {
+    "cost_per_1000_views": 0.31,
+    "roi": -0.05
+  },
+  "throttle": false,
+  "whatsapp_message": "Həftəlik YouTube hesabatı\nBaxış: 50000\nGəlir: 14.80\nXərc: 15.60",
+  "alert_level": "none"
+}

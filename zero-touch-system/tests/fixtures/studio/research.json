@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "opportunities": [
+    {
+      "opportunity_id": "o1",
+      "direction_id": "d1",
+      "title": "Client portal",
+      "buyer_problem": "Messy onboarding",
+      "category": "notion_template",
+      "evidence": [
+        {
+          "evidence_ref": "https://reddit.com/r/Notion/x",
+          "source": "reddit",
+          "insight": "812 upvotes"
+        }
+      ],
+      "demand_estimate": "high",
+      "competition_estimate": "medium",
+      "price_band": {
+        "min": 12.0,
+        "max": 29.0
+      },
+      "differentiation_angle": "Includes contract checklist",
+      "top_competitors": [
+        {
+          "title": "Client Hub",
+          "url": "https://example.com/hub",
+          "price": 19.0
+        }
+      ]
+    },
+    {
+      "opportunity_id": "o2",
+      "direction_id": "d1",
+      "title": "Invoice tracker",
+      "buyer_problem": "Messy onboarding",
+      "category": "notion_template",
+      "evidence": [
+        {
+          "evidence_ref": "https://reddit.com/r/Notion/x",
+          "source": "reddit",
+          "insight": "812 upvotes"
+        }
+      ],
+      "demand_estimate": "high",
+      "competition_estimate": "medium",
+      "price_band": {
+        "min": 12.0,
+        "max": 29.0
+      },
+      "differentiation_angle": "Includes contract checklist",
+      "top_competitors": [
+        {
+          "title": "Client Hub",
+          "url": "https://example.com/hub",
+          "price": 19.0
+        }
+      ]
+    },
+    {
+      "opportunity_id": "o3",
+      "direction_id": "d1",
+      "title": "Project hub",
+      "buyer_problem": "Messy onboarding",
+      "category": "notion_template",
+      "evidence": [
+        {
+          "evidence_ref": "https://reddit.com/r/Notion/x",
+          "source": "reddit",
+          "insight": "812 upvotes"
+        }
+      ],
+      "demand_estimate": "high",
+      "competition_estimate": "medium",
+      "price_band": {
+        "min": 12.0,
+        "max": 29.0
+      },
+      "differentiation_angle": "Includes contract checklist",
+      "top_competitors": [
+        {
+          "title": "Client Hub",
+          "url": "https://example.com/hub",
+          "price": 19.0
+        }
+      ]
+    }
+  ],
+  "market_summary": "Notion templates for freelancers are growing."
+}

@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "reflect",
+  "critique": "Optimizing for volume, not repeat buyers.",
+  "next_experiment": {
+    "hypothesis": "Bundles raise AOV",
+    "metric": "average order value",
+    "success_threshold": "+20%"
+  },
+  "stop_doing": "Launching checklists under $5."
+}

@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "report",
+  "whatsapp_message": "16.11.2026 hesabat\nBrutto: 57.00\nXalis: 49.46\nBalans: 812.30",
+  "alert_level": "none",
+  "recommendations": [
+    "Bundle top two templates"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "ideas": [
+    {
+      "idea_id": "i1",
+      "working_title": "Why budgets fail in week 2",
+      "hook_angle": "Counter-intuitive cause",
+      "pattern_source_refs": [
+        "yt:abc123"
+      ],
+      "outlier_ratio_max": 40.0,
+      "evergreen": true,
+      "view_potential_score": 8.5,
+      "production_difficulty": "low",
+      "why_it_works": "Curiosity gap plus relatable failure"
+    }
+  ],
+  "selected_idea_id": "i1"
+}
