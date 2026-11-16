@@ -38,6 +38,17 @@ class Step:
         return self.agent or self.tool  # type: ignore[return-value]
 
 
+class RunOutputs(dict):
+    """Latest output per step (dict access) plus ``all(step)`` for every output of a fan-out step."""
+
+    def __init__(self, latest: dict[str, Output], all_of: Callable[[str], list[Output]]):
+        super().__init__(latest)
+        self._all_of = all_of
+
+    def all(self, step: str) -> list[Output]:
+        return self._all_of(step)
+
+
 def _passthrough(output: Output, state: State, outputs: dict[str, Output]) -> list[dict[str, Any]]:
     return [dict(output)]
 

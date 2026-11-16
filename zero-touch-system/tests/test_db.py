@@ -298,3 +298,60 @@ def test_requeue_stale_running_jobs(store):
 def test_all_tables_created(store):
     assert {"runs", "jobs", "step_joins", "ledger", "products", "videos",
             "directives", "budget_daily"} <= store.tables()
+
+
+# --- Stage 3 additions: effects, spend, control, failure counts, rounds ------------------
+
+def test_effects_record_and_get(store):
+    assert store.get_effect("k1") is None
+    store.record_effect("k1", {"url": "https://x"})
+    assert store.get_effect("k1") == {"url": "https://x"}
+    store.record_effect("k1", {"url": "other"})  # first write wins: side effect already happened
+    assert store.get_effect("k1") == {"url": "https://x"}
+
+
+def test_spend_accumulates_per_org_and_day(store):
+    store.add_spend("studio", "2026-11-16", 0.5)
+    store.add_spend("studio", "2026-11-16", 0.25)
+    store.add_spend("studio", "2026-11-17", 1.0)
+    store.add_spend("youtube", "2026-11-16", 9.0)
+    assert store.get_spend("studio", "2026-11-16") == pytest.approx(0.75)
+    assert store.get_spend("studio", "2026-11-18") == 0.0
+
+
+def test_control_values(store):
+    assert store.get_control("kill:studio") is None
+    store.set_control("kill:studio", {"active": True})
+    assert store.get_control("kill:studio") == {"active": True}
+    store.set_control("kill:studio", None)
+    assert store.get_control("kill:studio") is None
+
+
+def test_count_failed_runs_since(store):
+    with freeze_time("2026-11-15 10:00:00"):
+        old = store.create_run("studio", "p")
+        store.finish_run(old, "failed")
+    with freeze_time("2026-11-16 10:00:00"):
+        for _ in range(2):
+            store.finish_run(store.create_run("studio", "p"), "failed")
+        store.finish_run(store.create_run("studio", "p"), "done")
+        store.finish_run(store.create_run("youtube", "p"), "failed")
+    since = datetime(2026, 11, 15, 12, 0, tzinfo=timezone.utc)
+    assert store.count_failed_runs("studio", since) == 2
+
+
+def test_group_count_tracks_rounds(store):
+    run_id = store.create_run("studio", "p")
+    assert store.group_count(run_id, "content.section") == 0
+    store.enqueue_group([_env(run_id, step="content.section", index=i) for i in range(2)])
+    assert store.group_count(run_id, "content.section") == 1
+
+
+def test_jobs_of_run(store):
+    run_id = store.create_run("studio", "p")
+    store.enqueue(_env(run_id, step="a"))
+    store.enqueue(_env(run_id, step="b"))
+    assert [j.step for j in store.jobs_of(run_id)] == ["a", "b"]
+    assert store.pending_count(run_id) == 2
+    store.complete(store.claim_next("studio"), {})
+    assert store.pending_count(run_id) == 1

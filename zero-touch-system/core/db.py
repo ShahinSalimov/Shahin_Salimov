@@ -53,6 +53,9 @@ CREATE TABLE IF NOT EXISTS videos (id TEXT PRIMARY KEY, run_id TEXT, title TEXT,
   youtube_video_id TEXT, publish_at TEXT, status TEXT, created_at TEXT);
 CREATE TABLE IF NOT EXISTS directives (org TEXT, target_agent TEXT, text TEXT, created_at TEXT, expires_at TEXT);
 CREATE TABLE IF NOT EXISTS budget_daily (org TEXT, day TEXT, spent_usd REAL, PRIMARY KEY (org, day));
+CREATE TABLE IF NOT EXISTS effects (idempotency_key TEXT PRIMARY KEY, result_json TEXT NOT NULL,
+  created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS control (key TEXT PRIMARY KEY, value_json TEXT NOT NULL, updated_at TEXT NOT NULL);
 """
 
 
@@ -277,6 +280,60 @@ class JobStore:
     def queue_depth(self, org: str) -> int:
         return self._conn.execute("SELECT COUNT(*) FROM jobs WHERE org=? AND status='queued'",
                                   (org,)).fetchone()[0]
+
+    def jobs_of(self, run_id: str) -> list[Job]:
+        rows = self._conn.execute("SELECT * FROM jobs WHERE run_id=? ORDER BY id", (run_id,))
+        return [self._job(r) for r in rows]
+
+    def pending_count(self, run_id: str) -> int:
+        return self._conn.execute("SELECT COUNT(*) FROM jobs WHERE run_id=? AND status IN ('queued','running')",
+                                  (run_id,)).fetchone()[0]
+
+    def group_count(self, run_id: str, step: str) -> int:
+        """How many job groups were enqueued for a step of a run (= next revision round number)."""
+        return self._conn.execute("SELECT COUNT(*) FROM step_joins WHERE run_id=? AND step=?",
+                                  (run_id, step)).fetchone()[0]
+
+    def count_failed_runs(self, org: str, since: datetime) -> int:
+        return self._conn.execute("SELECT COUNT(*) FROM runs WHERE org=? AND status='failed' AND finished_at>=?",
+                                  (org, to_iso(since))).fetchone()[0]
+
+    # -- side effects (idempotent tools) ----------------------------------------------
+
+    def record_effect(self, key: str, result: dict[str, Any]) -> None:
+        """Remember that an external side effect happened. First write wins."""
+        with self._tx() as c:
+            c.execute("INSERT OR IGNORE INTO effects (idempotency_key, result_json, created_at) VALUES (?,?,?)",
+                      (key, _dumps(result), utc_now_iso()))
+
+    def get_effect(self, key: str) -> dict[str, Any] | None:
+        row = self._conn.execute("SELECT result_json FROM effects WHERE idempotency_key=?", (key,)).fetchone()
+        return _loads(row["result_json"]) if row else None
+
+    # -- spend & control ----------------------------------------------------------------
+
+    def add_spend(self, org: str, day: str, usd: float) -> None:
+        with self._tx() as c:
+            c.execute("INSERT INTO budget_daily (org, day, spent_usd) VALUES (?,?,?) "
+                      "ON CONFLICT(org, day) DO UPDATE SET spent_usd = spent_usd + excluded.spent_usd",
+                      (org, day, float(usd)))
+
+    def get_spend(self, org: str, day: str) -> float:
+        row = self._conn.execute("SELECT spent_usd FROM budget_daily WHERE org=? AND day=?", (org, day)).fetchone()
+        return float(row[0]) if row else 0.0
+
+    def set_control(self, key: str, value: Any) -> None:
+        with self._tx() as c:
+            if value is None:
+                c.execute("DELETE FROM control WHERE key=?", (key,))
+            else:
+                c.execute("INSERT INTO control (key, value_json, updated_at) VALUES (?,?,?) "
+                          "ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at",
+                          (key, _dumps(value), utc_now_iso()))
+
+    def get_control(self, key: str) -> Any:
+        row = self._conn.execute("SELECT value_json FROM control WHERE key=?", (key,)).fetchone()
+        return _loads(row["value_json"]) if row else None
 
     @staticmethod
     def _job(row: sqlite3.Row) -> Job:
