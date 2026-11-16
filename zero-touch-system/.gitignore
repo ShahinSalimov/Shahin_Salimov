@@ -1,0 +1,9 @@
+data/*
+!data/.gitkeep
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
