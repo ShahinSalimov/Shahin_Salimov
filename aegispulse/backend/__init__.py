@@ -1,1 +1,0 @@
-"""AegisPulse FastAPI backend."""

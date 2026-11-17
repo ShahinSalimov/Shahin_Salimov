@@ -1,6 +1,0 @@
--r backend/requirements.txt
-pytest==9.2.0
-pytest-asyncio==1.5.0
-aiosqlite==0.22.1
-stix2==3.0.1
-ruff==0.14.0
