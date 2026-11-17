@@ -1,4 +1,5 @@
-"""Flask entry point: /health, /webhooks/gumroad/<secret>, /admin/run/<pipeline>, /admin/kill.
+"""Flask entry point: /health, /webhooks/gumroad/<secret>, /admin/run/<pipeline>, /admin/runs/<id>,
+/admin/kill, /admin/backup.
 
 ``python app.py`` builds the runtime for ORG, starts the scheduler and the runner thread, and serves
 HTTP. ``create_app(runtime)`` is used by tests. Admin endpoints need the X-Admin-Token header; when
@@ -7,13 +8,18 @@ ADMIN_TOKEN is not configured they are always refused.
 from __future__ import annotations
 
 import hmac
+import io
 import os
+import tempfile
+from datetime import datetime, timezone
 from functools import wraps
+from pathlib import Path
 
-from flask import Flask, abort, jsonify, request
+from flask import Flask, abort, jsonify, request, send_file
 
 from core.bootstrap import Runtime, build_runtime
 from core.config import Settings
+from core.logging import configure_logging
 from core.runner import KillSwitchActive
 
 
@@ -69,6 +75,19 @@ def create_app(rt: Runtime) -> Flask:
                  "error": j.error, "meta": j.meta} for j in rt.store.jobs_of(run_id)]
         return jsonify(run=run.__dict__, jobs=jobs)
 
+    @app.get("/admin/backup")
+    @admin
+    def backup():
+        fd, tmp = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            rt.store.backup_to(tmp)
+            data = io.BytesIO(Path(tmp).read_bytes())
+        finally:
+            Path(tmp).unlink(missing_ok=True)
+        name = f"{rt.org}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.db"
+        return send_file(data, as_attachment=True, download_name=name, mimetype="application/x-sqlite3")
+
     @app.post("/admin/kill")
     @admin
     def kill_activate():
@@ -86,9 +105,8 @@ def create_app(rt: Runtime) -> Flask:
 
 
 def main() -> None:  # pragma: no cover - process entry point
-    import logging
-    logging.basicConfig(level=logging.INFO)
     settings = Settings()
+    configure_logging(settings)
     if settings.org is None:
         raise SystemExit("ORG must be set to 'studio' or 'youtube'")
     rt = build_runtime(settings.org, settings)

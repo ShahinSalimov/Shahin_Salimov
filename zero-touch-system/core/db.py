@@ -281,6 +281,20 @@ class JobStore:
         return self._conn.execute("SELECT COUNT(*) FROM jobs WHERE org=? AND status='queued'",
                                   (org,)).fetchone()[0]
 
+    def recent_runs(self, org: str, limit: int = 20) -> list[dict[str, Any]]:
+        rows = self._conn.execute("SELECT id, pipeline, status, reason, created_at, finished_at FROM runs "
+                                  "WHERE org=? ORDER BY created_at DESC, id DESC LIMIT ?", (org, limit))
+        return [dict(r) for r in rows]
+
+    def backup_to(self, path: str | Path) -> None:
+        """Consistent online copy of the whole database (SQLite backup API; safe while running)."""
+        with self._lock:
+            dest = sqlite3.connect(str(path))
+            try:
+                self._conn.backup(dest)
+            finally:
+                dest.close()
+
     def jobs_of(self, run_id: str) -> list[Job]:
         rows = self._conn.execute("SELECT * FROM jobs WHERE run_id=? ORDER BY id", (run_id,))
         return [self._job(r) for r in rows]

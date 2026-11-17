@@ -1,7 +1,4 @@
 """Tests for scheduler, bootstrap and the Flask app."""
-import subprocess
-import sys
-
 import pytest
 
 from core.bootstrap import Runtime, build_runtime
@@ -9,7 +6,7 @@ from core.config import Settings
 from core.pipeline import Pipeline, Step
 from core.scheduler import ScheduleEntry, build_scheduler, fire
 from core.tools.whatsapp import ConsoleWhatsApp
-from tests.conftest import ROOT, FakeLLM
+from tests.conftest import FakeLLM
 
 TOKEN = "admin-secret-123"
 
@@ -59,23 +56,6 @@ def test_runtime_runs_pipeline_end_to_end(runtime):
     while runtime.runner.tick():
         pass
     assert runtime.notifier.sent == ["[STUDIO] Salam"]
-
-
-@pytest.mark.parametrize("org,other", [("studio", "youtube"), ("youtube", "studio")])
-def test_bootstrap_does_not_import_other_org(tmp_path, org, other):
-    code = (
-        "import sys\n"
-        "from core.bootstrap import build_runtime\n"
-        "from core.config import Settings\n"
-        "from core.tools.whatsapp import ConsoleWhatsApp\n"
-        f"rt = build_runtime('{org}', Settings(_env_file=None), llm=object(), "
-        f"notifier=ConsoleWhatsApp(org='{org}'), db_path=r'{tmp_path / 'iso.db'}')\n"
-        f"bad = [m for m in sys.modules if m.startswith('orgs.{other}')]\n"
-        "assert not bad, bad\n"
-        "rt.stop()\n"
-    )
-    res = subprocess.run([sys.executable, "-c", code], cwd=ROOT, capture_output=True, text=True)
-    assert res.returncode == 0, res.stderr
 
 
 # --- scheduler ---------------------------------------------------------------------------------

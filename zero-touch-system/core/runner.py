@@ -23,6 +23,7 @@ from core.db import Job, JobStore
 from core.envelope import new_envelope
 from core.guards import BudgetExceeded, BudgetGuard, KillSwitch
 from core.llm import LLMError, LLMRefusal
+from core.logging import log_context
 from core.pipeline import Pipeline, RunOutputs
 from core.tools import NonRetryable, ToolContext, ToolRegistry
 
@@ -75,14 +76,16 @@ class Runner:
         job = self.store.claim_next(self.org)
         if job is None:
             return False
-        try:
-            self._process(job)
-        except _EndRun as end:
-            self._end_run(job, end)
-        except Exception as exc:  # unexpected bug in the runner path itself
-            log.exception("runner error")
-            self._end_run(job, _EndRun("failed", f"runner error: {exc}",
-                                       notify=f"{job.step} daxili xəta: {exc}"))
+        with log_context(org=self.org, run_id=job.run_id, step=job.step, attempt=job.attempt):
+            log.info("job started")
+            try:
+                self._process(job)
+            except _EndRun as end:
+                self._end_run(job, end)
+            except Exception as exc:  # unexpected bug in the runner path itself
+                log.exception("runner error")
+                self._end_run(job, _EndRun("failed", f"runner error: {exc}",
+                                           notify=f"{job.step} daxili xəta: {exc}"))
         return True
 
     # -- internals ----------------------------------------------------------------------

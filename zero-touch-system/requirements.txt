@@ -1,4 +1,5 @@
 flask>=3.0
+gunicorn>=22.0
 pydantic>=2.7
 pydantic-settings>=2.3
 apscheduler>=3.10,<4

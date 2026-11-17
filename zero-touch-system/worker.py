@@ -1,15 +1,16 @@
-"""Optional separate process that runs the runner tick loop and the scheduler (use with gunicorn).
+"""Background process: scheduler + runner tick loop, for use next to gunicorn (see wsgi.py).
 
-Run ``python worker.py`` next to ``gunicorn 'app:create_app(...)'`` so only one process schedules
-and processes jobs. For a single Replit process, ``python app.py`` already does both.
+    python worker.py & gunicorn -w 2 -b 0.0.0.0:$PORT wsgi:app
+
+For a single process (simplest on Replit), ``python app.py`` does both.
 """
 from core.bootstrap import build_runtime, run_forever
 from core.config import Settings
+from core.logging import configure_logging
 
 if __name__ == "__main__":  # pragma: no cover
-    import logging
-    logging.basicConfig(level=logging.INFO)
     s = Settings()
+    configure_logging(s)
     if s.org is None:
         raise SystemExit("ORG must be set to 'studio' or 'youtube'")
     run_forever(build_runtime(s.org, s))
