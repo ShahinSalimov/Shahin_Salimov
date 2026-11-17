@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "build_step": "listing",
+  "listing": {
+    "name": "Freelance Client Portal Kit",
+    "summary": "Onboard clients in 10 minutes with a ready Notion portal.",
+    "description_html": "<p>Ready portal.</p><ul><li>Intake form</li></ul>",
+    "tags": [
+      "notion",
+      "freelance",
+      "template",
+      "client portal",
+      "onboarding"
+    ],
+    "custom_permalink": "client-portal-kit",
+    "thumbnail_prompt": "Clean flat illustration of a dashboard",
+    "cover_prompt": "Minimal workspace with laptop, soft light",
+    "what_is_included": [
+      "guide.pdf",
+      "portal.csv"
+    ]
+  },
+  "revision_log": []
+}

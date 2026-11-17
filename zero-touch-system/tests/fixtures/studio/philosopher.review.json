@@ -1,0 +1,16 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "review",
+  "scores": {
+    "buyer_value": 8,
+    "promise_match": 9,
+    "originality": 7,
+    "policy_risk": 10,
+    "craft": 8
+  },
+  "decision": "approve",
+  "revision_notes": [],
+  "blocking_issues": []
+}

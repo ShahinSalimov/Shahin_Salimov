@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "snippet": {
+    "title": "Why Your Budget Fails in Week 2 #Shorts",
+    "description": "Your budget fails in week 2 because of irregular expenses. Here's the fix.",
+    "tags": [
+      "budgeting",
+      "personal finance",
+      "money tips",
+      "budget fail",
+      "saving money",
+      "finance shorts",
+      "irregular expenses",
+      "budget tips"
+    ],
+    "categoryId": "27",
+    "defaultLanguage": "en"
+  },
+  "status_block": {
+    "privacyStatus": "private",
+    "publishAt": "2026-11-16T17:00:00Z",
+    "selfDeclaredMadeForKids": false,
+    "containsSyntheticMedia": false
+  },
+  "chapters": [],
+  "pinned_comment": "What expense surprised you most?",
+  "thumbnail_text": "WEEK 2 TRAP"
+}

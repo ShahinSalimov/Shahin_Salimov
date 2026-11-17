@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "qc",
+  "verdict": "fail",
+  "fixes": [
+    {
+      "scene_index": 1,
+      "problem": "black frame at 4.2s",
+      "action": "re-render scene 1"
+    }
+  ]
+}

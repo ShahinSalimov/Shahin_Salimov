@@ -1,0 +1,41 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "plan",
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "container": "mp4",
+    "codec": "h264"
+  },
+  "voice": {
+    "provider": "elevenlabs",
+    "voice_id": "v1",
+    "speed": 1.0
+  },
+  "scenes": [
+    {
+      "scene_index": 0,
+      "start_s": 0,
+      "end_s": 3,
+      "asset_provider": "provider_a",
+      "asset_prompt": "Close-up of a crumpled receipt",
+      "motion": "kenburns_in",
+      "overlay_text": "It's not you",
+      "transition_in": "cut"
+    }
+  ],
+  "music": {
+    "track": "track_01.mp3",
+    "gain_db": -18
+  },
+  "subtitles": {
+    "style": "word_highlight",
+    "max_words_per_line": 3,
+    "position": "lower_third"
+  },
+  "thumbnail_prompt": "Shocked face emoji style card, bold text",
+  "ai_disclosure_required": false
+}

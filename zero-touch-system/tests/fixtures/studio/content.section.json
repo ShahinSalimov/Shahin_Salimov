@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "build_step": "section",
+  "section_index": 0,
+  "section_title": "Setup",
+  "target_file": "guide.md",
+  "content_format": "markdown",
+  "content": "# Setup\n\n1. Duplicate the template.",
+  "section_summary": "Covers duplication and first steps.",
+  "revision_log": []
+}

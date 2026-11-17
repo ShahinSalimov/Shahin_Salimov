@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "mode": "pricing",
+  "price_usd": 19.0,
+  "pay_what_you_want": false,
+  "min_price_usd": null,
+  "offer_code": {
+    "code": "LAUNCH20",
+    "percent_off": 20,
+    "expires_at": "2026-11-19T06:00:00Z"
+  },
+  "rationale": "Middle of comparable band."
+}

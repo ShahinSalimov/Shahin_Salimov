@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "errors": [],
+  "confidence": 0.8,
+  "title_draft": "Why your budget fails in week 2",
+  "total_duration_s": 45,
+  "word_count": 112,
+  "scenes": [
+    {
+      "scene_index": 0,
+      "start_s": 0,
+      "end_s": 3,
+      "voiceover": "Your budget isn't failing because of you.",
+      "on_screen_text": "It's not you",
+      "visual_prompt": "Close-up of a crumpled receipt on a desk, 50mm lens, soft window light",
+      "visual_type": "ai_image_kenburns",
+      "sfx": null
+    },
+    {
+      "scene_index": 1,
+      "start_s": 3,
+      "end_s": 9,
+      "voiceover": "It's the irregular expenses nobody plans for.",
+      "on_screen_text": "Irregular expenses",
+      "visual_prompt": "Calendar with scattered sticky notes, top-down shot",
+      "visual_type": "stock_broll",
+      "sfx": "whoosh"
+    }
+  ],
+  "fact_checks": [],
+  "revision_log": []
+}

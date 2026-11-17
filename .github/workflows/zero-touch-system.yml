@@ -1,0 +1,30 @@
+name: Zero-Touch System CI
+
+on:
+  push:
+    paths: ["zero-touch-system/**", ".github/workflows/zero-touch-system.yml"]
+  pull_request:
+    paths: ["zero-touch-system/**", ".github/workflows/zero-touch-system.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: zero-touch-system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: zero-touch-system/requirements.txt
+      - name: System packages (ffmpeg, DejaVu fonts)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+      - run: pip install -r requirements.txt
+      - name: Tests with coverage gate (core >= 80%)
+        run: python -m pytest --cov=core --cov-fail-under=80
+      - name: Dry run studio
+        run: python scripts/dry_run.py --org studio
+      - name: Dry run youtube
+        run: python scripts/dry_run.py --org youtube
