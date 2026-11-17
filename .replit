@@ -1,4 +1,4 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-24", "python-3.11"]
 
 [deployment]
 router = "application"
@@ -18,3 +18,21 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+ORG = "studio"
+ADMIN_TOKEN = "AzerbaycanRespublikasiDovletQullugu"
+DAILY_BUDGET_USD = "2"
+WHATSAPP_PROVIDER = "twilio"
+TWILIO_ACCOUNT_SID = "AC_dummy_sid_12345"
+TWILIO_AUTH_TOKEN = "dummy_auth_token_12345"
+TWILIO_PHONE_NUMBER = "+15555555555"
+WHATSAPP_TO = "+994508210580"
+GUMROAD_PUBLISH_MODE = "draft"
+GUMROAD_PING_SECRET = "198787@A78"
+SIGNAL_SOURCES = "reddit,hackernews"
+
+[nix]
+packages = ["nano"]
