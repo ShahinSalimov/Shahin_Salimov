@@ -204,6 +204,39 @@ export interface Scenario {
   targets: string[];
 }
 
+export type Role = "viewer" | "analyst" | "admin";
+
+export interface Me {
+  kind: string;
+  role: Role;
+  email: string | null;
+  company_id: string | null;
+  company_name: string | null;
+}
+
+export interface TeamUser {
+  id: string;
+  company_id: string;
+  email: string;
+  name: string;
+  role: Role;
+  is_active: boolean;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+export interface ApiKeyInfo {
+  id: string;
+  name: string;
+  prefix: string;
+  role: Role;
+  created_by: string | null;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+  key?: string;
+}
+
 export interface CollectorStatus {
   name: string;
   source: ThreatSource;

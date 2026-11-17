@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { api, ApiError } from "@/lib/api";
 import type { Scenario } from "@/lib/types";
 
-export function AttackTrigger({ onTriggered }: { onTriggered: (threatId: string) => void }) {
+export function AttackTrigger({ onTriggered, disabled = false }: { onTriggered: (threatId: string) => void; disabled?: boolean }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,7 +45,7 @@ export function AttackTrigger({ onTriggered }: { onTriggered: (threatId: string)
 
   return (
     <div className="relative flex" ref={menuRef}>
-      <Button variant="danger" loading={busy} onClick={() => void trigger()} className="rounded-r-none">
+      <Button variant="danger" loading={busy} disabled={disabled} title={disabled ? "Requires the analyst role" : undefined} onClick={() => void trigger()} className="rounded-r-none">
         {!busy ? <Skull className="h-4 w-4" aria-hidden /> : null}
         <span className="hidden sm:inline">Trigger Live Dark Web Attack</span>
         <span className="sm:hidden">Attack</span>
@@ -56,7 +56,7 @@ export function AttackTrigger({ onTriggered }: { onTriggered: (threatId: string)
         aria-label="Choose attack scenario"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        disabled={busy}
+        disabled={busy || disabled}
       >
         <ChevronDown className="h-4 w-4" />
       </Button>

@@ -5,10 +5,15 @@ name: aegispulse
 
 x-backend-env: &backend-env
   AEGIS_ENV: ${AEGIS_ENV:-production}
+  # Schema is managed by Alembic migrations (run by the backend service on start).
+  AEGIS_AUTO_CREATE_SCHEMA: "false"
+  AEGIS_SECRET_KEY: ${AEGIS_SECRET_KEY:?set AEGIS_SECRET_KEY in .env (openssl rand -hex 32)}
+  AEGIS_BOOTSTRAP_ADMIN_EMAIL: ${AEGIS_BOOTSTRAP_ADMIN_EMAIL:-}
+  AEGIS_BOOTSTRAP_ADMIN_PASSWORD: ${AEGIS_BOOTSTRAP_ADMIN_PASSWORD:-}
   AEGIS_LOG_LEVEL: ${AEGIS_LOG_LEVEL:-INFO}
   DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-aegispulse}
   REDIS_URL: redis://redis:6379/0
-  AEGIS_API_KEYS: ${AEGIS_API_KEYS:?set AEGIS_API_KEYS in .env}
+  AEGIS_API_KEYS: ${AEGIS_API_KEYS:-}
   AEGIS_CORS_ORIGINS: ${AEGIS_CORS_ORIGINS:-http://localhost:3000}
   AEGIS_DASHBOARD_URL: ${AEGIS_DASHBOARD_URL:-http://localhost:3000}
   AEGIS_RATE_LIMIT_PER_MINUTE: ${AEGIS_RATE_LIMIT_PER_MINUTE:-120}
@@ -76,6 +81,7 @@ services:
       dockerfile: docker/backend.Dockerfile
     image: aegispulse/backend:1.0.0
     restart: unless-stopped
+    command: ["sh", "-c", "python -m alembic upgrade head && python -m backend.bootstrap && exec uvicorn backend.main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers 2"]
     environment: *backend-env
     depends_on:
       db: { condition: service_healthy }
@@ -88,9 +94,7 @@ services:
     image: aegispulse/backend:1.0.0
     restart: unless-stopped
     command: ["python", "-m", "backend.worker"]
-    environment:
-      <<: *backend-env
-      AEGIS_AUTO_CREATE_SCHEMA: "false"
+    environment: *backend-env
     depends_on:
       backend: { condition: service_healthy }
     healthcheck:
@@ -101,9 +105,7 @@ services:
     image: aegispulse/backend:1.0.0
     restart: unless-stopped
     command: ["python", "-m", "backend.collector_runner"]
-    environment:
-      <<: *backend-env
-      AEGIS_AUTO_CREATE_SCHEMA: "false"
+    environment: *backend-env
     depends_on:
       backend: { condition: service_healthy }
     healthcheck:
@@ -118,7 +120,6 @@ services:
     restart: unless-stopped
     environment:
       BACKEND_URL: http://backend:8000
-      AEGIS_API_KEY: ${DASHBOARD_API_KEY:?set DASHBOARD_API_KEY in .env (must be one of AEGIS_API_KEYS)}
     depends_on:
       backend: { condition: service_healthy }
     ports:

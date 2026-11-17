@@ -236,8 +236,8 @@ async def test_patch_approval_workflow(app_client: httpx.AsyncClient, drain) -> 
     assert any("no command is executed" in line for line in body["transcript"])
     assert any("iptables" in a for a in body["planned_actions"])
 
-    ok = await app_client.post(f"/api/patches/{patch['id']}/approve", json={"reviewer": "alice"})
-    assert ok.status_code == 200 and ok.json()["status"] == "approved" and ok.json()["reviewed_by"] == "alice"
+    ok = await app_client.post(f"/api/patches/{patch['id']}/approve", json={"comment": "LGTM"})
+    assert ok.status_code == 200 and ok.json()["status"] == "approved" and ok.json()["reviewed_by"].startswith("platform:")
     assert (await app_client.post(f"/api/patches/{patch['id']}/approve", json={})).status_code == 409
     assert (await app_client.get(f"/api/threats/{t['id']}")).json()["status"] == "mitigated"
     tel = (await app_client.get("/api/telemetry")).json()
@@ -247,7 +247,7 @@ async def test_patch_approval_workflow(app_client: httpx.AsyncClient, drain) -> 
 async def test_reject_patch(app_client: httpx.AsyncClient, drain) -> None:  # noqa: ANN001
     t = await _analysed_threat(app_client, drain)
     waf = next(p for p in t["patches"] if p["kind"] == "aws_waf")
-    r = await app_client.post(f"/api/patches/{waf['id']}/reject", json={"reviewer": "bob"})
+    r = await app_client.post(f"/api/patches/{waf['id']}/reject", json={})
     assert r.json()["status"] == "rejected"
     sim = (await app_client.post(f"/api/patches/{waf['id']}/simulate")).json()
     assert sim["syntax_ok"] is True

@@ -2,6 +2,10 @@ import type {
   AlertChannel,
   AlertLog,
   AlertPreview,
+  ApiKeyInfo,
+  Me,
+  Role,
+  TeamUser,
   CollectorStatus,
   Company,
   Patch,
@@ -46,6 +50,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch {
     throw new ApiError(0, "Network error: dashboard cannot reach its server");
   }
+  if (res.status === 401 && typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.assign(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    throw new ApiError(401, "Session expired. Redirecting to sign-in…");
+  }
   if (!res.ok) {
     let message = `${res.status} ${res.statusText}`;
     try {
@@ -61,7 +69,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 const post = <T>(path: string, body: unknown = {}) => request<T>(path, { method: "POST", body: JSON.stringify(body) });
 
+const patch = <T>(path: string, body: unknown) => request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
+
 export const api = {
+  me: () => request<Me>("/auth/me"),
+  users: () => request<TeamUser[]>("/users"),
+  createUser: (body: { email: string; name: string; role: Role; password: string }) => post<TeamUser>("/users", body),
+  updateUser: (id: string, body: { role?: Role; is_active?: boolean }) => patch<TeamUser>(`/users/${id}`, body),
+  apiKeys: () => request<ApiKeyInfo[]>("/api-keys"),
+  createApiKey: (name: string, role: Role) => post<ApiKeyInfo>("/api-keys", { name, role }),
+  revokeApiKey: (id: string) => post<ApiKeyInfo>(`/api-keys/${id}/revoke`),
   telemetry: () => request<Telemetry>("/telemetry"),
   companies: () => request<Company[]>("/companies"),
   updateStack: (companyId: string, techStack: StackComponent[]) =>
@@ -76,14 +93,19 @@ export const api = {
   scenarios: () => request<Scenario[]>("/simulate-attack/scenarios"),
   simulateAttack: (scenarioId?: string) =>
     post<{ scenario: Scenario; threat_id: string; status: string }>("/simulate-attack", scenarioId ? { scenario_id: scenarioId } : {}),
-  approvePatch: (id: string, reviewer = "soc-analyst") => post<Patch>(`/patches/${id}/approve`, { reviewer }),
-  rejectPatch: (id: string, reviewer = "soc-analyst") => post<Patch>(`/patches/${id}/reject`, { reviewer }),
+  approvePatch: (id: string) => post<Patch>(`/patches/${id}/approve`, {}),
+  rejectPatch: (id: string) => post<Patch>(`/patches/${id}/reject`, {}),
   simulatePatch: (id: string) => post<PatchSimulation>(`/patches/${id}/simulate`),
   alertPreview: (id: string, channel: AlertChannel) => request<AlertPreview>(`/threats/${id}/alert-preview?channel=${channel}`),
   collectors: () => request<CollectorStatus[]>("/collectors"),
   runCollector: (name: string) => post<CollectorStatus>(`/collectors/${encodeURIComponent(name)}/run`),
   dispatch: (id: string, channels: AlertChannel[]) => post<AlertLog[]>(`/threats/${id}/dispatch`, { channels }),
 };
+
+export async function logout(): Promise<void> {
+  await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+  window.location.assign("/login");
+}
 
 /** Download an export (STIX/CEF) through the proxy and save it with the server-provided filename. */
 export async function downloadExport(threatId: string, format: "stix" | "cef"): Promise<void> {

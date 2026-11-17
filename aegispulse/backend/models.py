@@ -85,6 +85,12 @@ class AlertChannel(enum.StrEnum):
     WEBHOOK = "webhook"
 
 
+class Role(enum.StrEnum):
+    VIEWER = "viewer"
+    ANALYST = "analyst"
+    ADMIN = "admin"
+
+
 class AlertStatus(enum.StrEnum):
     SENT = "sent"
     FAILED = "failed"
@@ -208,3 +214,36 @@ class CollectorState(Base):
     last_error: Mapped[str | None] = mapped_column(Text)
     last_items: Mapped[int] = mapped_column(Integer, default=0)
     items_ingested_total: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class User(Base):
+    """A dashboard user. Each user belongs to exactly one company (tenant)."""
+
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("company_profiles.id", ondelete="CASCADE"), index=True)
+    email: Mapped[str] = mapped_column(String(320), unique=True)
+    name: Mapped[str] = mapped_column(String(200))
+    password_hash: Mapped[str] = mapped_column(String(300))
+    role: Mapped[Role] = mapped_column(_enum(Role, "user_role"), default=Role.ANALYST)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ApiKey(Base):
+    """Machine credential scoped to one company. Only the SHA-256 hash is stored."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("company_profiles.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    prefix: Mapped[str] = mapped_column(String(16))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    role: Mapped[Role] = mapped_column(_enum(Role, "api_key_role"), default=Role.ANALYST)
+    created_by: Mapped[str | None] = mapped_column(String(320))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

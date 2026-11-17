@@ -1,22 +1,33 @@
 "use client";
 
-import { Layers, Radar, ShieldAlert } from "lucide-react";
+import { Layers, LogOut, Radar, ShieldAlert, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AttackTrigger } from "@/components/AttackTrigger";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { StackConfigurator } from "@/components/StackConfigurator";
+import { TeamDrawer } from "@/components/TeamDrawer";
 import { TelemetryBar } from "@/components/TelemetryBar";
 import { ThreatFeed } from "@/components/ThreatFeed";
 import { ThreatInspector } from "@/components/ThreatInspector";
 import { Button, ErrorBoundary } from "@/components/ui/primitives";
 import { useLiveData } from "@/hooks/useLiveData";
+import { api, logout } from "@/lib/api";
+import type { Me } from "@/lib/types";
 
 export function Dashboard() {
   const { company, threats, telemetry, loading, error, connection, version, refresh, replaceCompany } = useLiveData();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [stackOpen, setStackOpen] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
+  const [me, setMe] = useState<Me | null>(null);
+
+  useEffect(() => {
+    api.me().then(setMe).catch(() => setMe(null));
+  }, []);
+  const canAct = me?.role === "analyst" || me?.role === "admin";
+  const isAdmin = me?.role === "admin";
 
   // Deep link from alert messages: /?threat=<id>
   useEffect(() => {
@@ -57,16 +68,34 @@ export function Dashboard() {
             <Radar className="h-4 w-4" />
             Sources
           </Button>
-          <Button onClick={() => setStackOpen(true)} disabled={!company}>
+          {isAdmin ? (
+            <Button onClick={() => setTeamOpen(true)}>
+              <Users className="h-4 w-4" />
+              Team
+            </Button>
+          ) : null}
+          <Button onClick={() => setStackOpen(true)} disabled={!company || !isAdmin} title={isAdmin ? undefined : "Admins can change the tech stack"}>
             <Layers className="h-4 w-4" />
             Tech Stack <span className="rounded bg-ink-700 px-1 font-mono text-[10px]">{company?.tech_stack.length ?? 0}</span>
           </Button>
           <AttackTrigger
+            disabled={!canAct}
             onTriggered={(id) => {
               select(id);
               void refresh();
             }}
           />
+          {me ? (
+            <div className="flex items-center gap-2 rounded-md border border-ink-700 px-2.5 py-1.5">
+              <div className="hidden text-right sm:block">
+                <p className="max-w-[180px] truncate text-xs text-slate-200">{me.email ?? me.kind}</p>
+                <p className="text-[10px] uppercase tracking-wider text-slate-500">{me.role}</p>
+              </div>
+              <button type="button" onClick={() => void logout()} className="rounded p-1 text-slate-400 hover:bg-white/5 hover:text-white" aria-label="Sign out" title="Sign out">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -96,6 +125,7 @@ export function Dashboard() {
         </div>
       </main>
 
+      <TeamDrawer open={teamOpen} onClose={() => setTeamOpen(false)} currentEmail={me?.email ?? null} />
       <SourcesDrawer open={sourcesOpen} onClose={() => setSourcesOpen(false)} />
       <StackConfigurator open={stackOpen} onClose={() => setStackOpen(false)} company={company} threats={threats} onSaved={replaceCompany} />
     </div>

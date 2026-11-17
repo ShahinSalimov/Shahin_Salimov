@@ -73,6 +73,10 @@ class CompanyCreate(_In):
     name: ShortText
     industry: ShortText | None = None
     tech_stack: list[StackComponentIn] = Field(default_factory=list, max_length=60)
+    # Optional first admin for the new tenant.
+    admin_email: Annotated[str, StringConstraints(max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")] | None = None
+    admin_name: ShortText | None = None
+    admin_password: Annotated[str, StringConstraints(min_length=12, max_length=256)] | None = None
 
 
 class CompanyStackUpdate(_In):
@@ -208,7 +212,9 @@ class ThreatListOut(BaseModel):
 
 
 class PatchReview(_In):
-    reviewer: ShortText = "soc-analyst"
+    """Optional reviewer note. The reviewer identity always comes from authentication."""
+
+    comment: Annotated[str, StringConstraints(max_length=1000)] | None = None
 
 
 class PatchSimulationOut(BaseModel):

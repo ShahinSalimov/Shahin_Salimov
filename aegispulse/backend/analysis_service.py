@@ -18,8 +18,7 @@ from __future__ import annotations
 import logging
 import uuid
 
-from sqlalchemy import delete, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete, update
 from sqlalchemy.orm import selectinload
 
 from agents import CompanyStackProfile, PipelineConfig, PipelineError, PipelineResult, StackComponent, ThreatPipeline
@@ -101,17 +100,6 @@ def live_priority(event: ThreatEvent, stack: list[StackComponent]) -> tuple[floa
     exposure, direct, indirect = assess_exposure(stack, event.affected_technologies or [], event.raw_text)
     matched = [c.key for c in (direct or indirect)]
     return prioritized_severity(event.severity_score, exposure), exposure, matched
-
-
-async def ensure_demo_company(session: AsyncSession) -> CompanyProfile:
-    existing = (await session.execute(select(CompanyProfile).order_by(CompanyProfile.created_at).limit(1))).scalar_one_or_none()
-    if existing:
-        return existing
-    company = CompanyProfile(**DEMO_COMPANY)
-    session.add(company)
-    await session.commit()
-    logger.info("seeded demo company profile %s", company.name)
-    return company
 
 
 async def _claim(threat_id: uuid.UUID) -> bool:

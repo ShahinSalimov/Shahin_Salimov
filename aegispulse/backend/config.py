@@ -26,6 +26,11 @@ class Settings(BaseSettings):
 
     # --- Security ---------------------------------------------------------
     api_keys: CsvList = Field(default_factory=list, alias="AEGIS_API_KEYS")
+    secret_key: SecretStr | None = Field(default=None, alias="AEGIS_SECRET_KEY")
+    session_ttl_hours: int = Field(default=12, alias="AEGIS_SESSION_TTL_HOURS")
+    login_rate_limit_per_minute: int = Field(default=10, alias="AEGIS_LOGIN_RATE_LIMIT_PER_MINUTE")
+    bootstrap_admin_email: str | None = Field(default=None, alias="AEGIS_BOOTSTRAP_ADMIN_EMAIL")
+    bootstrap_admin_password: SecretStr | None = Field(default=None, alias="AEGIS_BOOTSTRAP_ADMIN_PASSWORD")
     cors_origins: CsvList = Field(default_factory=lambda: ["http://localhost:3000"], alias="AEGIS_CORS_ORIGINS")
     rate_limit_per_minute: int = Field(default=120, alias="AEGIS_RATE_LIMIT_PER_MINUTE")
     expensive_rate_limit_per_minute: int = Field(default=10, alias="AEGIS_EXPENSIVE_RATE_LIMIT_PER_MINUTE")
@@ -90,6 +95,9 @@ class Settings(BaseSettings):
         "nvd_api_key",
         "darkweb_feed_url",
         "darkweb_feed_token",
+        "secret_key",
+        "bootstrap_admin_email",
+        "bootstrap_admin_password",
         mode="before",
     )
     @classmethod
