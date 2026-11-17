@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AdScript Studio"
+description = "AI video ad script studio for creating TikTok, Reels and Shorts ad packs, with hooks, scene scripts and image and video prompts."
+version = "1.0.0"
+id = "artifacts/adscript-studio"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19406
+
+[services.development]
+run = "pnpm --filter @workspace/adscript-studio run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/adscript-studio", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/adscript-studio/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19406"
+BASE_PATH = "/"
