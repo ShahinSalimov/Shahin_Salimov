@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block body %}
+<div class="card"><h2>Növbəti 30 gün</h2>
+<div class="scroll"><table><tr><th>Tarix</th><th>Video</th><th>Status</th></tr>
+{% for v in videos %}{% include "_row.html" %}{% else %}<tr><td colspan="3" class="muted">Plan yoxdur.</td></tr>{% endfor %}
+</table></div></div>
+{% if past %}<div class="card"><h2>Keçmiş</h2><div class="scroll"><table>{% for v in past|reverse %}{% include "_row.html" %}{% endfor %}</table></div></div>{% endif %}
+{% endblock %}

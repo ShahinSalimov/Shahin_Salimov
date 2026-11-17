@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crash Channel Manager</title>
+<style>
+:root{--bg:#0e0f12;--card:#17191e;--line:#2a2d35;--text:#e8e9ec;--muted:#9097a3;--accent:#ff3b30;--ok:#30d158;--warn:#ffd60a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:#64a8ff;text-decoration:none}header{display:flex;gap:20px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header b{color:var(--accent);letter-spacing:.5px}main{max-width:1100px;margin:0 auto;padding:20px 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:13px}.muted{color:var(--muted);font-size:13px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;background:#2a2d35}
+.b-ready{background:#1f3a5f}.b-uploaded{background:#5f4b00;color:var(--warn)}.b-published{background:#0f3d1e;color:var(--ok)}
+.b-failed{background:#4d1414;color:#ff8a80}.b-scheduled{background:#2b2550}
+.bar{height:14px;background:#2a2d35;border-radius:99px;overflow:hidden}.bar>div{height:100%;background:linear-gradient(90deg,var(--accent),#ff9f0a)}
+button,.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;display:inline-block}
+button.secondary,.btn.secondary{background:#2a2d35}input,textarea{background:#0e0f12;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;max-width:100%}
+pre{white-space:pre-wrap;word-break:break-word;background:#0e0f12;border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0;font-size:13px}
+.copy{position:relative}.copy pre{padding-right:90px}.copy button{position:absolute;top:6px;right:6px;padding:3px 9px;font-size:12px}
+.flash{background:#1f2a1f;border:1px solid #2f5a2f;padding:8px 12px;border-radius:8px;margin-bottom:6px}
+h1,h2,h3{margin:.2em 0 .5em}h2{font-size:18px}h3{font-size:15px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<header><b>CRASH CHANNEL</b><a href="{{ url_for('index') }}">Panel</a><a href="{{ url_for('calendar') }}">Təqvim</a>
+<span class="muted">Yükləmə: {{ settings.upload_mode }} / {{ settings.publish_mode }}</span></header>
+<main>
+{% with msgs = get_flashed_messages() %}{% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}{% endwith %}
+{% block body %}{% endblock %}
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(box){
+  var b=document.createElement('button');b.type='button';b.textContent='Kopyala';
+  b.onclick=function(){navigator.clipboard.writeText(box.querySelector('pre').innerText).then(function(){b.textContent='Kopyalandı';setTimeout(function(){b.textContent='Kopyala'},1200)})};
+  box.appendChild(b);
+});
+</script>
+</body></html>

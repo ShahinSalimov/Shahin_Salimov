@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% block body %}
+<div class="grid">
+  <div class="card">
+    <h2>1000 abunəçi hədəfi</h2>
+    <div style="font-size:32px;font-weight:700">{{ progress.subscribers }} <span class="muted">/ {{ progress.goal }}</span></div>
+    <div class="bar"><div style="width:{{ progress.percent }}%"></div></div>
+    <p class="muted">{% if progress.per_day %}Son 7 gün: {{ '%.1f'|format(progress.per_day) }} abunəçi/gün.{% endif %}
+    {% if progress.eta %} Təxmini hədəf tarixi: {{ progress.eta }}.{% endif %}
+    {% if progress.reached %} Hədəfə çatıldı.{% endif %}</p>
+    <form method="post" action="{{ url_for('subscribers') }}" class="row"><input name="count" type="number" min="0" placeholder="Əl ilə say" style="width:130px"><button class="secondary">Qeyd et</button></form>
+  </div>
+  <div class="card">
+    <h2>Əməliyyatlar</h2>
+    <form method="post" action="{{ url_for('run_daily') }}" style="margin-bottom:8px"><button>Gündəlik işi indi işlət</button></form>
+    <form method="post" action="{{ url_for('plan') }}" class="row"><input name="days" type="number" value="30" style="width:80px"><button class="secondary">gün planla</button></form>
+    <p class="muted">Statuslar: {% for k, n in counts.items() %}{{ STATUS_AZ[k] }}: {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}<br>
+    API kvota bu gün: {{ quota.used }} / {{ quota.limit }}</p>
+  </div>
+</div>
+
+{% if to_publish %}
+<div class="card"><h2>Public etməli olduğun videolar</h2>
+<div class="scroll"><table>
+{% for v in to_publish %}<tr>
+ <td>{{ v.id }}<br><span class="muted">Tövsiyə: {{ publish_time(v) }}</span></td>
+ <td>{{ v.meta.title }}</td>
+ <td class="row"><a class="btn" target="_blank" href="https://studio.youtube.com/video/{{ v.youtube_id }}/edit">Studio-da aç</a>
+ <form method="post" action="{{ url_for('published', vid=v.id) }}"><input type="hidden" name="url" value="{{ v.youtube_id }}"><button class="secondary">Public etdim</button></form></td>
+</tr>{% endfor %}
+</table></div></div>
+{% endif %}
+
+{% if failed %}<div class="card"><h2>Xətalar</h2><table>{% for v in failed %}<tr><td><a href="{{ url_for('video', vid=v.id) }}">{{ v.id }}</a></td><td class="muted">{{ v.error }}</td></tr>{% endfor %}</table></div>{% endif %}
+
+<div class="card"><h2>Bu gün və sabah</h2>
+{% if upcoming %}<div class="scroll"><table>{% for v in upcoming %}{% include "_row.html" %}{% endfor %}</table></div>
+{% else %}<p class="muted">Plan yoxdur. "gün planla" düyməsini bas.</p>{% endif %}
+<p class="muted">Video faylını video səhifəsindən yüklə və ya <code>inbox/</code> qovluğuna <code>ID.mp4</code> adı ilə qoy (məs. <code>2026-11-18-L.mp4</code>). Thumbnail: <code>ID.jpg</code>.</p>
+</div>
+{% endblock %}

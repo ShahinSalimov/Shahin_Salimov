@@ -1,0 +1,5 @@
+<tr>
+  <td>{{ v.publish_date }}<br><span class="muted">{{ 'Uzun' if v.kind == 'long' else 'Short' }}</span></td>
+  <td><a href="{{ url_for('video', vid=v.id) }}">{{ v.meta.title }}</a><br><span class="muted">{{ v.plan.format_key }} · {{ v.production.duration }} · fayl: {{ v.id }}.mp4</span></td>
+  <td><span class="badge b-{{ v.status }}">{{ STATUS_AZ[v.status] }}</span></td>
+</tr>

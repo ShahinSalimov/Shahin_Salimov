@@ -1,0 +1,4 @@
+flask>=3.0
+requests>=2.31
+anthropic>=2.0      # optional: only for LLM title/description polishing
+pytest>=8.0

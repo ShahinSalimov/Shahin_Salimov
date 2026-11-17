@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% block body %}
+<div class="card">
+  <div class="muted">{{ v.publish_date }} · {{ 'Uzun video' if v.kind == 'long' else 'Short' }} · {{ v.plan.format_key }} · {{ v.production.aspect }} · {{ v.production.duration }} · tövsiyə olunan vaxt {{ publish_time(v) }}</div>
+  <h1 style="font-size:20px">{{ v.meta.title }}</h1>
+  <span class="badge b-{{ v.status }}">{{ STATUS_AZ[v.status] }}</span>
+  {% if v.youtube_id %} · <a target="_blank" href="https://studio.youtube.com/video/{{ v.youtube_id }}/edit">Studio</a> · <a target="_blank" href="https://youtu.be/{{ v.youtube_id }}">YouTube</a>{% endif %}
+  {% if v.error %}<p style="color:#ff8a80">{{ v.error }}</p>{% endif %}
+</div>
+
+<div class="grid">
+<div class="card"><h2>1. Video faylı</h2>
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('upload_file', vid=v.id) }}">
+    <p>Video (mp4/mov): <input type="file" name="video" accept="video/*"></p>
+    {% if v.kind == 'long' %}<p>Thumbnail (jpg/png, 1280x720): <input type="file" name="thumb" accept="image/*"></p>{% endif %}
+    <button class="secondary">Saxla</button>
+  </form>
+  <p class="muted">İndiki fayl: {{ v.video_file or 'yoxdur' }}</p>
+</div>
+<div class="card"><h2>2. YouTube</h2>
+  {% if v.status == 'ready' %}<form method="post" action="{{ url_for('upload_now', vid=v.id) }}"><button>İndi private yüklə</button></form>
+  <p class="muted">Gündəlik iş də bunu avtomatik edir (yayım vaxtından {{ settings.upload_ahead_hours }} saat əvvəl).</p>{% endif %}
+  {% if v.status in ('planned', 'ready', 'uploaded', 'failed') %}
+  <form method="post" action="{{ url_for('published', vid=v.id) }}" class="row" style="margin-top:8px">
+    <input name="url" placeholder="YouTube linki və ya ID" value="{{ v.youtube_id or '' }}"><button class="secondary">Public etdim</button></form>{% endif %}
+  {% if v.status in ('planned', 'ready', 'failed') %}<form method="post" action="{{ url_for('regenerate', vid=v.id) }}" style="margin-top:8px"><button class="secondary">Metadata-nı yenidən yarat</button></form>{% endif %}
+</div>
+</div>
+
+<div class="card"><h2>Metadata</h2>
+  <h3>Başlıq</h3><div class="copy"><pre>{{ v.meta.title }}</pre></div>
+  {% if v.meta.title_alternatives %}<p class="muted">Alternativ (A/B test üçün): {{ v.meta.title_alternatives|join(' | ') }}</p>{% endif %}
+  <h3>Description</h3><div class="copy"><pre>{{ v.meta.description }}</pre></div>
+  <h3>Tags</h3><div class="copy"><pre>{{ v.meta.tags|join(', ') }}</pre></div>
+  <h3>Pinned comment</h3><div class="copy"><pre>{{ v.meta.pinned_comment }}</pre></div>
+  <p class="muted">Kateqoriya: Autos &amp; Vehicles · Playlist: {{ v.meta.playlist }} · "Altered or synthetic content": Bəli · Made for kids: Xeyr</p>
+</div>
+
+{% if v.production.thumbnail_prompt %}
+<div class="card"><h2>Thumbnail prompt</h2><div class="copy"><pre>{{ v.production.thumbnail_prompt }}</pre></div>
+<p class="muted">Üzərinə yazı: <b>{{ v.production.thumbnail_text }}</b></p></div>{% endif %}
+
+<div class="card"><h2>Video prompt-ları və ssenari</h2>
+<p class="muted">Musiqi: {{ v.production.music }}</p>
+{% for seg in v.production.segments %}
+  <h3>{{ seg.label }} ({{ seg.start }}–{{ seg.end }} san)</h3>
+  <p><b>Voiceover:</b> {{ seg.voiceover }}</p>
+  {% if seg.on_screen_text %}<p class="muted">Ekran yazısı: {{ seg.on_screen_text }}</p>{% endif %}
+  {% for c in seg.clips %}
+    <div class="muted">{{ c.start }}–{{ c.end }} san · {{ c.beat }} {% if c.edit %}· {{ c.edit }}{% endif %}</div>
+    <div class="copy"><pre>{{ c.prompt }}</pre></div>
+  {% endfor %}
+{% endfor %}
+<h3>Montaj qeydləri</h3><ul>{% for n in v.production.editing_notes %}<li>{{ n }}</li>{% endfor %}</ul>
+<h3>Hamısı bir yerdə (Markdown)</h3><div class="copy"><pre>{{ production_md }}</pre></div>
+</div>
+{% endblock %}

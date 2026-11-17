@@ -1,0 +1,7 @@
+.env
+data/
+exports/
+inbox/*
+!inbox/.gitkeep
+__pycache__/
+.pytest_cache/
