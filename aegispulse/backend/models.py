@@ -193,3 +193,18 @@ class AlertLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     threat: Mapped[ThreatEvent] = relationship(back_populates="alerts")
+
+
+class CollectorState(Base):
+    """Cursor and health for one collector (one row per collector name)."""
+
+    __tablename__ = "collector_states"
+
+    name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    state: Mapped[dict[str, Any]] = mapped_column(JSONType, default=dict)
+    run_requested: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    last_items: Mapped[int] = mapped_column(Integer, default=0)
+    items_ingested_total: Mapped[int] = mapped_column(Integer, default=0)

@@ -37,6 +37,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Annotated
 
+import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,7 +47,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from agents.sanitizer import sanitize_threat_text
 from agents.schemas import FirewallRule, PatchScript, StackComponent
 from agents.script_validator import validate_firewall_rule, validate_patch_script
 from backend import simulator
@@ -56,27 +56,31 @@ from backend.analysis_service import (
     live_priority,
     run_analysis,
 )
+from backend.collector_runner import enabled_names
+from backend.collectors import REGISTRY, build_collectors
 from backend.config import Settings, get_settings
 from backend.db import create_schema, dispose_engine, get_session, init_engine, ping, session_scope
 from backend.dispatcher import build_preview, channel_configured, dispatch_alerts
+from backend.ingestion import enqueue_analysis, ingest_text
 from backend.integrations.siem_exporter import build_cef_events, build_stix_bundle
 from backend.logging_setup import configure_logging
 from backend.models import (
     AlertChannel,
     AlertLog,
     AlertStatus,
+    CollectorState,
     CompanyProfile,
     MitigationPatch,
     PatchKind,
     PatchStatus,
     ThreatEvent,
-    ThreatSource,
     ThreatStatus,
     utcnow,
 )
 from backend.schemas import (
     AlertOut,
     AlertPreviewOut,
+    CollectorOut,
     CompanyCreate,
     CompanyOut,
     CompanyStackUpdate,
@@ -212,68 +216,6 @@ def _summary(event: ThreatEvent, stack: list[StackComponent]) -> ThreatSummaryOu
     priority, exposure, matched = live_priority(event, stack)
     out.priority_score, out.live_exposure, out.matched_components = priority, exposure, matched
     return out
-
-
-async def _enqueue(session: AsyncSession, event: ThreatEvent) -> None:
-    event.status = ThreatStatus.QUEUED
-    event.current_stage = "queued"
-    event.error = None
-    await session.commit()
-    try:
-        await queue.enqueue(event.id)
-    except Exception:
-        logger.exception("failed to enqueue %s", event.id)
-        event.status = ThreatStatus.FAILED
-        event.error = "Analysis queue unavailable; retry analysis."
-        await session.commit()
-
-
-async def _ingest(
-    session: AsyncSession,
-    company: CompanyProfile,
-    *,
-    raw_text: str,
-    source: ThreatSource,
-    source_ref: str | None,
-    analyze: bool,
-) -> tuple[ThreatEvent, bool]:
-    sanitized = sanitize_threat_text(raw_text)
-    digest = sanitized.content_hash
-    existing = (
-        await session.execute(
-            select(ThreatEvent).where(ThreatEvent.company_id == company.id, ThreatEvent.content_hash == digest)
-        )
-    ).scalar_one_or_none()
-    if existing is not None:
-        return existing, True
-
-    event = ThreatEvent(
-        company_id=company.id,
-        source=source,
-        source_ref=source_ref,
-        raw_text=raw_text,
-        content_hash=digest,
-        injection_signals=sanitized.injection_signals,
-        status=ThreatStatus.PENDING,
-    )
-    session.add(event)
-    try:
-        await session.flush()
-    except IntegrityError:
-        # A concurrent request inserted the same content first.
-        await session.rollback()
-        existing = (
-            await session.execute(
-                select(ThreatEvent).where(ThreatEvent.company_id == company.id, ThreatEvent.content_hash == digest)
-            )
-        ).scalar_one()
-        return existing, True
-
-    if analyze:
-        await _enqueue(session, event)
-    else:
-        await session.commit()
-    return event, False
 
 
 _DRY_RUN_SKIP = re.compile(r"^\s*(#|set\s+-|echo\b|printf\b|log\b|:|\}|\{|fi\b|then\b|else\b|done\b|do\b|esac\b|;;)")
@@ -444,8 +386,8 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         if len(body.raw_text) > settings.max_ingest_chars:
             raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "raw_text exceeds the configured limit")
         company = await _resolve_company(session, body.company_id)
-        event, duplicate = await _ingest(
-            session, company, raw_text=body.raw_text, source=body.source, source_ref=body.source_ref, analyze=body.analyze
+        event, duplicate = await ingest_text(
+            session, company.id, raw_text=body.raw_text, source=body.source, source_ref=body.source_ref, analyze=body.analyze
         )
         return IngestResponse(threat_id=event.id, duplicate=duplicate, status=event.status)
 
@@ -488,7 +430,7 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         event = await _get_threat(session, threat_id)
         if event.status in (ThreatStatus.QUEUED, ThreatStatus.ANALYZING):
             raise HTTPException(status.HTTP_409_CONFLICT, "Analysis already in progress")
-        await _enqueue(session, event)
+        await enqueue_analysis(session, event)
         return IngestResponse(threat_id=event.id, duplicate=False, status=event.status)
 
     @app.post("/api/threats/{threat_id}/dismiss", response_model=ThreatSummaryOut, tags=["threats"])
@@ -626,6 +568,44 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
             (await session.execute(select(AlertLog).order_by(AlertLog.created_at.desc()).limit(limit))).scalars()
         )
 
+    # --------------------------------------------------------- collectors
+
+    async def _collector_rows(session: AsyncSession, settings: Settings) -> list[CollectorOut]:
+        rows = {r.name: r for r in (await session.execute(select(CollectorState))).scalars()}
+        enabled = enabled_names(settings)
+        async with httpx.AsyncClient() as http:  # instances only read settings here
+            collectors = build_collectors(settings, http)
+        out = []
+        for c in collectors:
+            row = rows.get(c.name)
+            ready, reason = c.configured()
+            out.append(
+                CollectorOut(
+                    name=c.name, source=c.source, enabled=c.name in enabled, configured=ready, config_issue=reason,
+                    interval_seconds=c.interval_s, run_requested=bool(row and row.run_requested),
+                    last_run_at=row.last_run_at if row else None, last_success_at=row.last_success_at if row else None,
+                    last_error=row.last_error if row else None, last_items=row.last_items if row else 0,
+                    items_ingested_total=row.items_ingested_total if row else 0,
+                )
+            )
+        return out
+
+    @app.get("/api/collectors", response_model=list[CollectorOut], tags=["collectors"])
+    async def list_collectors(_: Authenticated, session: SessionDep, settings: SettingsDep) -> list[CollectorOut]:
+        return await _collector_rows(session, settings)
+
+    @app.post("/api/collectors/{name}/run", response_model=CollectorOut, status_code=202, tags=["collectors"])
+    async def request_collector_run(name: str, _: Authenticated, session: SessionDep, settings: SettingsDep) -> CollectorOut:
+        if name not in REGISTRY:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown collector")
+        row = await session.get(CollectorState, name)
+        if row is None:
+            row = CollectorState(name=name, state={})
+            session.add(row)
+        row.run_requested = True
+        await session.commit()
+        return next(c for c in await _collector_rows(session, settings) if c.name == name)
+
     # ---------------------------------------------------------- simulator
 
     @app.get("/api/simulate-attack/scenarios", response_model=list[ScenarioOut], tags=["simulator"])
@@ -644,8 +624,8 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         except KeyError as exc:
             raise HTTPException(status.HTTP_404_NOT_FOUND, str(exc)) from exc
         company = await _resolve_company(session, body.company_id)
-        event, _dup = await _ingest(
-            session, company, raw_text=scenario.render(simulator.new_run_id()), source=scenario.source,
+        event, _dup = await ingest_text(
+            session, company.id, raw_text=scenario.render(simulator.new_run_id()), source=scenario.source,
             source_ref=scenario.source_ref, analyze=True,
         )
         return SimulateAttackResponse(

@@ -16,7 +16,7 @@ const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace
 const API_KEY = process.env.AEGIS_API_KEY ?? "";
 const MAX_BODY_BYTES = 64 * 1024;
 
-const ALLOWED_PREFIXES = ["telemetry", "stream", "companies", "threats", "patches", "alerts", "simulate-attack"];
+const ALLOWED_PREFIXES = ["telemetry", "stream", "companies", "threats", "patches", "alerts", "simulate-attack", "collectors"];
 const PASSTHROUGH_RESPONSE_HEADERS = ["content-type", "content-disposition", "cache-control", "retry-after"];
 
 type Ctx = { params: Promise<{ path: string[] }> };

@@ -204,6 +204,21 @@ export interface Scenario {
   targets: string[];
 }
 
+export interface CollectorStatus {
+  name: string;
+  source: ThreatSource;
+  enabled: boolean;
+  configured: boolean;
+  config_issue: string | null;
+  interval_seconds: number;
+  run_requested: boolean;
+  last_run_at: string | null;
+  last_success_at: string | null;
+  last_error: string | null;
+  last_items: number;
+  items_ingested_total: number;
+}
+
 export interface PatchSimulation {
   patch_id: string;
   executed: false;

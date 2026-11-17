@@ -273,3 +273,23 @@ class SimulateAttackResponse(BaseModel):
     scenario: ScenarioOut
     threat_id: uuid.UUID
     status: ThreatStatus
+
+
+class CollectorOut(BaseModel):
+    name: str
+    source: ThreatSource
+    enabled: bool
+    configured: bool
+    config_issue: str | None
+    interval_seconds: int
+    run_requested: bool
+    last_run_at: datetime | None
+    last_success_at: datetime | None
+    last_error: str | None
+    last_items: int
+    items_ingested_total: int
+
+    @field_serializer("last_run_at", "last_success_at")
+    def _ser_dt(self, dt: datetime | None) -> str | None:
+        v = as_utc(dt)
+        return v.isoformat() if v else None

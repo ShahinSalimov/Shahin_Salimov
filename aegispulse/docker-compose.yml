@@ -30,6 +30,14 @@ x-backend-env: &backend-env
   TWILIO_WHATSAPP_TO: ${TWILIO_WHATSAPP_TO:-}
   ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
   ALERT_WEBHOOK_SECRET: ${ALERT_WEBHOOK_SECRET:-}
+  AEGIS_COLLECTORS: ${AEGIS_COLLECTORS:-nvd}
+  AEGIS_COLLECTOR_MAX_ITEMS_PER_RUN: ${AEGIS_COLLECTOR_MAX_ITEMS_PER_RUN:-25}
+  NVD_API_KEY: ${NVD_API_KEY:-}
+  NVD_MIN_CVSS: ${NVD_MIN_CVSS:-7.0}
+  TELEGRAM_CHANNELS: ${TELEGRAM_CHANNELS:-}
+  PASTE_SCRAPE_URL: ${PASTE_SCRAPE_URL:-https://scrape.pastebin.com}
+  DARKWEB_FEED_URL: ${DARKWEB_FEED_URL:-}
+  DARKWEB_FEED_TOKEN: ${DARKWEB_FEED_TOKEN:-}
 
 services:
   db:
@@ -80,6 +88,19 @@ services:
     image: aegispulse/backend:1.0.0
     restart: unless-stopped
     command: ["python", "-m", "backend.worker"]
+    environment:
+      <<: *backend-env
+      AEGIS_AUTO_CREATE_SCHEMA: "false"
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      disable: true
+    networks: [internal]
+
+  collector:
+    image: aegispulse/backend:1.0.0
+    restart: unless-stopped
+    command: ["python", "-m", "backend.collector_runner"]
     environment:
       <<: *backend-env
       AEGIS_AUTO_CREATE_SCHEMA: "false"

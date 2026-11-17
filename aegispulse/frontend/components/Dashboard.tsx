@@ -1,9 +1,10 @@
 "use client";
 
-import { Layers, ShieldAlert } from "lucide-react";
+import { Layers, Radar, ShieldAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { AttackTrigger } from "@/components/AttackTrigger";
+import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { StackConfigurator } from "@/components/StackConfigurator";
 import { TelemetryBar } from "@/components/TelemetryBar";
 import { ThreatFeed } from "@/components/ThreatFeed";
@@ -15,6 +16,7 @@ export function Dashboard() {
   const { company, threats, telemetry, loading, error, connection, version, refresh, replaceCompany } = useLiveData();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [stackOpen, setStackOpen] = useState(false);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   // Deep link from alert messages: /?threat=<id>
   useEffect(() => {
@@ -51,6 +53,10 @@ export function Dashboard() {
           </div>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Button onClick={() => setSourcesOpen(true)}>
+            <Radar className="h-4 w-4" />
+            Sources
+          </Button>
           <Button onClick={() => setStackOpen(true)} disabled={!company}>
             <Layers className="h-4 w-4" />
             Tech Stack <span className="rounded bg-ink-700 px-1 font-mono text-[10px]">{company?.tech_stack.length ?? 0}</span>
@@ -90,6 +96,7 @@ export function Dashboard() {
         </div>
       </main>
 
+      <SourcesDrawer open={sourcesOpen} onClose={() => setSourcesOpen(false)} />
       <StackConfigurator open={stackOpen} onClose={() => setStackOpen(false)} company={company} threats={threats} onSaved={replaceCompany} />
     </div>
   );

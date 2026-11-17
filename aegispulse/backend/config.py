@@ -52,7 +52,26 @@ class Settings(BaseSettings):
     generic_webhook_url: str | None = Field(default=None, alias="ALERT_WEBHOOK_URL")
     generic_webhook_secret: SecretStr | None = Field(default=None, alias="ALERT_WEBHOOK_SECRET")
 
-    @field_validator("api_keys", "cors_origins", "twilio_whatsapp_to", mode="before")
+    # --- Collectors ---------------------------------------------------------
+    collectors_enabled: CsvList = Field(default_factory=list, alias="AEGIS_COLLECTORS")
+    collector_max_items_per_run: int = Field(default=25, alias="AEGIS_COLLECTOR_MAX_ITEMS_PER_RUN")
+    collector_analyze: bool = Field(default=True, alias="AEGIS_COLLECTOR_ANALYZE")
+    nvd_api_key: SecretStr | None = Field(default=None, alias="NVD_API_KEY")
+    nvd_min_cvss: float = Field(default=7.0, alias="NVD_MIN_CVSS")
+    nvd_interval_s: int = Field(default=900, alias="NVD_INTERVAL_SECONDS")
+    nvd_lookback_hours: int = Field(default=24, alias="NVD_LOOKBACK_HOURS")
+    nvd_base_url: str = Field(default="https://services.nvd.nist.gov/rest/json/cves/2.0", alias="NVD_BASE_URL")
+    telegram_channels: CsvList = Field(default_factory=list, alias="TELEGRAM_CHANNELS")
+    telegram_interval_s: int = Field(default=300, alias="TELEGRAM_INTERVAL_SECONDS")
+    telegram_base_url: str = Field(default="https://t.me", alias="TELEGRAM_BASE_URL")
+    paste_scrape_url: str = Field(default="https://scrape.pastebin.com", alias="PASTE_SCRAPE_URL")
+    paste_interval_s: int = Field(default=120, alias="PASTE_INTERVAL_SECONDS")
+    paste_max_bytes: int = Field(default=200_000, alias="PASTE_MAX_BYTES")
+    darkweb_feed_url: str | None = Field(default=None, alias="DARKWEB_FEED_URL")
+    darkweb_feed_token: SecretStr | None = Field(default=None, alias="DARKWEB_FEED_TOKEN")
+    darkweb_feed_interval_s: int = Field(default=300, alias="DARKWEB_FEED_INTERVAL_SECONDS")
+
+    @field_validator("api_keys", "cors_origins", "twilio_whatsapp_to", "collectors_enabled", "telegram_channels", mode="before")
     @classmethod
     def _split_csv(cls, value: object) -> object:
         if isinstance(value, str):
@@ -68,6 +87,9 @@ class Settings(BaseSettings):
         "twilio_whatsapp_from",
         "generic_webhook_url",
         "generic_webhook_secret",
+        "nvd_api_key",
+        "darkweb_feed_url",
+        "darkweb_feed_token",
         mode="before",
     )
     @classmethod

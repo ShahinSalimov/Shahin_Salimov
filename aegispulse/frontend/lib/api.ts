@@ -2,6 +2,7 @@ import type {
   AlertChannel,
   AlertLog,
   AlertPreview,
+  CollectorStatus,
   Company,
   Patch,
   PatchSimulation,
@@ -79,6 +80,8 @@ export const api = {
   rejectPatch: (id: string, reviewer = "soc-analyst") => post<Patch>(`/patches/${id}/reject`, { reviewer }),
   simulatePatch: (id: string) => post<PatchSimulation>(`/patches/${id}/simulate`),
   alertPreview: (id: string, channel: AlertChannel) => request<AlertPreview>(`/threats/${id}/alert-preview?channel=${channel}`),
+  collectors: () => request<CollectorStatus[]>("/collectors"),
+  runCollector: (name: string) => post<CollectorStatus>(`/collectors/${encodeURIComponent(name)}/run`),
   dispatch: (id: string, channels: AlertChannel[]) => post<AlertLog[]>(`/threats/${id}/dispatch`, { channels }),
 };
 
