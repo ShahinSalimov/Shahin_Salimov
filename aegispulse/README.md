@@ -129,6 +129,10 @@ Enable with `AEGIS_COLLECTORS=nvd,telegram,paste,darkweb_feed` (see `.env.exampl
 
 | Document | Audience |
 |---|---|
+| [`docs/ACQUISITION_MEMORANDUM.md`](docs/ACQUISITION_MEMORANDUM.md) | Buyers / investors: technical & business memorandum, valuation rationale |
+| [`docs/PITCH_DECK_OUTLINE.md`](docs/PITCH_DECK_OUTLINE.md) | Founder: 10-slide M&A / investor deck script and demo flow |
+| [`docs/LISTING_COPY.md`](docs/LISTING_COPY.md) | Acquire.com / Flippa listing text and pre-listing checklist |
+| [`DEPLOYMENT.md`](DEPLOYMENT.md) | Operators: production VPS deployment with Nginx, Let's Encrypt, backups |
 | [`docs/pilot-program.md`](docs/pilot-program.md) | Founders / sales: pilot offer, plan, KPIs, outreach templates |
 | [`docs/legal/data-collection-policy.md`](docs/legal/data-collection-policy.md) | Legal counsel: draft policy + open questions |
 | [`docs/security/security-assessment.md`](docs/security/security-assessment.md) | Security reviewers / pentest firm: threat model, known gaps, test scope |
