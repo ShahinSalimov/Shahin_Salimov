@@ -7,7 +7,7 @@ Two isolated autonomous organizations on one codebase:
 
 Spec: [`../zero-touch/`](../zero-touch/README.md). Build stages: `../zero-touch/03-prd-claude-code.md` section 3.3.
 
-Status: Stage 4 done — studio org: pipelines, product files (PDF/XLSX/CSV/ZIP), Gumroad adapter (draft publishing), ledger, sale webhook, dry run (tests green). Stage 5 next.
+Status: Stage 5 done — youtube org: signals, script, TTS, ffmpeg render with burned subtitles, QC gate, scheduled private upload, analytics and growth loop, dry run (tests green). Stage 6 next.
 
 ```bash
 python3 -m venv .venv
@@ -16,6 +16,7 @@ cp .env.example .env
 .venv/bin/python -m pytest
 ORG=studio .venv/bin/python app.py    # GET /health on port 8080
 .venv/bin/python scripts/dry_run.py --org studio   # full offline run, no API calls
+.venv/bin/python scripts/dry_run.py --org youtube  # renders a real MP4 with fake voice/images (needs ffmpeg)
 ```
 
 Admin endpoints (header `X-Admin-Token: $ADMIN_TOKEN`):

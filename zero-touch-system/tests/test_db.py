@@ -400,3 +400,13 @@ def test_total_spend_and_by_day(store):
     store.add_spend("youtube", "2026-11-16", 5.0)
     assert store.total_spend("studio") == pytest.approx(3.0)
     assert store.spend_by_day("studio", "2026-11-16") == {"2026-11-16": 2.0}
+
+
+def test_videos_insert_dedup_and_by_day(store):
+    with freeze_time("2026-11-16 08:00:00"):
+        assert store.insert_video(id="v1", run_id="r", title="T", topic_key="t", youtube_video_id="Y1",
+                                  publish_at="2026-11-16T17:00:00Z", status="scheduled")
+        assert not store.insert_video(id="v2", run_id="r", title="T2", topic_key="t", youtube_video_id="Y2",
+                                      publish_at=None, status="scheduled")
+    assert store.video_topic_exists("t")
+    assert [v["id"] for v in store.videos_created_on("2026-11-16")] == ["v1"]

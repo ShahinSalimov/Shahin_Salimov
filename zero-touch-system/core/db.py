@@ -381,6 +381,24 @@ class JobStore:
                                   (day,))
         return [dict(r) for r in rows]
 
+    def insert_video(self, *, id: str, run_id: str, title: str, topic_key: str, youtube_video_id: str | None,
+                     publish_at: str | None, status: str) -> bool:
+        with self._tx() as c:
+            cur = c.execute("INSERT OR IGNORE INTO videos (id, run_id, title, topic_key, youtube_video_id, publish_at, "
+                            "status, created_at) VALUES (?,?,?,?,?,?,?,?)",
+                            (id, run_id, title, topic_key, youtube_video_id, publish_at, status, utc_now_iso()))
+            return cur.rowcount == 1
+
+    def video_topic_exists(self, topic_key: str) -> bool:
+        return self._conn.execute("SELECT 1 FROM videos WHERE topic_key=?", (topic_key,)).fetchone() is not None
+
+    def videos(self) -> list[dict[str, Any]]:
+        return [dict(r) for r in self._conn.execute("SELECT * FROM videos ORDER BY created_at, id")]
+
+    def videos_created_on(self, day: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute("SELECT * FROM videos WHERE substr(created_at, 1, 10)=? ORDER BY created_at", (day,))
+        return [dict(r) for r in rows]
+
     def add_directive(self, org: str, target_agent: str, text: str, expires_at: str) -> None:
         with self._tx() as c:
             c.execute("INSERT INTO directives (org, target_agent, text, created_at, expires_at) VALUES (?,?,?,?,?)",

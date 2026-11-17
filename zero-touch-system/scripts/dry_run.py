@@ -1,9 +1,9 @@
 """Runs full pipelines offline with FakeLLM and fake tools.
 
-    python scripts/dry_run.py --org studio [--data-dir DIR] [--verbose]
+    python scripts/dry_run.py --org studio|youtube [--data-dir DIR] [--verbose]
 
-Nothing leaves the machine: no LLM calls, no Gumroad, no WhatsApp (console provider), fake market
-signals, draft publishing into DIR. Prints every step of every run and exits non-zero if any run
+Nothing leaves the machine: no LLM calls, no Gumroad, no YouTube, no WhatsApp (console provider),
+fake signals; studio publishes drafts into DIR, youtube renders a real MP4 with fake voice and images. Prints every step of every run and exits non-zero if any run
 does not finish with status "done".
 """
 from __future__ import annotations
@@ -85,6 +85,57 @@ def dry_run_studio(data_dir: Path, verbose: bool) -> bool:
     return ok
 
 
+def dry_run_youtube(data_dir: Path, verbose: bool) -> bool:
+    import subprocess
+
+    from orgs.youtube.fakes import fake_llm_script
+
+    music = data_dir / "music"
+    music.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "lavfi", "-i", "sine=f=330:d=20", "-af", "volume=0.5",
+                    str(music / "dry_run_track.wav")], check=True)
+    settings = Settings(_env_file=None, org="youtube", data_dir=str(data_dir), whatsapp_provider="console",
+                        daily_budget_usd=5.0, yt_niche="personal finance explained",
+                        yt_seed_keywords="budget mistakes,saving money", yt_format="shorts",
+                        yt_signal_mode="fake", yt_upload_mode="fake", yt_analytics_mode="fake",
+                        tts_provider="fake", media_provider="fake")
+    notifier = ConsoleWhatsApp(org="youtube")
+    rt = build_runtime("youtube", settings, llm=FakeLLM(fake_llm_script()), notifier=notifier,
+                       db_path=data_dir / "youtube.db")
+    ok = True
+    try:
+        run = rt.runner.start_run("youtube_daily", {})
+        _drain(rt)
+        ok &= _print_run(rt, run, verbose)
+        render = rt.store.outputs_of(run).get("tools.render")
+        qc = rt.store.outputs_of(run).get("tools.qc_measure")
+        if qc:
+            print("  qc_report:", json.dumps(qc["qc_report"], ensure_ascii=False))
+
+        run = rt.runner.start_run("youtube_weekly_growth", {})
+        _drain(rt)
+        ok &= _print_run(rt, run, verbose)
+
+        print("\n--- WhatsApp (console):")
+        for m in notifier.sent:
+            print("  " + m.replace("\n", "\n  "))
+        print("\n--- files:")
+        for p in sorted((data_dir / "videos").rglob("*")):
+            if p.is_file() and p.suffix in (".mp4", ".png", ".wav", ".ass") and "work" not in p.parts:
+                print(f"  {p.relative_to(data_dir)} ({p.stat().st_size} bytes)")
+        if render:
+            print(f"\nvideo: {render['video_path']} ({render['duration_s']}s, music={render['music_used']})")
+        print(f"quota used (fake upload is not charged): {rt.store.get_control(_quota_key()) or 0} units")
+    finally:
+        rt.stop()
+    return ok
+
+
+def _quota_key() -> str:
+    from datetime import datetime, timezone
+    return f"yt_quota:{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--org", required=True, choices=["studio", "youtube"])
@@ -92,14 +143,10 @@ def main() -> int:
     ap.add_argument("--verbose", action="store_true")
     args = ap.parse_args()
 
-    if args.org == "youtube":
-        print("youtube: SKIPPED - the YouTube org is built in Stage 5")
-        return 0
-
     data_dir = args.data_dir or Path(tempfile.mkdtemp(prefix="zt-dry-run-"))
     data_dir.mkdir(parents=True, exist_ok=True)
     print(f"dry run data dir: {data_dir}")
-    ok = dry_run_studio(data_dir, args.verbose)
+    ok = (dry_run_studio if args.org == "studio" else dry_run_youtube)(data_dir, args.verbose)
     print("\nRESULT:", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
