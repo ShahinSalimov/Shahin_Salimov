@@ -142,7 +142,8 @@ class Planner:
             speeds = [200]
 
         fmt = FORMATS_BY_KEY[fmt_key]
-        scenario = rng.choice(SCENARIOS if len(cars) == 1 else [s for s in SCENARIOS if s.impact != "side"])
+        # long videos are wall crashes only; the side-pole scenario is kept for occasional Shorts
+        scenario = rng.choice([s for s in SCENARIOS if s.impact != "side"])
         plan = VideoPlan(
             id=f"{day.isoformat()}-L", publish_date=day.isoformat(), kind="long", format_key=fmt_key,
             car_keys=[c.key for c in cars], scenario_key=scenario.key, speeds=speeds,

@@ -85,9 +85,9 @@ def article(phrase: str) -> str:
     return "a"
 
 COLORS = [
-    "glossy Rosso Corsa red", "matte black", "pearl white", "Verde Mantis lime green",
-    "Arancio orange", "midnight blue", "satin silver", "exposed carbon fiber",
-    "Giallo yellow", "two-tone black and blue",
+    "glossy racing red", "matte black", "pearl white", "bright lime green",
+    "bright orange", "midnight blue", "satin silver", "exposed carbon fiber",
+    "bright yellow", "two-tone black and blue",
 ]
 
 

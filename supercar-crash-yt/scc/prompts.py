@@ -33,7 +33,9 @@ def clip(beat: str, car: Car, color: str, s: Scenario, speed: int, lighting: str
         "reveal": f"parked motionless 50 meters in front of {s.wall}, showroom-clean, light reflections gliding over the paint",
         "runup": f"accelerating hard at {speed} km/h toward {s.wall}, tires gripping, exhaust heat shimmer",
         "impact_wide": f"crashing {impact_phrase(s)} {s.wall} at {speed} km/h, body crumpling realistically, glass and fragments exploding outward",
-        "impact_close": f"crashing {impact_phrase(s)} {s.wall} at {speed} km/h, front end folding, airbags firing",
+        "impact_close": f"crashing {impact_phrase(s)} {s.wall} at {speed} km/h, "
+                        + ("driver door caving in around the pole, side airbags firing" if s.impact == "side"
+                           else "front end folding, airbags firing"),
         "drone": f"hitting {s.wall} at {speed} km/h, debris spraying in a fan shape",
         "aftermath": f"wrecked after hitting {s.wall} at {speed} km/h: {damage(speed)}",
         "cabin": f"crashing into {s.wall} at {speed} km/h",

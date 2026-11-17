@@ -98,3 +98,8 @@ def test_long_lead_cars_rarely_repeat_within_10_days(plans):
             if gap < 10 and a.car_keys == b.car_keys:
                 repeats += 1
     assert repeats == 0
+
+
+def test_long_videos_are_wall_crashes_only(plans):
+    from scc.catalog import SCENARIOS_BY_KEY
+    assert all(SCENARIOS_BY_KEY[p.scenario_key].impact != "side" for p in plans if p.kind == "long")
