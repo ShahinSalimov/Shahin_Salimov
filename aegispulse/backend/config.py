@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     generic_webhook_url: str | None = Field(default=None, alias="ALERT_WEBHOOK_URL")
     generic_webhook_secret: SecretStr | None = Field(default=None, alias="ALERT_WEBHOOK_SECRET")
 
+    # --- Data retention ---------------------------------------------------
+    raw_text_retention_days: int = Field(default=0, alias="AEGIS_RAW_TEXT_RETENTION_DAYS")  # 0 = keep
+    audit_retention_days: int = Field(default=400, alias="AEGIS_AUDIT_RETENTION_DAYS")
+
     # --- Collectors ---------------------------------------------------------
     collectors_enabled: CsvList = Field(default_factory=list, alias="AEGIS_COLLECTORS")
     collector_max_items_per_run: int = Field(default=25, alias="AEGIS_COLLECTOR_MAX_ITEMS_PER_RUN")

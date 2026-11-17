@@ -13,6 +13,7 @@ import signal
 import uuid
 
 from backend.analysis_service import recover_stale_jobs, run_analysis
+from backend.audit import apply_retention
 from backend.config import get_settings
 from backend.db import create_schema, dispose_engine, init_engine
 from backend.logging_setup import configure_logging
@@ -50,6 +51,7 @@ async def main() -> None:
 
     semaphore = asyncio.Semaphore(settings.analysis_concurrency)
     tasks: set[asyncio.Task[None]] = set()
+    await apply_retention(settings)
     recovered = await recover_stale_jobs()
     if recovered:
         logger.warning("marked %d stale jobs as failed", recovered)
@@ -70,6 +72,7 @@ async def main() -> None:
         if loop.time() - last_recovery > 300:
             last_recovery = loop.time()
             await recover_stale_jobs()
+            await apply_retention(settings)
 
     logger.info("shutting down: waiting for %d in-flight jobs", len(tasks))
     await asyncio.gather(*tasks, return_exceptions=True)

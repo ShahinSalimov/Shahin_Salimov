@@ -7,7 +7,7 @@ import { Badge, Button, Overlay, Spinner, Tabs } from "@/components/ui/primitive
 import { useToast } from "@/components/ui/toast";
 import { api, ApiError, copyText } from "@/lib/api";
 import { cn, timeAgo } from "@/lib/format";
-import type { ApiKeyInfo, Role, TeamUser } from "@/lib/types";
+import type { ApiKeyInfo, AuditEntry, Role, TeamUser } from "@/lib/types";
 
 const ROLES: Role[] = ["viewer", "analyst", "admin"];
 const inputCls = "w-full rounded-md border border-ink-600 bg-ink-850 px-2.5 py-1.5 text-sm text-slate-100 outline-none focus:border-cyan-500";
@@ -217,8 +217,35 @@ function KeysPanel() {
   );
 }
 
+function AuditPanel() {
+  const toast = useToast();
+  const [entries, setEntries] = useState<AuditEntry[] | null>(null);
+  useEffect(() => {
+    api.auditLog().then(setEntries).catch((e: unknown) => toast("error", "Could not load audit log", errMsg(e)));
+  }, [toast]);
+  if (!entries) return <Spinner />;
+  if (entries.length === 0) return <p className="text-xs text-slate-500">No audit events yet.</p>;
+  return (
+    <ul className="space-y-1">
+      {entries.map((e) => (
+        <li key={e.id} className="rounded-md border border-ink-700 bg-ink-850 px-3 py-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-cyan-300">{e.action}</span>
+            {e.outcome !== "success" ? <Badge className="text-red-300 bg-red-500/10 ring-red-500/30">{e.outcome}</Badge> : null}
+            <span className="truncate text-slate-300">{e.actor}</span>
+            <span className="ml-auto shrink-0 font-mono text-[10px] text-slate-500">{timeAgo(e.created_at)}</span>
+          </div>
+          <p className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
+            {e.target_type ? `${e.target_type}:${e.target_id ?? ""}` : ""} {e.ip ? `· ${e.ip}` : ""} {e.details ? `· ${JSON.stringify(e.details)}` : ""}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function TeamDrawer({ open, onClose, currentEmail }: { open: boolean; onClose: () => void; currentEmail: string | null }) {
-  const [tab, setTab] = useState<"users" | "keys">("users");
+  const [tab, setTab] = useState<"users" | "keys" | "audit">("users");
   return (
     <Overlay
       open={open}
@@ -226,19 +253,24 @@ export function TeamDrawer({ open, onClose, currentEmail }: { open: boolean; onC
       side="right"
       title={
         <span className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-cyan-300" /> Team & API access
+          <Users className="h-4 w-4 text-cyan-300" /> Team, API access & audit
         </span>
       }
     >
-      <Tabs<"users" | "keys">
+      <Tabs<"users" | "keys" | "audit">
         active={tab}
         onChange={setTab}
         tabs={[
           { key: "users", label: "Users" },
           { key: "keys", label: "API keys" },
+          { key: "audit", label: "Audit log" },
         ]}
       />
-      <div className="p-4">{open ? tab === "users" ? <UsersPanel currentEmail={currentEmail} /> : <KeysPanel /> : null}</div>
+      <div className="p-4">
+        {open && tab === "users" ? <UsersPanel currentEmail={currentEmail} /> : null}
+        {open && tab === "keys" ? <KeysPanel /> : null}
+        {open && tab === "audit" ? <AuditPanel /> : null}
+      </div>
     </Overlay>
   );
 }

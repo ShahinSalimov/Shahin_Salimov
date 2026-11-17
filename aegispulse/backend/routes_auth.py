@@ -8,6 +8,7 @@
     GET   /api/api-keys                list API keys (never the secret)            (admin)
     POST  /api/api-keys                create a key; plaintext returned ONCE       (admin)
     POST  /api/api-keys/{id}/revoke    revoke a key                                (admin)
+    GET   /api/audit-log               security audit trail                        (admin)
 
 Platform (operator) principals must pass ``company_id`` to act on a tenant.
 """
@@ -24,9 +25,10 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from backend.audit import record
 from backend.config import Settings, get_settings
 from backend.db import get_session
-from backend.models import ApiKey, CompanyProfile, Role, User, utcnow
+from backend.models import ApiKey, AuditEvent, CompanyProfile, Role, User, utcnow
 from backend.schemas import ShortText, as_utc
 from backend.security import (
     DUMMY_HASH,
@@ -158,8 +160,13 @@ async def login(body: LoginIn, request: Request, session: SessionDep, settings: 
     user = (await session.execute(select(User).where(func.lower(User.email) == body.email.lower()))).scalar_one_or_none()
     valid = verify_password(body.password, user.password_hash if user else DUMMY_HASH)
     if user is None or not valid or not user.is_active:
+        record(session, None, "auth.login", company_id=user.company_id if user else None, request=request,
+               outcome="failure", actor=body.email.lower(), details={"reason": "inactive" if user and valid else "bad_credentials"})
+        await session.commit()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     user.last_login_at = utcnow()
+    record(session, None, "auth.login", company_id=user.company_id, request=request, actor=user.email,
+           target_type="user", target_id=user.id)
     await session.commit()
     token, expires = issue_token(user, settings)
     return LoginOut(token=token, expires_at=expires, user=UserOut.model_validate(user))
@@ -182,13 +189,16 @@ async def list_users(principal: Admin, session: SessionDep, company_id: uuid.UUI
 
 @router.post("/users", response_model=UserOut, status_code=201)
 async def create_user(
-    body: UserCreate, principal: Admin, session: SessionDep, company_id: Annotated[uuid.UUID | None, Query()] = None
+    body: UserCreate, principal: Admin, session: SessionDep, request: Request,
+    company_id: Annotated[uuid.UUID | None, Query()] = None,
 ) -> User:
     tenant = _tenant(principal, company_id)
     if await session.get(CompanyProfile, tenant) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Company not found")
     user = User(company_id=tenant, email=body.email.lower(), name=body.name, role=body.role, password_hash=hash_password(body.password))
     session.add(user)
+    record(session, principal, "user.create", company_id=tenant, request=request, target_type="user",
+           target_id=body.email.lower(), details={"role": body.role.value})
     try:
         await session.commit()
     except IntegrityError as exc:
@@ -198,7 +208,7 @@ async def create_user(
 
 
 @router.patch("/users/{user_id}", response_model=UserOut)
-async def update_user(user_id: uuid.UUID, body: UserUpdate, principal: Admin, session: SessionDep) -> User:
+async def update_user(user_id: uuid.UUID, body: UserUpdate, principal: Admin, session: SessionDep, request: Request) -> User:
     user = await session.get(User, user_id)
     if user is None or not principal.can_access(user.company_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
@@ -212,6 +222,11 @@ async def update_user(user_id: uuid.UUID, body: UserUpdate, principal: Admin, se
         user.is_active = body.is_active
     if body.password is not None:
         user.password_hash = hash_password(body.password)
+    changes = {k: (v.value if isinstance(v, Role) else v) for k, v in body.model_dump(exclude_none=True).items() if k != "password"}
+    if body.password is not None:
+        changes["password_reset"] = True
+    record(session, principal, "user.update", company_id=user.company_id, request=request, target_type="user",
+           target_id=user.id, details=changes)
     await session.commit()
     return user
 
@@ -224,7 +239,8 @@ async def list_api_keys(principal: Admin, session: SessionDep, company_id: uuid.
 
 @router.post("/api-keys", response_model=ApiKeyCreated, status_code=201)
 async def create_api_key(
-    body: ApiKeyCreate, principal: Admin, session: SessionDep, company_id: Annotated[uuid.UUID | None, Query()] = None
+    body: ApiKeyCreate, principal: Admin, session: SessionDep, request: Request,
+    company_id: Annotated[uuid.UUID | None, Query()] = None,
 ) -> ApiKeyCreated:
     tenant = _tenant(principal, company_id)
     if await session.get(CompanyProfile, tenant) is None:
@@ -232,16 +248,59 @@ async def create_api_key(
     plaintext, prefix, digest = new_api_key()
     key = ApiKey(company_id=tenant, name=body.name, prefix=prefix, key_hash=digest, role=body.role, created_by=principal.label)
     session.add(key)
+    await session.flush()
+    record(session, principal, "api_key.create", company_id=tenant, request=request, target_type="api_key",
+           target_id=key.id, details={"name": body.name, "role": body.role.value, "prefix": prefix})
     await session.commit()
     return ApiKeyCreated(**ApiKeyOut.model_validate(key).model_dump(), key=plaintext)
 
 
 @router.post("/api-keys/{key_id}/revoke", response_model=ApiKeyOut)
-async def revoke_api_key(key_id: uuid.UUID, principal: Admin, session: SessionDep) -> ApiKey:
+async def revoke_api_key(key_id: uuid.UUID, principal: Admin, session: SessionDep, request: Request) -> ApiKey:
     key = await session.get(ApiKey, key_id)
     if key is None or not principal.can_access(key.company_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "API key not found")
     if key.revoked_at is None:
         key.revoked_at = utcnow()
+        record(session, principal, "api_key.revoke", company_id=key.company_id, request=request, target_type="api_key",
+               target_id=key.id, details={"name": key.name})
         await session.commit()
     return key
+
+
+class AuditEventOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    company_id: uuid.UUID | None
+    actor: str
+    actor_kind: str
+    action: str
+    outcome: str
+    target_type: str | None
+    target_id: str | None
+    ip: str | None
+    details: dict | None
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def _ser(self, dt: datetime) -> str:
+        return as_utc(dt).isoformat()  # type: ignore[union-attr]
+
+
+@router.get("/audit-log", response_model=list[AuditEventOut], tags=["audit"])
+async def audit_log(
+    principal: Admin,
+    session: SessionDep,
+    company_id: uuid.UUID | None = None,
+    action: Annotated[str | None, Query(max_length=64)] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+) -> list[AuditEvent]:
+    """Newest first. Tenant admins see their company; platform keys see all or filter by company_id."""
+    query = select(AuditEvent).order_by(AuditEvent.created_at.desc()).limit(limit)
+    if principal.company_id is not None:
+        query = query.where(AuditEvent.company_id == principal.company_id)
+    elif company_id is not None:
+        query = query.where(AuditEvent.company_id == company_id)
+    if action:
+        query = query.where(AuditEvent.action == action)
+    return list((await session.execute(query)).scalars())

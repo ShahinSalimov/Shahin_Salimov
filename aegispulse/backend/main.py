@@ -55,6 +55,7 @@ from backend.analysis_service import (
     live_priority,
     run_analysis,
 )
+from backend.audit import record
 from backend.bootstrap import seed
 from backend.collector_runner import enabled_names
 from backend.collectors import REGISTRY, build_collectors
@@ -367,7 +368,7 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         return list((await session.execute(query)).scalars())
 
     @app.post("/api/companies", response_model=CompanyOut, status_code=201, tags=["companies"])
-    async def create_company(body: CompanyCreate, principal: Admin, session: SessionDep) -> CompanyProfile:
+    async def create_company(body: CompanyCreate, principal: Admin, session: SessionDep, request: Request) -> CompanyProfile:
         if not principal.is_platform:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Only platform operators can create tenants")
         company = CompanyProfile(
@@ -382,6 +383,9 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
                     role=Role.ADMIN, password_hash=hash_password(body.admin_password),
                 )
             )
+        await session.flush()
+        record(session, principal, "company.create", company_id=company.id, request=request, target_type="company",
+               target_id=company.id, details={"name": body.name, "admin_email": body.admin_email})
         try:
             await session.commit()
         except IntegrityError as exc:
@@ -395,14 +399,17 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
 
     @app.put("/api/companies/{company_id}/stack", response_model=CompanyOut, tags=["companies"])
     async def update_stack(
-        company_id: uuid.UUID, body: CompanyStackUpdate, principal: Admin, session: SessionDep
+        company_id: uuid.UUID, body: CompanyStackUpdate, principal: Admin, session: SessionDep, request: Request
     ) -> CompanyProfile:
         company = await _resolve_company(session, principal, company_id)
         seen: dict[str, dict[str, object]] = {}
         for c in body.tech_stack:
             seen[c.key] = c.model_dump()
+        before = sorted(c.get("key", "") for c in company.tech_stack or [])
         company.tech_stack = list(seen.values())
         company.updated_at = utcnow()
+        record(session, principal, "company.stack_update", company_id=company.id, request=request, target_type="company",
+               target_id=company.id, details={"before": before, "after": sorted(seen)})
         await session.commit()
         return company
 
@@ -453,19 +460,21 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         return detail
 
     @app.post("/api/threats/{threat_id}/analyze", response_model=IngestResponse, status_code=202, tags=["threats"])
-    async def reanalyze(threat_id: uuid.UUID, principal: AnalystExpensive, session: SessionDep) -> IngestResponse:
+    async def reanalyze(threat_id: uuid.UUID, principal: AnalystExpensive, session: SessionDep, request: Request) -> IngestResponse:
         event = await _get_threat(session, principal, threat_id)
         if event.status in (ThreatStatus.QUEUED, ThreatStatus.ANALYZING):
             raise HTTPException(status.HTTP_409_CONFLICT, "Analysis already in progress")
+        record(session, principal, "threat.reanalyze", company_id=event.company_id, request=request, target_type="threat", target_id=event.id)
         await enqueue_analysis(session, event)
         return IngestResponse(threat_id=event.id, duplicate=False, status=event.status)
 
     @app.post("/api/threats/{threat_id}/dismiss", response_model=ThreatSummaryOut, tags=["threats"])
-    async def dismiss(threat_id: uuid.UUID, principal: Analyst, session: SessionDep) -> ThreatSummaryOut:
+    async def dismiss(threat_id: uuid.UUID, principal: Analyst, session: SessionDep, request: Request) -> ThreatSummaryOut:
         event = await _get_threat(session, principal, threat_id)
         if event.status in (ThreatStatus.QUEUED, ThreatStatus.ANALYZING):
             raise HTTPException(status.HTTP_409_CONFLICT, "Cannot dismiss while analysis is running")
         event.status = ThreatStatus.DISMISSED
+        record(session, principal, "threat.dismiss", company_id=event.company_id, request=request, target_type="threat", target_id=event.id)
         await session.commit()
         return _summary(event, company_profile(event.company).tech_stack)
 
@@ -488,23 +497,29 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
 
     @app.post("/api/threats/{threat_id}/dispatch", response_model=list[AlertOut], tags=["alerts"])
     async def dispatch(
-        threat_id: uuid.UUID, body: DispatchRequest, principal: Analyst, session: SessionDep, settings: SettingsDep
+        threat_id: uuid.UUID, body: DispatchRequest, principal: Analyst, session: SessionDep, settings: SettingsDep,
+        request: Request,
     ) -> list[AlertLog]:
         event = await _get_threat(session, principal, threat_id, detail=True)
         if event.analysis is None:
             raise HTTPException(status.HTTP_409_CONFLICT, "Threat has not been analysed yet")
         logs = await dispatch_alerts(event, list(event.patches), list(dict.fromkeys(body.channels)), settings)
         session.add_all(logs)
+        record(session, principal, "alert.dispatch", company_id=event.company_id, request=request, target_type="threat",
+               target_id=event.id, details={"results": {f"{log.channel.value}": log.status.value for log in logs}})
         await session.commit()
         return logs
 
     @app.get("/api/threats/{threat_id}/export/stix", tags=["integrations"])
-    async def export_stix(threat_id: uuid.UUID, principal: Viewer, session: SessionDep) -> JSONResponse:
+    async def export_stix(threat_id: uuid.UUID, principal: Viewer, session: SessionDep, request: Request) -> JSONResponse:
         event = await _get_threat(session, principal, threat_id)
         try:
             bundle = build_stix_bundle(event)
         except ValueError as exc:
             raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        record(session, principal, "threat.export", company_id=event.company_id, request=request, target_type="threat",
+               target_id=event.id, details={"format": "stix"})
+        await session.commit()
         return JSONResponse(
             bundle,
             media_type="application/stix+json;version=2.1",
@@ -512,12 +527,15 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         )
 
     @app.get("/api/threats/{threat_id}/export/cef", tags=["integrations"])
-    async def export_cef(threat_id: uuid.UUID, principal: Viewer, session: SessionDep) -> PlainTextResponse:
+    async def export_cef(threat_id: uuid.UUID, principal: Viewer, session: SessionDep, request: Request) -> PlainTextResponse:
         event = await _get_threat(session, principal, threat_id)
         try:
             lines = build_cef_events(event)
         except ValueError as exc:
             raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        record(session, principal, "threat.export", company_id=event.company_id, request=request, target_type="threat",
+               target_id=event.id, details={"format": "cef"})
+        await session.commit()
         return PlainTextResponse(
             "\n".join(lines) + "\n",
             headers={"Content-Disposition": f'attachment; filename="aegispulse-{threat_id}.cef"'},
@@ -531,7 +549,10 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Patch not found")
         return patch
 
-    async def _review(patch_id: uuid.UUID, session: AsyncSession, principal: Principal, new_status: PatchStatus) -> MitigationPatch:
+    async def _review(
+        patch_id: uuid.UUID, session: AsyncSession, principal: Principal, new_status: PatchStatus,
+        request: Request, comment: str | None,
+    ) -> MitigationPatch:
         patch = await _load_patch(session, principal, patch_id)
         reviewer = principal.label  # audit trail uses the authenticated identity, never client input
         if patch.status is not PatchStatus.PROPOSED:
@@ -542,16 +563,23 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         if new_status is PatchStatus.APPROVED and patch.threat.status is ThreatStatus.ANALYZED:
             patch.threat.status = ThreatStatus.MITIGATED
         patch.threat.updated_at = utcnow()
+        record(session, principal, f"patch.{'approve' if new_status is PatchStatus.APPROVED else 'reject'}",
+               company_id=patch.threat.company_id, request=request, target_type="patch", target_id=patch.id,
+               details={"title": patch.title, "kind": patch.kind.value, "comment": comment})
         await session.commit()
         return patch
 
     @app.post("/api/patches/{patch_id}/approve", response_model=PatchOut, tags=["patches"])
-    async def approve_patch(patch_id: uuid.UUID, body: PatchReview, principal: Analyst, session: SessionDep) -> MitigationPatch:
-        return await _review(patch_id, session, principal, PatchStatus.APPROVED)
+    async def approve_patch(
+        patch_id: uuid.UUID, body: PatchReview, principal: Analyst, session: SessionDep, request: Request
+    ) -> MitigationPatch:
+        return await _review(patch_id, session, principal, PatchStatus.APPROVED, request, body.comment)
 
     @app.post("/api/patches/{patch_id}/reject", response_model=PatchOut, tags=["patches"])
-    async def reject_patch(patch_id: uuid.UUID, body: PatchReview, principal: Analyst, session: SessionDep) -> MitigationPatch:
-        return await _review(patch_id, session, principal, PatchStatus.REJECTED)
+    async def reject_patch(
+        patch_id: uuid.UUID, body: PatchReview, principal: Analyst, session: SessionDep, request: Request
+    ) -> MitigationPatch:
+        return await _review(patch_id, session, principal, PatchStatus.REJECTED, request, body.comment)
 
     @app.post("/api/patches/{patch_id}/simulate", response_model=PatchSimulationOut, tags=["patches"])
     async def simulate_patch(patch_id: uuid.UUID, principal: Analyst, session: SessionDep) -> PatchSimulationOut:
@@ -633,7 +661,9 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
         return await _collector_rows(session, settings)
 
     @app.post("/api/collectors/{name}/run", response_model=CollectorOut, status_code=202, tags=["collectors"])
-    async def request_collector_run(name: str, principal: Admin, session: SessionDep, settings: SettingsDep) -> CollectorOut:
+    async def request_collector_run(
+        name: str, principal: Admin, session: SessionDep, settings: SettingsDep, request: Request
+    ) -> CollectorOut:
         if name not in REGISTRY:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown collector")
         row = await session.get(CollectorState, name)
@@ -641,6 +671,8 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
             row = CollectorState(name=name, state={})
             session.add(row)
         row.run_requested = True
+        record(session, principal, "collector.run", company_id=principal.company_id, request=request,
+               target_type="collector", target_id=name)
         await session.commit()
         return next(c for c in await _collector_rows(session, settings) if c.name == name)
 
@@ -655,7 +687,7 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
 
     @app.post("/api/simulate-attack", response_model=SimulateAttackResponse, status_code=202, tags=["simulator"])
     async def simulate_attack(
-        body: SimulateAttackRequest, principal: AnalystExpensive, session: SessionDep
+        body: SimulateAttackRequest, principal: AnalystExpensive, session: SessionDep, request: Request
     ) -> SimulateAttackResponse:
         try:
             scenario = simulator.pick_scenario(body.scenario_id)
@@ -666,6 +698,9 @@ def _register_routes(app: FastAPI) -> None:  # noqa: C901 - flat route table is 
             session, company.id, raw_text=scenario.render(simulator.new_run_id()), source=scenario.source,
             source_ref=scenario.source_ref, analyze=True,
         )
+        record(session, principal, "simulator.attack", company_id=company.id, request=request, target_type="threat",
+               target_id=event.id, details={"scenario": scenario.id})
+        await session.commit()
         return SimulateAttackResponse(
             scenario=ScenarioOut(
                 id=scenario.id, name=scenario.name, source=scenario.source,

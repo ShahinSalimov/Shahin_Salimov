@@ -16,7 +16,7 @@ export const runtime = "nodejs";
 
 const MAX_BODY_BYTES = 64 * 1024;
 
-const ALLOWED_PREFIXES = ["telemetry", "stream", "companies", "threats", "patches", "alerts", "simulate-attack", "collectors", "auth", "users", "api-keys"];
+const ALLOWED_PREFIXES = ["telemetry", "stream", "companies", "threats", "patches", "alerts", "simulate-attack", "collectors", "auth", "users", "api-keys", "audit-log"];
 const PASSTHROUGH_RESPONSE_HEADERS = ["content-type", "content-disposition", "cache-control", "retry-after"];
 
 type Ctx = { params: Promise<{ path: string[] }> };

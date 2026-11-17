@@ -247,3 +247,22 @@ class ApiKey(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AuditEvent(Base):
+    """Append-only record of security-relevant actions (SOC 2 CC7.2 / CC6.1 evidence)."""
+
+    __tablename__ = "audit_events"
+    __table_args__ = (Index("ix_audit_company_created", "company_id", "created_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("company_profiles.id", ondelete="CASCADE"))
+    actor: Mapped[str] = mapped_column(String(320))
+    actor_kind: Mapped[str] = mapped_column(String(16))
+    action: Mapped[str] = mapped_column(String(64))
+    outcome: Mapped[str] = mapped_column(String(16), default="success")
+    target_type: Mapped[str | None] = mapped_column(String(32))
+    target_id: Mapped[str | None] = mapped_column(String(64))
+    ip: Mapped[str | None] = mapped_column(String(64))
+    details: Mapped[dict[str, Any] | None] = mapped_column(JSONType)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)

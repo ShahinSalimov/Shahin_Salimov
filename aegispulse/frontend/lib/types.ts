@@ -237,6 +237,20 @@ export interface ApiKeyInfo {
   key?: string;
 }
 
+export interface AuditEntry {
+  id: string;
+  company_id: string | null;
+  actor: string;
+  actor_kind: string;
+  action: string;
+  outcome: string;
+  target_type: string | null;
+  target_id: string | null;
+  ip: string | null;
+  details: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export interface CollectorStatus {
   name: string;
   source: ThreatSource;

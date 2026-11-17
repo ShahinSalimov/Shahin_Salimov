@@ -27,7 +27,9 @@ Autonomous AI & dark-web threat intelligence platform. Raw intel from dark-web f
 | Queue | Redis list consumed by a horizontally scalable worker; in-process fallback for local dev |
 | Data | PostgreSQL 16 + pgvector (embedding column reserved for threat correlation) |
 | Frontend | Next.js 15 App Router, TypeScript (strict), Tailwind CSS, lucide-react |
-| Delivery | Docker multi-stage images (non-root), `docker compose` stack with health checks |
+| Delivery | Docker multi-stage images (non-root), `docker compose` stack with health checks, Alembic migrations, GitHub Actions CI |
+| Identity | Users (scrypt), HMAC-signed sessions in httpOnly cookies, viewer/analyst/admin roles, tenant API keys, audit log |
+| Collection | NVD CVE API 2.0, public Telegram channels, Pastebin scraping API, licensed dark-web feed (`collector` service) |
 
 ### Repository layout
 
@@ -74,10 +76,11 @@ Requirements: Docker 24+ with Compose v2, and an Anthropic API key.
 cd aegispulse
 cp .env.example .env
 # Edit .env:
-#   POSTGRES_PASSWORD   - strong password
-#   AEGIS_API_KEYS      - comma-separated API keys (openssl rand -hex 32)
-#   DASHBOARD_API_KEY   - one of AEGIS_API_KEYS (used by the dashboard server)
-#   ANTHROPIC_API_KEY   - your Anthropic key
+#   POSTGRES_PASSWORD                - strong password
+#   AEGIS_SECRET_KEY                 - openssl rand -hex 32 (signs login sessions)
+#   AEGIS_BOOTSTRAP_ADMIN_EMAIL      - first admin user
+#   AEGIS_BOOTSTRAP_ADMIN_PASSWORD   - 12+ chars
+#   ANTHROPIC_API_KEY                - your Anthropic key
 docker compose up -d --build
 ```
 
@@ -85,6 +88,8 @@ docker compose up -d --build
 |---|---|
 | SOC dashboard | http://localhost:3000 |
 | API | http://localhost:8000 (`/health` is public; `/docs` only when `AEGIS_ENV=development`) |
+
+On start the backend runs database migrations (`alembic upgrade head`), then seeds the demo company and the bootstrap admin (`python -m backend.bootstrap`). Sign in at http://localhost:3000 with the bootstrap admin, then add users and tenant API keys under **Team**.
 
 Then click **Trigger Live Dark Web Attack** in the dashboard header. You can also use the arrow next to it to pick one of the five scenarios. The threat shows up in the feed right away, and you can watch Agent 1 → 2 → 3 run in the inspector.
 
@@ -102,14 +107,43 @@ cd frontend && npm ci
 BACKEND_URL=http://localhost:8000 npm run dev
 ```
 
+## Multi-tenancy & access
+
+* Each **company profile is a tenant**. Users and API keys belong to exactly one tenant and only ever see that tenant's data; another tenant's IDs return 404.
+* **Roles:** `viewer` (read, export) → `analyst` (ingest, simulate, approve/reject patches, dispatch alerts) → `admin` (users, API keys, tech stack, collectors, audit log).
+* **Platform keys** (`AEGIS_API_KEYS`) are operator credentials across all tenants. Use them to provision tenants: `POST /api/companies` with `admin_email` / `admin_password` creates the tenant and its first admin.
+* Every security-relevant action (logins, user/key changes, approvals, dispatches, exports, stack changes) is written to the audit log (`GET /api/audit-log`, Team → Audit log).
+
+## Collectors
+
+Enable with `AEGIS_COLLECTORS=nvd,telegram,paste,darkweb_feed` (see `.env.example`). The `collector` service polls each source on its interval, stores a cursor per source, drops non-security chatter, caps items per run to bound AI spend, and ingests NVD CVEs only for tenants whose stack matches. Status and **Run now** are in the dashboard under **Sources**.
+
+| Collector | Requirement |
+|---|---|
+| `nvd` | None (optional free `NVD_API_KEY` raises the rate limit) |
+| `telegram` | `TELEGRAM_CHANNELS` (public channel usernames) |
+| `paste` | Pastebin PRO account with the server IP whitelisted |
+| `darkweb_feed` | Licensed vendor feed URL + token (AegisPulse does not crawl Tor itself) |
+
+## Documentation for diligence
+
+| Document | Audience |
+|---|---|
+| [`docs/pilot-program.md`](docs/pilot-program.md) | Founders / sales: pilot offer, plan, KPIs, outreach templates |
+| [`docs/legal/data-collection-policy.md`](docs/legal/data-collection-policy.md) | Legal counsel: draft policy + open questions |
+| [`docs/security/security-assessment.md`](docs/security/security-assessment.md) | Security reviewers / pentest firm: threat model, known gaps, test scope |
+| [`docs/compliance/soc2-readiness.md`](docs/compliance/soc2-readiness.md) | Compliance / auditors: control mapping and roadmap |
+
 ## Environment variables
 
 All settings are documented in [`.env.example`](.env.example). The important ones:
 
 | Variable | Purpose |
 |---|---|
-| `AEGIS_API_KEYS` | Accepted `X-API-Key` values. Required when `AEGIS_ENV=production` (the API refuses to start without them) |
-| `DASHBOARD_API_KEY` | Key the Next.js server injects into proxied requests |
+| `AEGIS_SECRET_KEY` | Signs session tokens. Required in production (the API refuses to start without it) |
+| `AEGIS_BOOTSTRAP_ADMIN_EMAIL/PASSWORD` | First admin, created once when no users exist |
+| `AEGIS_API_KEYS` | Optional platform (operator) keys with access to all tenants |
+| `AEGIS_RAW_TEXT_RETENTION_DAYS`, `AEGIS_AUDIT_RETENTION_DAYS` | Data retention, enforced by the worker |
 | `ANTHROPIC_API_KEY`, `AEGIS_MODEL` | AI engine. Default model `claude-opus-5-5` |
 | `AEGIS_*_EFFORT` | Per-agent effort (`low`…`max`) |
 | `AEGIS_ENABLE_FALLBACKS` | Server-side refusal fallbacks (beta). Set `false` on Bedrock/Vertex/Foundry |
@@ -118,7 +152,7 @@ All settings are documented in [`.env.example`](.env.example). The important one
 
 ## API
 
-All `/api/*` routes require `X-API-Key`.
+All `/api/*` routes require a session (`Authorization: Bearer`) or an API key (`X-API-Key`). Role requirements are listed in [Multi-tenancy & access](#multi-tenancy--access). Login: `POST /api/auth/login`. User, key and audit endpoints: `/api/users`, `/api/api-keys`, `/api/audit-log`. Collectors: `GET /api/collectors`, `POST /api/collectors/{name}/run`.
 
 | Method | Path | Notes |
 |---|---|---|
@@ -140,13 +174,14 @@ All `/api/*` routes require `X-API-Key`.
 * **Nothing AI-generated is executed.** Scripts are syntax-checked with `bash -n` / `ast.parse`, risk-scored, and need explicit human approval.
 * **Alerting is decided by code**, not by a model (severity threshold), and outbound URLs are HTTPS-only with SSRF guards.
 * **API:** constant-time API-key comparison, per-key rate limits (Redis-backed), strict Pydantic input models (`extra="forbid"`, length bounds), allowlisted CORS, security headers, JSON logs without secrets, non-root containers.
-* **Dashboard:** the API key stays server-side and the proxy forwards only allowlisted paths. The dashboard itself has no login, so in production put it behind your SSO (e.g. oauth2-proxy, Cloudflare Access, ALB OIDC).
+* **Dashboard:** login with an httpOnly, SameSite=Strict session cookie. The token never reaches page JavaScript, and the proxy forwards only allowlisted paths. MFA/SSO is not built in yet (see the security assessment).
 
 ## Testing
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 81 tests, ~6 s, no network or API spend
+pytest -q          # 112 tests, ~15 s, no network or API spend
+python -m alembic upgrade head && python -m alembic check   # migrations vs models (CI runs this on Postgres)
 ruff check .
 cd frontend && npx tsc --noEmit && npm run build
 ```
@@ -171,7 +206,12 @@ The Anthropic API is mocked at the HTTP transport (`httpx2.MockTransport`), so e
 | Alerting | Slack Block Kit, Twilio form/auth, HMAC signature, 1600-char WhatsApp limit, SSRF guard, blank env = unconfigured | `tests/test_dispatcher.py` | Pass |
 | Docker | Both images build; compose stack (db+pgvector, redis, backend, worker, frontend) reaches healthy; pgvector extension present | `docker compose up` | Pass |
 | End-to-end UI | Attack trigger → live agent progress → MITRE/Stack/Remediation tabs → Copy, Simulate, Approve, Dispatch, STIX/CEF download, stack re-rank, re-run; 0 console errors; no horizontal scroll at 390 px | Playwright against the Docker stack (mock Anthropic endpoint) | Pass |
+| Multi-tenancy & auth | Login, token forgery/expiry, roles, cross-tenant 404s, API key revoke, deactivation kills live sessions | `tests/test_auth.py` (tenant check mutation-tested) + browser run | Pass |
+| Collectors | NVD filtering/pagination/KEV, Telegram parsing + cursor, Pastebin refusal handling, feed dedup, stack-gated fan-out | `tests/test_collectors.py` (fixtures; live sources unreachable from build env) | Pass |
+| Migrations | Upgrade, no drift vs models, downgrade, re-upgrade | Postgres + pgvector (local Docker), SQLite in `tests/test_migrations.py`, Postgres in CI | Pass |
+| Audit & retention | Every security action logged, tenant-scoped log, no secrets in log, redaction and purge idempotent | `tests/test_audit.py` | Pass |
+| Supply chain | `pip-audit` and `npm audit` clean | CI + local run | Pass |
 
-**Bugs found and fixed during verification:** blank env vars from compose made unconfigured alert channels look configured (alerts logged as `failed` instead of `skipped`); horizontal overflow on mobile in the threat feed; standalone build tracing root picked up the parent pnpm workspace.
+**Bugs found and fixed during verification:** seeding race between API workers on first start (unique-constraint crash); lazy load after rollback in the concurrent-duplicate ingest path; `X-Forwarded-For` trusted from any client; vulnerable PostCSS bundled by Next.js; blank env vars from compose made unconfigured alert channels look configured (alerts logged as `failed` instead of `skipped`); horizontal overflow on mobile in the threat feed; standalone build tracing root picked up the parent pnpm workspace.
 
-**Not yet verified:** analysis quality against the live Anthropic API. Every test and the end-to-end run used a mocked model endpoint, so the agents' real outputs (and refusal rates on dark-web content) need a run with a real key. Collectors for Telegram, paste sites and NVD polling are the next phase; today intel enters through `POST /api/threats/ingest` or the simulator. Schema changes use `create_all` at startup, so add Alembic migrations before production data exists.
+**Not yet verified:** analysis quality against the live Anthropic API. Every test and the end-to-end run used a mocked model endpoint, so the agents' real outputs (and refusal rates on dark-web content) need a run with a real key. Collectors were tested against recorded-format fixtures only: this build environment cannot reach NVD, Telegram or Pastebin, so a first live run should be watched. MFA/SSO, external pentest and SOC 2 audit are outstanding (see `docs/`).
