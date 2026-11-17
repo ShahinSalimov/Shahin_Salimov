@@ -18,6 +18,7 @@ from backend.dispatcher import (
     build_slack_payload,
     build_summary,
     build_whatsapp_body,
+    channel_configured,
     dispatch_alerts,
     sign_webhook,
 )
@@ -112,6 +113,14 @@ async def test_dispatch_records_failures_and_rejects_unsafe_urls() -> None:
     assert logs[0].status is AlertStatus.FAILED and logs[0].response_code == 500
     assert logs[1].status is AlertStatus.FAILED and "public HTTPS" in logs[1].error
     assert logs[2].status is AlertStatus.SKIPPED
+
+
+def test_blank_env_values_mean_unconfigured() -> None:
+    # Regression: docker-compose passes unset variables as empty strings.
+    settings = _settings(SLACK_WEBHOOK_URL="", ALERT_WEBHOOK_URL="  ", ANTHROPIC_API_KEY="", REDIS_URL="", TWILIO_ACCOUNT_SID="")
+    assert settings.slack_webhook_url is None and settings.generic_webhook_url is None and settings.redis_url is None
+    assert not settings.ai_configured
+    assert not any(channel_configured(c, settings) for c in AlertChannel)
 
 
 def test_secret_settings_are_not_leaked_in_repr() -> None:

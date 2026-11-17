@@ -1,0 +1,112 @@
+# AegisPulse - one-command stack:
+#   cp .env.example .env   (fill in the REQUIRED values)
+#   docker compose up -d --build
+name: aegispulse
+
+x-backend-env: &backend-env
+  AEGIS_ENV: ${AEGIS_ENV:-production}
+  AEGIS_LOG_LEVEL: ${AEGIS_LOG_LEVEL:-INFO}
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-aegispulse}
+  REDIS_URL: redis://redis:6379/0
+  AEGIS_API_KEYS: ${AEGIS_API_KEYS:?set AEGIS_API_KEYS in .env}
+  AEGIS_CORS_ORIGINS: ${AEGIS_CORS_ORIGINS:-http://localhost:3000}
+  AEGIS_DASHBOARD_URL: ${AEGIS_DASHBOARD_URL:-http://localhost:3000}
+  AEGIS_RATE_LIMIT_PER_MINUTE: ${AEGIS_RATE_LIMIT_PER_MINUTE:-120}
+  AEGIS_EXPENSIVE_RATE_LIMIT_PER_MINUTE: ${AEGIS_EXPENSIVE_RATE_LIMIT_PER_MINUTE:-10}
+  AEGIS_SEED_DEMO_COMPANY: ${AEGIS_SEED_DEMO_COMPANY:-true}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  AEGIS_MODEL: ${AEGIS_MODEL:-claude-opus-5-5}
+  AEGIS_TRIAGE_EFFORT: ${AEGIS_TRIAGE_EFFORT:-medium}
+  AEGIS_CONTEXT_EFFORT: ${AEGIS_CONTEXT_EFFORT:-high}
+  AEGIS_REMEDIATION_EFFORT: ${AEGIS_REMEDIATION_EFFORT:-high}
+  AEGIS_ENABLE_FALLBACKS: ${AEGIS_ENABLE_FALLBACKS:-true}
+  AEGIS_ANALYSIS_CONCURRENCY: ${AEGIS_ANALYSIS_CONCURRENCY:-4}
+  AEGIS_ALERT_SEVERITY_THRESHOLD: ${AEGIS_ALERT_SEVERITY_THRESHOLD:-8.0}
+  AEGIS_AUTO_DISPATCH_ALERTS: ${AEGIS_AUTO_DISPATCH_ALERTS:-true}
+  SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+  TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+  TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+  TWILIO_WHATSAPP_FROM: ${TWILIO_WHATSAPP_FROM:-}
+  TWILIO_WHATSAPP_TO: ${TWILIO_WHATSAPP_TO:-}
+  ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+  ALERT_WEBHOOK_SECRET: ${ALERT_WEBHOOK_SECRET:-}
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aegis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-aegispulse}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    image: aegispulse/backend:1.0.0
+    restart: unless-stopped
+    environment: *backend-env
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks: [internal]
+
+  worker:
+    image: aegispulse/backend:1.0.0
+    restart: unless-stopped
+    command: ["python", "-m", "backend.worker"]
+    environment:
+      <<: *backend-env
+      AEGIS_AUTO_CREATE_SCHEMA: "false"
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      disable: true
+    networks: [internal]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    image: aegispulse/frontend:1.0.0
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      AEGIS_API_KEY: ${DASHBOARD_API_KEY:?set DASHBOARD_API_KEY in .env (must be one of AEGIS_API_KEYS)}
+    depends_on:
+      backend: { condition: service_healthy }
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks: [internal]
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  internal:

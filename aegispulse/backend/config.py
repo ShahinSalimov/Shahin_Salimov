@@ -59,6 +59,24 @@ class Settings(BaseSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
+    @field_validator(
+        "redis_url",
+        "anthropic_api_key",
+        "slack_webhook_url",
+        "twilio_account_sid",
+        "twilio_auth_token",
+        "twilio_whatsapp_from",
+        "generic_webhook_url",
+        "generic_webhook_secret",
+        mode="before",
+    )
+    @classmethod
+    def _blank_is_unset(cls, value: object) -> object:
+        # docker-compose passes unset variables as "", which must mean "not configured".
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
     @property
     def ai_configured(self) -> bool:
         return bool(self.anthropic_api_key and self.anthropic_api_key.get_secret_value())
