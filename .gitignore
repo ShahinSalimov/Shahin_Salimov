@@ -53,3 +53,10 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# AegisPulse
+aegispulse/.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/

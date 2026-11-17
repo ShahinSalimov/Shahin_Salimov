@@ -1,0 +1,11 @@
+# Runtime dependencies (pinned for reproducible builds)
+anthropic==2.9.0
+fastapi==0.163.1
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+pydantic-settings==2.16.3
+SQLAlchemy[asyncio]==2.1.9
+asyncpg==0.32.0
+pgvector==0.5.1
+redis==6.4.0
+httpx==0.28.1
