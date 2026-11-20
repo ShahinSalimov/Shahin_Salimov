@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8" />
+<title>Soltanov AI — Təqdimat</title>
+<style>
+  @page { size: 1920px 1080px; margin: 0; }
+  :root { --bg:#0b0c0f; --bg2:#13151a; --card:#181b21; --line:#262a33; --text:#f2f4f7; --muted:#9aa3b2; --volt:#c6ff3d; --ink:#11140a; --hot:#ff5a36; --blue:#4da3ff; --ok:#34d399; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, "DejaVu Sans", sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; padding: 96px 120px; page-break-after: always; break-after: page; background: radial-gradient(1200px 700px at 100% 0%, rgba(198,255,61,.07), transparent 60%), var(--bg); }
+  .slide:last-child { page-break-after: auto; }
+  .num { position: absolute; bottom: 52px; right: 120px; color: var(--muted); font-size: 20px; font-weight: 600; }
+  .foot { position: absolute; bottom: 52px; left: 120px; color: var(--muted); font-size: 20px; display: flex; align-items: center; gap: 12px; font-weight: 700; }
+  .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--volt); color: var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 15px; }
+  .kicker { color: var(--volt); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 22px; margin-bottom: 22px; }
+  h1 { font-size: 92px; line-height: 1.02; letter-spacing: -.04em; margin: 0 0 28px; font-weight: 900; }
+  h2 { font-size: 64px; line-height: 1.08; letter-spacing: -.03em; margin: 0 0 22px; font-weight: 850; }
+  h3 { font-size: 30px; margin: 0 0 10px; letter-spacing: -.01em; }
+  p, li { font-size: 26px; line-height: 1.5; color: #d5dae3; }
+  .lead { font-size: 32px; color: var(--muted); max-width: 1300px; margin: 0; line-height: 1.45; }
+  .volt { color: var(--volt); }
+  .row { display: flex; gap: 48px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 36px; }
+  .card p { margin: 0; font-size: 23px; color: var(--muted); }
+  .badge { display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--volt); color: var(--ink); font-weight: 800; font-size: 18px; margin-bottom: 18px; }
+  .badge.dark { background: var(--bg2); color: var(--volt); border: 1px solid rgba(198,255,61,.35); }
+  .big { font-size: 84px; font-weight: 900; color: var(--volt); letter-spacing: -.03em; line-height: 1; }
+  .phone { width: 380px; border-radius: 46px; border: 10px solid #1d2027; box-shadow: 0 40px 80px rgba(0,0,0,.55); overflow: hidden; background: #000; flex: none; }
+  .phone img { display: block; width: 100%; }
+  .phones { display: flex; gap: 36px; align-items: flex-start; }
+  .shot { border-radius: 22px; border: 1px solid var(--line); box-shadow: 0 30px 70px rgba(0,0,0,.5); display: block; }
+  ul.clean { list-style: none; padding: 0; margin: 0; }
+  ul.clean li { padding: 14px 0 14px 46px; position: relative; border-bottom: 1px solid var(--line); font-size: 25px; }
+  ul.clean li::before { content: ""; position: absolute; left: 0; top: 24px; width: 22px; height: 22px; border-radius: 7px; background: var(--volt); }
+  ul.clean li b { color: var(--text); }
+  table.t { width: 100%; border-collapse: collapse; font-size: 24px; }
+  table.t th, table.t td { text-align: left; padding: 18px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.t th { color: var(--muted); font-size: 18px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  table.t td:first-child { font-weight: 800; color: var(--text); }
+  table.t td { color: #cfd5df; }
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 30px; position: relative; }
+  .timeline::before { content: ""; position: absolute; top: 34px; left: 40px; right: 40px; height: 4px; background: linear-gradient(90deg, var(--volt) 0 72%, var(--hot) 72%); border-radius: 4px; }
+  .tl { padding-right: 30px; position: relative; }
+  .dot { width: 72px; height: 72px; border-radius: 50%; background: var(--volt); color: var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 24px; position: relative; z-index: 1; margin-bottom: 22px; }
+  .dot.hot { background: var(--hot); color: #fff; }
+  .tl h3 { font-size: 28px; }
+  .tl p { font-size: 22px; color: var(--muted); margin: 0; }
+  .flow { display: flex; align-items: stretch; gap: 18px; margin-top: 40px; }
+  .flow .step { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px 24px; }
+  .flow .step .n { font-size: 20px; font-weight: 900; color: var(--volt); margin-bottom: 10px; }
+  .flow .step h3 { font-size: 25px; }
+  .flow .step p { font-size: 20px; color: var(--muted); margin: 0; line-height: 1.4; }
+  .flow .arrow { align-self: center; color: var(--volt); font-size: 40px; font-weight: 900; }
+  .arch { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 40px; align-items: center; margin-top: 30px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 28px; }
+  .box h3 { color: var(--volt); font-size: 24px; text-transform: uppercase; letter-spacing: .08em; }
+  .box .mod { background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 13px 18px; margin-top: 12px; font-size: 21px; }
+  .box .mod b { color: var(--text); }
+  .box .mod span { color: var(--muted); }
+  .conn { text-align: center; color: var(--volt); font-size: 22px; font-weight: 800; }
+  .quote { font-size: 40px; font-weight: 800; line-height: 1.25; letter-spacing: -.02em; border-left: 8px solid var(--volt); padding-left: 36px; margin: 0; }
+</style>
+</head>
+<body>
+
+<!-- 1. Cover -->
+<section class="slide" style="display:flex;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Şükran Soltanov üçün · Satışa hazır məhsul</div>
+    <h1>Soltanov AI</h1>
+    <p class="lead" style="font-size:38px;max-width:980px">İdmançı-bloqer üçün şəxsi AI kontent prodüseri. Hər gün 3 dəfə <span class="volt">onun xarakterinə uyğun</span>, çəkilməyə hazır Reels ideyaları və səsli reklam brifindən 5 hazır ssenari.</p>
+    <div class="row" style="margin-top:56px;gap:22px">
+      <span class="badge">Gündə 3 slot</span><span class="badge dark">Səs → 5 ssenari</span><span class="badge dark">Proq alətləri</span><span class="badge dark">3 gün test → satış</span>
+    </div>
+  </div>
+  <div class="phones" style="margin-right:20px">
+    <div class="phone" style="transform:rotate(-4deg) translateY(30px)"><img src="assets/today.png"></div>
+    <div class="phone" style="transform:rotate(4deg)"><img src="assets/ad-result.png"></div>
+  </div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">01</div>
+</section>
+
+<!-- 2. Problem -->
+<section class="slide">
+  <div class="kicker">Problem</div>
+  <h2>Ən böyük problem — hər gün<br>"bu gün nə çəkim?" sualı</h2>
+  <div class="grid3" style="margin-top:56px">
+    <div class="card"><div class="big">1</div><h3 style="margin-top:22px">İdeya çatışmazlığı</h3><p>Gündəlik Reels ritmi saxlanmalıdır, amma yeni, ona uyğun mövzu tapmaq hər gün vaxt və enerji aparır.</p></div>
+    <div class="card"><div class="big">2</div><h3 style="margin-top:22px">Reklam gələndə vaxt itkisi</h3><p>Brend təklif göndərir — konsept, ssenari, caption yazmaq saatlarla çəkir, cavab gecikir.</p></div>
+    <div class="card"><div class="big">3</div><h3 style="margin-top:22px">Dağınıq iş axını</h3><p>Qiymət, müqavilə şərtləri, çəkiliş planı, teleprompter — hamısı ayrı yerlərdə və ya heç yerdə.</p></div>
+  </div>
+  <p class="quote" style="margin-top:70px">Ümumi "fitness məsləhətləri" kömək etmir. Ona <span class="volt">özünün tərzində</span> — aktiv, enerjili, əyləncəli ideyalar lazımdır.</p>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">02</div>
+</section>
+
+<!-- 3. Solution overview -->
+<section class="slide">
+  <div class="kicker">Həll</div>
+  <h2>Bir sistem — üç iş axını</h2>
+  <div class="grid3" style="margin-top:50px">
+    <div class="card"><span class="badge">Əsas prioritet</span><h3>Gündəlik 3 Reels axını</h3><p>09:00, 13:00, 19:00 — hər slotda 3 ideya: mövzu, ilk 3 saniyəlik hook, saniyə-saniyə kadr planı, caption, paylaşım qeydi. Təkrar yoxdur.</p></div>
+    <div class="card"><span class="badge dark">Reklam</span><h3>Səs → 5 ssenari</h3><p>Reklam təklifini səslə danışır. Sistem brifi təhlil edir və 5 fərqli bucaqdan hazır ssenari, CTA və caption verir.</p></div>
+    <div class="card"><span class="badge dark">Proq</span><h3>Ehtiyaca görə alət</h3><p>Qiymət kalkulyatoru, müqavilə checklist, kontent təqvimi, teleprompter — vəziyyətə uyğun avtomatik təklif olunur.</p></div>
+  </div>
+  <div class="grid3" style="margin-top:28px">
+    <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Yükləmə tələb etmir</b> — link ilə açılır, telefona tətbiq kimi əlavə olunur.</p></div>
+    <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Claude AI</b> ilə strukturlaşdırılmış nəticə; AI açarı olmasa belə şablon rejimində işləyir.</p></div>
+    <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Telegram bildirişi</b> — yeni ideyalar vaxtında telefona gəlir.</p></div>
+  </div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">03</div>
+</section>
+
+<!-- 4. Persona -->
+<section class="slide" style="display:flex;gap:90px;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Fərdiləşdirmə</div>
+    <h2>İdeyalar yalnız<br>onun xarakterinə görə</h2>
+    <p class="lead" style="margin-bottom:36px">İlk açılışda sistem onu tanıyır. Bütün ideyalar və ssenarilər bu profilə görə yazılır.</p>
+    <ul class="clean">
+      <li><b>Kişi idmançı</b> — idman növü, kadrda olan dostlar, məkanlar (zal, küçə, ev)</li>
+      <li><b>Tərz:</b> aktiv, enerjili, əyləncəli — skeç, çağırış, POV, məşq + twist</li>
+      <li><b>Yumor tərzi</b> və <b>heç vaxt etmədikləri</b> (vulqar söz, təhlükəli trük)</li>
+      <li><b>Öyrənir:</b> "Keç" basılan ideya tipləri azalır, "Çəkdim" basılanlar artır</li>
+      <li><b>9 kontent sütunu</b> növbə ilə — monotonluq yoxdur</li>
+    </ul>
+  </div>
+  <div class="phone"><img src="assets/onboarding.png"></div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">04</div>
+</section>
+
+<!-- 5. Daily flow -->
+<section class="slide" style="display:flex;gap:80px;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Funksiya 1 · Əsas prioritet</div>
+    <h2>Gündə 3 dəfə hazır ideya</h2>
+    <table class="t" style="margin:26px 0 34px">
+      <tr><th>Slot</th><th>Əhval</th><th>Nə gəlir</th></tr>
+      <tr><td class="volt">09:00</td><td>Enerji, gün planı</td><td>3 ideya</td></tr>
+      <tr><td class="volt">13:00</td><td>Yumor, qidalanma, iş arası</td><td>3 ideya</td></tr>
+      <tr><td class="volt">19:00</td><td>Əsas yayım — ən güclü skeç / çağırış</td><td>3 ideya</td></tr>
+    </table>
+    <h3>Hər ideyanın tərkibi</h3>
+    <p style="margin:6px 0 0;color:var(--muted)">Başlıq · kontent sütunu · format · <b style="color:var(--volt)">ilk 3 saniyəlik hook</b> (söz + vizual) · saniyə-saniyə kadr planı + camera angle · caption + hashtag · səs tövsiyəsi · paylaşım qeydi · "niyə işləyir"</p>
+  </div>
+  <div class="phones">
+    <div class="phone"><img src="assets/today.png"></div>
+    <div class="phone"><img src="assets/idea.png"></div>
+  </div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">05</div>
+</section>
+
+<!-- 6. No repeats -->
+<section class="slide">
+  <div class="kicker">Funksiya 1 · Keyfiyyət nəzarəti</div>
+  <h2>Mövzu təkrarı — sistem səviyyəsində bağlıdır</h2>
+  <div class="grid2" style="margin-top:50px">
+    <div class="card"><h3>1. AI-a "təkrarlama" siyahısı</h3><p>Hər generasiyada son 60 ideyanın başlığı modelə verilir — oxşar mövzu istənilmir.</p></div>
+    <div class="card"><h3>2. Server tərəfində oxşarlıq filtri</h3><p>Yeni ideya son 120 ideya ilə söz oxşarlığına (Jaccard) görə yoxlanır. 50%+ oxşardırsa atılır və əvəzi yaradılır.</p></div>
+    <div class="card"><h3>3. Kontent sütunlarının rotasiyası</h3><p>Skeç → çağırış → POV → məşq + twist → trend → kulis → versus → sual-cavab → motivasiya.</p></div>
+    <div class="card"><h3>4. Davranışdan öyrənmə</h3><p>Üst-üstə keçilən sütun müvəqqəti çıxarılır. Statuslar: yeni → saxlanılıb → çəkilib → paylaşılıb.</p></div>
+  </div>
+  <p class="lead" style="margin-top:44px">Server yatmış olsa belə (autoscale hostinq), tətbiq açılan anda buraxılmış slot dərhal yaradılır — ideyasız gün olmur.</p>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">06</div>
+</section>
+
+<!-- 7. Voice -> 5 scripts -->
+<section class="slide" style="display:flex;gap:80px;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Funksiya 2</div>
+    <h2>Reklam səsi →<br>dərhal 5 ssenari</h2>
+    <div class="flow" style="flex-direction:column;gap:14px;margin-top:30px">
+      <div class="step"><div class="n">01 · Səs</div><h3>Reklamı danışır (maks. 3 dəq)</h3><p>Brend, məhsul, tələblər, son tarix</p></div>
+      <div class="step"><div class="n">02 · Mətn</div><h3>Avtomatik transkripsiya, redaktə mümkündür</h3><p>OpenAI Whisper və ya brauzerin nitq tanıması</p></div>
+      <div class="step"><div class="n">03 · 5 konsept</div><h3>Problem→həll · Kulis · Çağırış · Test/nəticə · Yumor</h3><p>Saniyə-saniyə: vizual, voiceover, ekran yazısı, CTA, #reklam caption</p></div>
+    </div>
+    <p style="font-size:21px;color:var(--muted);margin-top:22px">Brifdə olmayan fakt (qiymət, endirim) uydurulmur — "[brend təsdiqləsin]" kimi işarələnir.</p>
+  </div>
+  <div class="phones">
+    <div class="phone"><img src="assets/ad-input.png"></div>
+    <div class="phone"><img src="assets/ad-result.png"></div>
+  </div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">07</div>
+</section>
+
+<!-- 8. Proq -->
+<section class="slide" style="display:flex;gap:80px;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Funksiya 3</div>
+    <h2>"Proq" — lazım olanda<br>lazım olan alət</h2>
+    <table class="t" style="margin-top:24px">
+      <tr><th>Alət</th><th>Nə vaxt təklif olunur</th></tr>
+      <tr><td>Teleprompter</td><td>Ssenari hazır olanda</td></tr>
+      <tr><td>Qiymət kalkulyatoru</td><td>Brifdə qiymət / ödəniş / büdcə</td></tr>
+      <tr><td>Müqavilə checklist</td><td>Şərt, eksklüzivlik, müqavilə sözləri</td></tr>
+      <tr><td>Kontent təqvimi</td><td>Son tarix və ya ≥3 çəkilmiş, paylaşılmamış video</td></tr>
+      <tr><td>Profil tənzimləmə</td><td>Həftədə ≥5 ideya keçilib</td></tr>
+      <tr><td>Telegram bildirişi</td><td>Bildiriş qoşulmayıb</td></tr>
+    </table>
+  </div>
+  <div class="phone"><img src="assets/proq.png"></div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">08</div>
+</section>
+
+<!-- 9. Two forms -->
+<section class="slide">
+  <div class="kicker">Məhsulun iki forması</div>
+  <h2>Link ilə test, tətbiq ilə satış</h2>
+  <div class="grid2" style="margin-top:46px">
+    <div class="card" style="border-color:rgba(198,255,61,.4)">
+      <span class="badge">Forma 1 · Link</span>
+      <h3 style="font-size:38px">3 günlük test versiyası</h3>
+      <ul class="clean" style="margin-top:18px">
+        <li>Yükləmə yoxdur — link WhatsApp ilə göndərilir</li>
+        <li>İlk açılışdan <b>72 saat</b> tam funksional</li>
+        <li>Maks. 2 cihaz, gündəlik reklam limiti</li>
+        <li>Vaxt bitəndə <b>avtomatik blok</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="badge dark">Forma 2 · Tətbiq</span>
+      <h3 style="font-size:38px">Tam versiya — sahibdə qalır</h3>
+      <ul class="clean" style="margin-top:18px">
+        <li>Ayrıca təhvil paketi: <b>SoltanovAI-Full.tar.gz</b></li>
+        <li>Lisenziya açarı ilə giriş, müddət limiti yoxdur</li>
+        <li>Telefona tətbiq kimi quraşdırılır (PWA)</li>
+        <li>Satış olana qədər müştəridə deyil, <b>sizdə</b></li>
+      </ul>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:36px">Edition-lar texniki olaraq ayrıdır: trial serveri lisenziya açarını qəbul etmir, tam versiya trial linkini qəbul etmir.</p>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">09</div>
+</section>
+
+<!-- 10. Lock logic -->
+<section class="slide" style="display:flex;gap:80px">
+  <div style="flex:1">
+    <div class="kicker">3 gün → blok</div>
+    <h2>Test bitəndə sistem<br>özü bağlanır</h2>
+    <div class="timeline">
+      <div class="tl"><div class="dot">1</div><h3>Gün 1</h3><p>Link açılır, saat serverdə başlayır, profil</p></div>
+      <div class="tl"><div class="dot">2</div><h3>Gün 2</h3><p>9 ideya/gün, reklam ssenariləri</p></div>
+      <div class="tl"><div class="dot">3</div><h3>Gün 3</h3><p>Ekranda geri sayım, son gün xəbərdarlığı</p></div>
+      <div class="tl"><div class="dot hot">72s</div><h3>Blok</h3><p>Statistika + "Tam versiyanı əldə et"</p></div>
+    </div>
+    <h3 style="margin-top:46px">Yayınmanın qarşısı</h3>
+    <ul class="clean">
+      <li>Vaxt yalnız <b>server saatı</b> ilə — telefonun saatını dəyişmək işləmir</li>
+      <li>Bitmiş link <b>yenidən aktivləşmir</b>: cookie silmək, gizli pəncərə, yeni brauzer — eyni nəticə</li>
+      <li>İmzalı (HMAC) sessiya + <b>cihaz limiti</b>: linki ötürmək bloklanır</li>
+      <li>Bütün generasiya serverdədir, keş təmizlənir — offline istifadə yoxdur</li>
+    </ul>
+  </div>
+  <div class="phone" style="align-self:center"><img src="assets/locked.png"></div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">10</div>
+</section>
+
+<!-- 11. Sales flow -->
+<section class="slide">
+  <div class="kicker">Satış mexanizmi</div>
+  <h2>Testdən satışa 6 addım</h2>
+  <div class="flow">
+    <div class="step"><div class="n">01</div><h3>Link yarat</h3><p>Admin paneldə 1 klik, müştəriyə hazır mesaj</p></div><div class="arrow">›</div>
+    <div class="step"><div class="n">02</div><h3>3 gün istifadə</h3><p>Hər gün 9 ideya, reklam ssenariləri</p></div><div class="arrow">›</div>
+    <div class="step"><div class="n">03</div><h3>Siz izləyirsiniz</h3><p>Aktivləşmə, son giriş, istifadə sayı</p></div><div class="arrow">›</div>
+    <div class="step"><div class="n">04</div><h3>Avtomatik blok</h3><p>Statistika + əlaqə düyməsi</p></div><div class="arrow">›</div>
+    <div class="step"><div class="n">05</div><h3>Satış söhbəti</h3><p>Lazım olsa +24 saat uzatma</p></div><div class="arrow">›</div>
+    <div class="step" style="border-color:var(--volt)"><div class="n">06</div><h3>Tam versiya</h3><p>Paket quraşdırılır, lisenziya açarı verilir</p></div>
+  </div>
+  <img class="shot" src="assets/admin.png" style="width:1000px;height:470px;object-fit:cover;object-position:top;margin:40px auto 0">
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">11</div>
+</section>
+
+<!-- 12. Architecture -->
+<section class="slide">
+  <div class="kicker">Texniki arxitektura</div>
+  <h2>Sadə, etibarlı, asan deploy</h2>
+  <div class="arch">
+    <div class="box"><h3>Klient (PWA)</h3>
+      <div class="mod"><b>Bu gün</b> <span>— slotlar, ideyalar</span></div>
+      <div class="mod"><b>Reklam</b> <span>— səs yazısı</span></div>
+      <div class="mod"><b>Proq</b> <span>— alətlər</span></div>
+      <div class="mod"><b>Arxiv / Profil</b></div>
+      <div class="mod"><b>Admin panel</b> <span>— sahib</span></div>
+    </div>
+    <div class="box" style="border-color:rgba(198,255,61,.4)"><h3>Node.js server</h3>
+      <div class="mod"><b>access</b> <span>— trial / lisenziya / sessiya / cihaz</span></div>
+      <div class="mod"><b>ideas + scheduler</b> <span>— 09/13/19, təkrar filtri</span></div>
+      <div class="mod"><b>ads</b> <span>— transkripsiya, 5 ssenari</span></div>
+      <div class="mod"><b>proq</b> <span>— alət təklif mühərriki</span></div>
+      <div class="mod"><b>db</b> <span>— JSON fayl, atomik yazı</span></div>
+    </div>
+    <div class="box"><h3>Xidmətlər</h3>
+      <div class="mod"><b>Claude API</b> <span>— ideya, ssenari</span></div>
+      <div class="mod"><b>OpenAI Whisper</b> <span>— səs → mətn</span></div>
+      <div class="mod"><b>Telegram Bot</b> <span>— bildiriş</span></div>
+      <div class="mod"><b>Offline rejim</b> <span>— açar yoxdursa</span></div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:40px">
+    <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">1 asılılıq</b> (Anthropic SDK). Replit, VPS, Render-də işləyir.</p></div>
+    <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">Təhlükəsizlik:</b> hash-lənmiş token-lər, rate limit, CSP, imzalı cookie.</p></div>
+    <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">15 avtomatik test:</b> blok, cihaz limiti, slotlar, tam HTTP axını.</p></div>
+  </div>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">12</div>
+</section>
+
+<!-- 13. Launch -->
+<section class="slide" style="display:flex;flex-direction:column;justify-content:center">
+  <div class="kicker">İşə salma</div>
+  <h2>Bu gün göndərməyə hazırdır</h2>
+  <div class="grid2" style="margin-top:40px">
+    <ul class="clean">
+      <li><b>1.</b> Serveri deploy et: <span class="volt">EDITION=trial</span></li>
+      <li><b>2.</b> .env: Claude açarı, sirlər, WhatsApp linki</li>
+      <li><b>3.</b> Admin paneldə "Link yarat"</li>
+      <li><b>4.</b> Hazır mesajı müştəriyə göndər</li>
+    </ul>
+    <ul class="clean">
+      <li><b>5.</b> 3 gün ərzində istifadəni admin paneldən izlə</li>
+      <li><b>6.</b> Blokdan sonra satış söhbəti</li>
+      <li><b>7.</b> <span class="volt">npm run package:app</span> → tam versiyanı təhvil ver</li>
+      <li><b>8.</b> Lisenziya açarı yarat və ver</li>
+    </ul>
+  </div>
+  <p class="quote" style="margin-top:70px">Mövzu axtarmağa sərf olunan vaxt → <span class="volt">çəkilişə</span>.</p>
+  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">13</div>
+</section>
+
+</body>
+</html>

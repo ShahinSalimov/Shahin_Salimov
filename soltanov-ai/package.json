@@ -1,0 +1,20 @@
+{
+  "name": "soltanov-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Soltanov AI — gündəlik Reels ideyaları və səsdən reklam ssenariləri (trial link + tam tətbiq)",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "start:trial": "EDITION=trial node src/server.js",
+    "start:full": "EDITION=full node src/server.js",
+    "admin": "node scripts/admin-cli.js",
+    "test": "node --test test/*.test.js",
+    "package:app": "node scripts/package-app.js",
+    "pdf": "node presentation/build-pdf.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.11.0"
+  }
+}

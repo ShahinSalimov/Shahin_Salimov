@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Soltanov AI Admin</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    body { padding-bottom: 40px; }
+    table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.list th, table.list td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    table.list th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .scroll { overflow-x: auto; }
+    .st-active { color: var(--ok); } .st-expired { color: var(--hot); } .st-revoked { color: var(--muted); } .st-pending { color: var(--blue); }
+    .row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: end; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+    .linkout { word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="wrap"><div class="brand"><div class="brand-mark">S</div><div>Admin<br><small id="ed">—</small></div></div><span class="spacer"></span><button class="btn small ghost hidden" id="logout">Çıxış</button></div></header>
+  <main class="wrap" id="main"></main>
+  <script src="/admin.js" type="module"></script>
+</body>
+</html>
