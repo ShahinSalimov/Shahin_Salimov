@@ -1,6 +1,6 @@
-# Render Blueprint — Soltanov AI (3 günlük test linki)
-# Render → New → Blueprint → bu reponu seçin. Sirlər (SESSION_SECRET, ADMIN_TOKEN) avtomatik yaranır,
-# açarları (ANTHROPIC_API_KEY və s.) Render özü soruşacaq.
+# Render Blueprint - Soltanov AI (3-day trial link edition)
+# Render -> New -> Blueprint -> select this repo. SESSION_SECRET and ADMIN_TOKEN are generated,
+# Render asks for the keys marked sync: false.
 services:
   - type: web
     name: soltanov-ai
@@ -30,7 +30,7 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: OWNER_NAME
-        value: Şahin Səlimov
+        sync: false
       - key: OWNER_CONTACT_URL
         sync: false
       - key: TELEGRAM_BOT_TOKEN
