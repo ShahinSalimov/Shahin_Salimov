@@ -1,0 +1,122 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+@theme {
+  --color-bg: #0b1020;
+  --color-surface: #121a2b;
+  --color-elevated: #19243a;
+  --color-line: #253049;
+  --color-primary: #8065f6;
+  --color-primary-strong: #6c4ff0;
+  --color-secondary: #36b8e8;
+  --color-success: #2fcf97;
+  --color-warning: #f5b84a;
+  --color-danger: #f16a7f;
+  --color-ink: #f5f7ff;
+  --color-muted: #929db4;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', 'Inter Variable', ui-sans-serif, sans-serif;
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --shadow-glow: 0 10px 30px -10px rgb(128 101 246 / 0.55);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    min-height: 100dvh;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgb(128 101 246 / 0.45);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line/70 bg-surface shadow-[var(--shadow-card)];
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-bg/60 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/60 transition-colors outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 aria-[invalid=true]:border-danger;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/90;
+  }
+  .bg-grid {
+    background-image: linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-[#a995ff] via-primary to-secondary bg-clip-text text-transparent;
+  }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@utility animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+@utility animate-slide-in-left {
+  animation: slide-in-left 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@utility animate-toast-in {
+  animation: toast-in 0.25s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+dialog[open] {
+  animation: pop-in 0.18s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+dialog[open]::backdrop {
+  animation: fade-in 0.2s ease-out;
+}
+
+.skip-link {
+  @apply sr-only;
+}
+.skip-link:focus {
+  @apply not-sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  body { background: #fff !important; color: #111 !important; }
+  .no-print { display: none !important; }
+}
