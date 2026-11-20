@@ -1,0 +1,346 @@
+<title>SİPƏR Telekom Anti-Fraud</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: single reading column (max 960px); graphite cover band styled like a call-screen; product cards in a 2-col grid; tables scroll inside their own box. */
+:root{
+  --bg:#f6f6f4; --surface:#ffffff; --ink:#17191c; --muted:#5a6068; --line:#dcdedf;
+  --accent:#c2410c; --accent-soft:#fbeadf; --ok:#1f7a4d; --ok-soft:#e2f2ea; --warn:#a16207; --warn-soft:#f8efd9;
+  --band:#15181c; --band-ink:#eceeef; --band-muted:#9aa2aa; --band-line:#2a3036;
+  --f-text:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101214; --surface:#181b1f; --ink:#e7e9eb; --muted:#9ea5ad; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418; --ok:#5fc492; --ok-soft:#173326; --warn:#e0b04f; --warn-soft:#352a14;
+  --band:#0a0c0e; --band-ink:#eceeef; --band-muted:#959da6; --band-line:#252a30; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101214; --surface:#181b1f; --ink:#e7e9eb; --muted:#9ea5ad; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418; --ok:#5fc492; --ok-soft:#173326; --warn:#e0b04f; --warn-soft:#352a14;
+  --band:#0a0c0e; --band-ink:#eceeef; --band-muted:#959da6; --band-line:#252a30; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-text);font-size:16px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2;margin:0}
+h2{font-size:clamp(1.4rem,3vw,1.85rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.12rem;font-weight:700}
+p{margin:0;max-width:68ch}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+section{padding-block:52px;border-top:1px solid var(--line)}
+.head{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+.cover{background:var(--band);color:var(--band-ink);margin-top:calc(-1*env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 52px);padding-bottom:52px}
+.cover-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;align-items:center}
+@media (max-width:780px){.cover-grid{grid-template-columns:1fr}}
+.cover .eyebrow{color:#f5a06b}
+.cover h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.02em;margin-top:12px}
+.cover .lede{color:var(--band-muted);font-size:1.08rem;margin-top:16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:22px;font-family:var(--f-mono);font-size:.8rem;color:var(--band-muted)}
+.meta b{color:var(--band-ink);font-weight:500}
+/* call-screen mock */
+.phone{border:1px solid var(--band-line);border-radius:28px;padding:22px 18px;background:#1c2025;max-width:300px;width:100%;justify-self:center;display:flex;flex-direction:column;gap:12px}
+.phone .num{font-family:var(--f-mono);font-size:1.15rem;color:#fff;text-align:center}
+.phone .lbl{font-size:.8rem;color:#9aa2aa;text-align:center}
+.alert{border-radius:12px;padding:10px 12px;font-size:.85rem;line-height:1.4}
+.alert.bad{background:#3b1d14;color:#ffc7a8;border:1px solid #6b2f1a}
+.alert.good{background:#14301f;color:#b9ecd0;border:1px solid #1f5a39}
+.alert b{display:block;font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--band-line);border:1px solid var(--band-line);margin-top:36px}
+.kpi{background:var(--band);padding:16px;display:flex;flex-direction:column;gap:4px}
+.kpi .n{font-family:var(--f-mono);font-size:1.45rem;font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:.8rem;color:var(--band-muted);line-height:1.4}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:620px}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{font-weight:700}
+
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;font-size:.95rem}
+.callout.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+
+.prods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:720px){.prods{grid-template-columns:1fr}}
+.prod{background:var(--surface);border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.prod .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.prod .code{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);font-weight:600}
+.tag{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border:1px solid currentColor;white-space:nowrap}
+.tag.mvp{color:var(--ok)}
+.tag.p2{color:var(--muted)}
+.prod p{font-size:.93rem}
+.prod ul{margin:0;padding-left:18px;font-size:.88rem;color:var(--muted)}
+.prod ul li{margin:3px 0}
+.prod .who{font-size:.82rem;font-family:var(--f-mono);color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:auto}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:720px){.two{grid-template-columns:1fr}}
+.list{margin:0;padding-left:20px}
+.list li{margin:6px 0}
+.ops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.ops{grid-template-columns:1fr}}
+.op{background:var(--surface);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.op h3{font-size:1.05rem}
+.op .st{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+.op p{font-size:.9rem}
+.src{font-size:.85rem;color:var(--muted)}
+.src li{margin:4px 0;word-break:break-word}
+.diagram{background:var(--surface);border:1px solid var(--line);padding:16px;overflow-x:auto}
+.diagram pre{margin:0}
+footer{padding-block:30px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<header class="cover">
+  <div class="wrap">
+    <div class="cover-grid">
+      <div>
+        <div class="eyebrow">Startap layihəsi · Mobil operatorlar üçün · v1.0</div>
+        <h1>SİPƏR</h1>
+        <p class="lede">Mobil operatorlar üçün Azərbaycan dilində işləyən AI fırıldaq əleyhinə platforma. Saxta “bank zəngləri”ni, fişinq SMS-ləri və SIM dəyişdirmə fırıldağını şəbəkə səviyyəsində dayandırır. Operatora isə banklardan yeni gəlir mənbəyi açır.</p>
+        <div class="meta"><span>Müəllif: <b>Şahin Səlimov</b></span><span>Hədəf: <b>Azercell · Bakcell · Nar</b></span><span>Model: <b>B2B / B2B2C</b></span></div>
+      </div>
+      <div class="phone" aria-label="Məhsulun abunəçi ekranında necə görünəcəyinin nümunəsi">
+        <div class="lbl">Gələn zəng</div>
+        <div class="num">+994 55 *** ** 17</div>
+        <div class="alert bad"><b>SİPƏR · Şübhəli zəng</b>Bu nömrə “bank əməkdaşı” kimi təqdim olunur, amma bankın təsdiqlənmiş nömrəsi deyil. Kart məlumatı verməyin.</div>
+        <div class="alert good"><b>SİPƏR · Təsdiqlənmiş</b>Sizin bankınız (nümunə). Bu zəng bankın qeydiyyatlı xəttindən gəlir.</div>
+        <div class="lbl">Ekran nümunədir</div>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span class="n">22.4 mln ₼</span><span class="l">2024-də bank kartlarından kibermüdaxilə ilə oğurlanan məbləğ (DİN)</span></div>
+      <div class="kpi"><span class="n">16 804</span><span class="l">2024-də qeydə alınan kart fırıldağı halı</span></div>
+      <div class="kpi"><span class="n">~85 min ₼</span><span class="l">6 aylıq MVP və pilot üçün təxmini başlanğıc büdcə</span></div>
+      <div class="kpi"><span class="n">90 gün</span><span class="l">bir operatorla pulsuz sınaq (POC) müddəti</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section style="border-top:0">
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">01 · Problem</div><h2>Fırıldaq telefon xəttindən keçir, amma zərəri bank və abunəçi çəkir</h2></div>
+    <ul class="list">
+      <li>Ən çox yayılmış ssenari: zəng və ya SMS gəlir, özünü bank əməkdaşı, kuryer və ya dövlət qurumu kimi təqdim edir, kart məlumatını və ya SMS kodunu istəyir. 2024-də yalnız “bank əməkdaşı” ssenarisi ilə 290 halda təxminən 598 min ₼ oğurlanıb.</li>
+      <li>Fişinq SMS-ləri Azərbaycan və rus dilindədir. Qlobal spam filtrləri ingilis dili üçün öyrədilib, yerli ifadələri, transliterasiyanı (“kartiniz bloklanib”) və yerli brendlərin saxta saytlarını zəif tanıyır.</li>
+      <li>Banklar zəng gələndə abunəçinin SIM kartının bir saat əvvəl dəyişdirildiyini bilmir. Operator isə bunu bilir. Bu məlumat körpüsü yoxdur.</li>
+      <li>Hər üç operator abunəçilərini mütəmadi xəbərdarlıq edir, lakin xəbərdarlıq reaktivdir: fırıldaq artıq baş verəndən sonra gəlir.</li>
+    </ul>
+    <div class="callout">Mərkəzi Bank şübhəli nömrələrin bloklanması mexanizmi üzərində işlədiyini açıqlayıb. Bu mexanizmin texniki tərəfi operatorların şəbəkəsindən keçəcək. SİPƏR operatorlara bu tələbə hazır texnoloji cavab təklif edir.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">02 · Bazarda nə var</div><h2>Operatorların hazırkı vəziyyəti</h2>
+      <p class="muted">İctimai mənbələrə əsasən. Görüşdən əvvəl hər operatorun saytından yenidən yoxlayın.</p></div>
+    <div class="ops">
+      <div class="op"><h3>Nar</h3><span class="st">Ödənişli təhlükəsizlik xidməti var</span><p>“Digital Security” əlavəsi satır: fişinq saytlarından qoruma, məlumat sızması xəbərdarlığı. Spam bloklama funksiyası da var. SİPƏR üçün rol: mövcud xidmətə Azərbaycan dilli AI və bank inteqrasiyası əlavə etmək.</p></div>
+      <div class="op"><h3>Azercell</h3><span class="st">SMS filtrasiyası və xəbərdarlıqlar</span><p>Abunəçilər üçün xüsusi SMS filtrasiyası tətbiq etdiyini, şübhəli zəng və linklərə qarşı xəbərdarlıqlar yaydığını açıqlayıb. Ayrıca pullu qoruma məhsulunu tapmadım. SİPƏR üçün rol: filtr dəqiqliyini artırmaq, bank API-ləri.</p></div>
+      <div class="op"><h3>Bakcell</h3><span class="st">Ayrıca məhsul tapılmadı</span><p>Əsasən köhnə SIM-box fırıldağı ilə mübarizə xəbərləri var. Hazırkı fişinq əleyhinə məhsul tapmadım. Bakcell ilk pilot üçün ən açıq hədəf ola bilər.</p></div>
+    </div>
+    <p class="muted">Dünya təcrübəsi: T-Mobile (Scam Shield), Vodafone (Secure Net) kimi operatorlar fırıldaq əleyhinə xidmətləri abunəçilərə ayrıca məhsul kimi satır. GSMA Open Gateway təşəbbüsü çərçivəsində CAMARA standartı ilə operatorlar SIM Swap və nömrə təsdiqi API-lərini banklara satmağa başlayıb. Azərbaycanda bu API modeli hələ ictimai şəkildə görünmür.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">03 · Həll</div><h2>5 məhsul: 3-ü MVP-də, 2-si sonrakı mərhələdə</h2></div>
+    <div class="prods">
+      <article class="prod"><div class="top"><span class="code">S-01 · SMS QORUYUCU</span><span class="tag mvp">MVP</span></div><h3>Azərbaycan dilli fişinq SMS aşkarlanması</h3>
+        <p>Azərbaycan, rus və latın qrafikalı transliterasiya mətnləri üçün öyrədilmiş AI model. SMS-dəki linki, göndərəni və mətni qiymətləndirir. Operatorun mövcud SMS firewall-una “blokla / xəbərdar et / burax” qərarı və ya zərərli link siyahısı kimi qoşulur.</p>
+        <ul><li>Model operatorun öz serverində işləyir, SMS mətni şirkətdən çıxmır</li><li>Yeni saxta domenlərin gündəlik kəşfi (yerli bank və brend adları ilə)</li></ul>
+        <span class="who">Alıcı: operatorun təhlükəsizlik / fraud şöbəsi</span></article>
+      <article class="prod"><div class="top"><span class="code">S-02 · BANK TƏSDİQİ</span><span class="tag mvp">MVP</span></div><h3>Təsdiqlənmiş bank zəngləri</h3>
+        <p>Banklar zəng etdikləri nömrələri qeydiyyatdan keçirir. Qeydiyyatlı nömrədən gələn zəngdə abunəçi “Təsdiqlənmiş: Bankın adı” görür. Özünü bank kimi təqdim edən, amma qeydiyyatsız nömrələr şübhəli kimi işarələnir.</p>
+        <ul><li>Bank başına aylıq abunə haqqı</li><li>Gəlir operatorla bölüşdürülür</li></ul>
+        <span class="who">Alıcı: operator (satır) → bank (ödəyir)</span></article>
+      <article class="prod"><div class="top"><span class="code">S-03 · SIM RİSK API</span><span class="tag mvp">MVP</span></div><h3>SIM dəyişdirmə və nömrə riski API-si</h3>
+        <p>Bank pul köçürməsini və ya yeni cihazda girişi təsdiqləməzdən əvvəl operatora sual verir: “Bu nömrənin SIM kartı son 72 saatda dəyişdirilib?” Cavab yalnız bəli/xeyr və ya risk səviyyəsidir, şəxsi məlumat ötürülmür. CAMARA SIM Swap standartına uyğun.</p>
+        <ul><li>Sorğu başına ödəniş</li><li>Bank üçün inteqrasiya bir neçə gün çəkir</li></ul>
+        <span class="who">Alıcı: operator (satır) → bank (ödəyir)</span></article>
+      <article class="prod"><div class="top"><span class="code">S-04 · NÖMRƏ REPUTASİYASI</span><span class="tag p2">Mərhələ 2</span></div><h3>Fırıldaqçı nömrələrin reytinqi</h3>
+        <p>Abunəçi şikayətləri (məsələn, qısa nömrəyə yönləndirmə), zəng nümunələri (bir nömrədən qısa müddətdə yüzlərlə zəng, Wangiri) və bankların bildirişləri əsasında nömrə risk balı. Mərkəzi Bankın bloklama mexanizmi ilə inteqrasiya oluna bilər.</p>
+        <span class="who">Alıcı: operator, Mərkəzi Bank mexanizmi</span></article>
+      <article class="prod"><div class="top"><span class="code">S-05 · AİLƏ QORUMASI</span><span class="tag p2">Mərhələ 2</span></div><h3>Abunəçi üçün ödənişli xidmət</h3>
+        <p>Valideynlər və yaşlı ailə üzvləri üçün: şübhəli zəng zamanı ailə üzvünə bildiriş, link yoxlayıcısı, Azərbaycan dilində qısa təhlükəsizlik məsləhətləri. Operatorun balansından aylıq ödənişlə satılır.</p>
+        <span class="who">Alıcı: abunəçi (operator vasitəsilə, gəlir bölgüsü)</span></article>
+      <article class="prod"><div class="top"><span class="code">S-00 · AUDİT</span><span class="tag mvp">Nağd axın</span></div><h3>Operatorun öz təhlükəsizlik auditi</h3>
+        <p>İlk aylarda gəlir üçün: operatorun mobil tətbiqinin və veb kabinetinin pentesti, əməkdaşlar üçün fişinq simulyasiyası. Həm pul gətirir, həm də operatorla etimad qurur.</p>
+        <span class="who">Alıcı: operatorun İT təhlükəsizlik şöbəsi</span></article>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">04 · Necə işləyir</div><h2>Operator ortada, bank və abunəçi qorunur</h2></div>
+    <div class="diagram">
+<pre class="mermaid">
+flowchart LR
+  A[Fırıldaqçı] -->|zəng / SMS| OP[Operator şəbəkəsi]
+  OP --> S[SİPƏR modulu, operatorun serverində]
+  S -->|blokla və ya xəbərdar et| AB[Abunəçi]
+  S -->|təsdiqlənmiş nömrə| AB
+  B[Bank] -->|SIM dəyişib? nömrə bankındır?| API[SİPƏR API]
+  API --> OP
+  OP -->|bəli / xeyr, risk balı| B
+  B -->|ödəniş| OP
+  OP -->|gəlir payı| SP[SİPƏR şirkəti]
+</pre>
+    </div>
+    <div class="callout ok"><b>Məxfilik prinsipi:</b> SİPƏR abunəçi məlumatını özündə saxlamır. Model və məntiq operatorun infrastrukturunda işləyir. Banka yalnız “bəli/xeyr” və ya risk səviyyəsi cavabı gedir. Bu yanaşma operatorun hüquq şöbəsinin əsas narahatlığını aradan qaldırır, lakin fərdi məlumatlar və rabitə qanunvericiliyinə uyğunluq hüquqşünas tərəfindən ayrıca yoxlanmalıdır.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">05 · Operatora fayda</div><h2>Satış zamanı deyiləcək 5 arqument</h2></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Arqument</th><th>Operator üçün mənası</th></tr></thead>
+      <tbody>
+        <tr><td><b>Yeni gəlir</b></td><td>Banklardan API və təsdiqlənmiş zəng gəliri. Bu, operatorun mövcud şəbəkəsindən əlavə investisiya olmadan pul qazanmasıdır.</td></tr>
+        <tr><td><b>Brend etibarı</b></td><td>“Fırıldaqdan qoruyan operator” mövqeyi. Rəqiblərdən əvvəl təqdim edən operator marketinq üstünlüyü qazanır.</td></tr>
+        <tr><td><b>Tənzimləyici hazırlıq</b></td><td>Mərkəzi Bankın şübhəli nömrə mexanizmi və gələcək tələblər üçün hazır texnologiya.</td></tr>
+        <tr><td><b>Şikayətlərin azalması</b></td><td>Fırıldaq qurbanları tez-tez operatoru da günahlandırır. Azalan hal sayı call-center yükünü azaldır.</td></tr>
+        <tr><td><b>Yerli dil üstünlüyü</b></td><td>Qlobal vendorlar Azərbaycan dilini dərindən bilmir. SİPƏR yerli fişinq nümunələri ilə öyrədilir və tez yenilənir.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">06 · Başlanğıc büdcə</div><h2>6 ay: MVP, demo və bir operatorla pilot</h2>
+      <p class="muted">Maaşlar Bakı bazarı üçün mənim təxminimdir, işə götürmədən əvvəl yoxlanmalıdır. Təsisçi ilk 6 ayda maaş almır, payçı kimi işləyir.</p></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Maddə</th><th>Hesablama</th><th>Məbləğ, ₼</th></tr></thead>
+      <tbody>
+        <tr><td>ML / NLP mühəndisi (tam ştat)</td><td class="num">3 500 × 6 ay</td><td class="num">21 000</td></tr>
+        <tr><td>Backend mühəndisi (tam ştat)</td><td class="num">3 000 × 6 ay</td><td class="num">18 000</td></tr>
+        <tr><td>Təhlükəsizlik mühəndisi (yarım ştat, audit xidməti üçün)</td><td class="num">1 500 × 6 ay</td><td class="num">9 000</td></tr>
+        <tr><td>Frontend / demo tətbiq (yarım ştat)</td><td class="num">1 200 × 6 ay</td><td class="num">7 200</td></tr>
+        <tr><td>Server, GPU icarəsi, test SMS şlüzü</td><td class="num">1 500 × 6 ay</td><td class="num">9 000</td></tr>
+        <tr><td>Azərbaycan dilli fişinq SMS korpusunun toplanması və etiketlənməsi</td><td class="num">birdəfəlik</td><td class="num">4 000</td></tr>
+        <tr><td>Hüquqi: şirkət qeydiyyatı, NDA, məlumat qorunması rəyi</td><td class="num">birdəfəlik</td><td class="num">5 000</td></tr>
+        <tr><td>Satış: təqdimat, tədbirlər, görüşlər</td><td class="num">birdəfəlik</td><td class="num">4 000</td></tr>
+        <tr><td>Ehtiyat (~10%)</td><td class="num"></td><td class="num">7 800</td></tr>
+        <tr class="total"><td>Cəmi</td><td class="num"></td><td class="num">85 000</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout warn"><b>Daha qənaətli variant (~40–45 min ₼):</b> texniki həmtəsisçi (ML mühəndisi) maaş əvəzinə pay alır, yalnız bir backend mühəndisi işə götürülür, GPU əvəzinə daha kiçik açıq mənbəli model istifadə olunur. Audit xidməti ilk gəliri 3–4-cü ayda gətirə bilər.</div>
+    <p>Maliyyə mənbələri: şəxsi vəsait, mələk investor, İnnovasiya və Rəqəmsal İnkişaf Agentliyinin startap dəstək proqramları (şərtləri yoxlanmalıdır), və ya ilk audit müqaviləsindən gələn gəlir.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">07 · Gəlir modeli</div><h2>Necə pul qazanılır</h2>
+      <p class="muted">Bütün qiymətlər və həcmlər nümunə fərziyyədir. Real qiymət operatorla danışıqda müəyyən olunacaq.</p></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Gəlir axını</th><th>Qiymət fərziyyəsi</th><th>2-ci il nümunə hesabı</th><th>SİPƏR payı, ₼/il</th></tr></thead>
+      <tbody>
+        <tr><td>SMS Qoruyucu lisenziyası</td><td>Operator başına illik 60–120 min ₼</td><td class="num">2 operator × 90 000</td><td class="num">180 000</td></tr>
+        <tr><td>SIM Risk API</td><td>Sorğu başına ~0.03 ₼, 50/50 bölgü</td><td class="num">3 mln sorğu × 0.03 × 50%</td><td class="num">45 000</td></tr>
+        <tr><td>Təsdiqlənmiş bank zəngləri</td><td>Bank başına aylıq ~1 000 ₼, 50/50</td><td class="num">8 bank × 12 × 1 000 × 50%</td><td class="num">48 000</td></tr>
+        <tr><td>Audit və fişinq simulyasiyası</td><td>Layihə başına 10–25 min ₼</td><td class="num">3 layihə</td><td class="num">45 000</td></tr>
+        <tr class="total"><td>Cəmi (nümunə)</td><td></td><td></td><td class="num">318 000</td></tr>
+      </tbody>
+    </table></div>
+    <p>Ailə Qoruması kimi abunəçi xidməti əlavə edilsə, potensial böyükdür. Nümunə: 100 000 abunəçi × aylıq 1.5 ₼ × 35% pay ≈ ildə 630 000 ₼. Bu rəqəm tamamilə fərziyyədir və operatorun marketinq dəstəyindən asılıdır.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">08 · Yol xəritəsi</div><h2>İlk 12 ay</h2></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Dövr</th><th>İş</th><th>Nəticə</th></tr></thead>
+      <tbody>
+        <tr><td class="num">Ay 1</td><td>Şirkət qeydiyyatı, texniki həmtəsisçi, ictimai mənbələrdən fişinq SMS nümunələrinin toplanması</td><td>Komanda və ilk korpus</td></tr>
+        <tr><td class="num">Ay 2–3</td><td>SMS Qoruyucu prototipi, SIM Risk API-nin sınaq versiyası, demo tətbiq</td><td>İşlək demo</td></tr>
+        <tr><td class="num">Ay 3</td><td>Üç operatora təqdimat; paralel olaraq audit xidməti təklifi</td><td>İlk görüşlər, ilk gəlir</td></tr>
+        <tr><td class="num">Ay 4–6</td><td>Bir operatorla 90 günlük pulsuz POC: real SMS axınında (operatorun serverində) dəqiqlik ölçülür</td><td>Pilot hesabatı</td></tr>
+        <tr><td class="num">Ay 7–9</td><td>Kommersiya müqaviləsi; 2–3 bankla SIM Risk API və Bank Təsdiqi pilotu</td><td>İlk lisenziya gəliri</td></tr>
+        <tr><td class="num">Ay 10–12</td><td>İkinci operator; Nömrə Reputasiyası modulu; investor raundu</td><td>Bazarın 2/3-ü</td></tr>
+      </tbody>
+    </table></div>
+    <h3>POC uğur meyarları (operatorla əvvəlcədən razılaşdırılır)</h3>
+    <ul class="list">
+      <li>Fişinq SMS-lərin aşkarlanma dəqiqliyi: hədəf 95%+</li>
+      <li>Normal SMS-in səhvən bloklanması: hədəf 0.1%-dən az</li>
+      <li>Qərar vaxtı: SMS başına 100 millisaniyədən az</li>
+      <li>Pilot dövründə abunəçi fırıldaq şikayətlərinin azalması (operatorun öz statistikası ilə)</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">09 · Satış strategiyası</div><h2>Operatora necə girmək</h2></div>
+    <div class="two">
+      <div class="stack">
+        <h3>Ardıcıllıq</h3>
+        <ol class="list">
+          <li><b>Bakcell:</b> görünən fişinq əleyhinə məhsulu yoxdur, yeni ideyaya ən açıq ola bilər.</li>
+          <li><b>Azercell:</b> ən böyük abunəçi bazası; SMS filtrinin dəqiqliyini artırma təklifi ilə.</li>
+          <li><b>Nar:</b> mövcud Digital Security xidmətini zənginləşdirən tərəfdaş kimi, rəqib kimi yox.</li>
+        </ol>
+        <p class="muted">Eksklüzivlik tələb olunarsa: bir operatora 6–12 aylıq eksklüzivlik yalnız əlavə ödəniş və ya böyük həcm müqabilində verilir.</p>
+      </div>
+      <div class="stack">
+        <h3>Kimlə danışmaq</h3>
+        <ul class="list">
+          <li>Fraud / Revenue Assurance rəhbəri: problemi ən yaxşı bilən şəxs</li>
+          <li>CISO / informasiya təhlükəsizliyi rəhbəri: texniki qərar</li>
+          <li>B2B / Enterprise satış direktoru: bank API gəliri onu maraqlandırır</li>
+          <li>Banklar tərəfdə: fraud monitorinq şöbəsi rəhbəri</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout warn"><b>Demo qaydası:</b> demo üçün yalnız ictimai mənbələrdəki (xəbərlər, operator və bank xəbərdarlıqları) fişinq nümunələrindən və öz test nömrələrinizdən istifadə edin. Heç bir operatorun və ya bankın sistemini icazəsiz test etməyin.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">10 · Risklər</div><h2>Əsas risklər və cavablar</h2></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Risk</th><th>Cavab</th></tr></thead>
+      <tbody>
+        <tr><td>Yalnız 3 potensial müştəri var</td><td>Banklar ikinci müştəri seqmentidir; Gürcüstan, Qazaxıstan, Özbəkistan operatorlarına genişlənmə (türk dilləri üçün model uyğunlaşdırılır)</td></tr>
+        <tr><td>Operator qlobal vendordan (Mobileum, Enea kimi) alar</td><td>Yerli dil dəqiqliyi, sürətli yenilənmə, aşağı qiymət, yerli dəstək; qlobal vendorla rəqabət əvəzinə onun SMS firewall-una əlavə qat kimi qoşulmaq</td></tr>
+        <tr><td>Məxfilik və hüquqi maneələr</td><td>Model operatorun serverində, məlumat çıxmır; pilotdan əvvəl hüquqi rəy</td></tr>
+        <tr><td>Uzun satış dövrü (korporativ satış)</td><td>Audit xidməti ilə erkən gəlir; pulsuz POC ilə qərar maneəsini azaltmaq</td></tr>
+        <tr><td>Səhv bloklama abunəçini narazı salar</td><td>İlk mərhələdə yalnız “xəbərdar et” rejimi, bloklama yalnız yüksək əminlikdə</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap stack">
+    <div class="head"><div class="eyebrow">Mənbələr</div><h2>İstinadlar</h2></div>
+    <ul class="src">
+      <li>2024 kart fırıldağı statistikası: <a href="https://en.apa.az/incident/azerbaijan-mia-azn-224-million-stolen-from-bank-cards-last-year-through-foreign-cyber-interference-459860">APA</a>, <a href="https://turan.az/en/social/criminals-armed-with-ai-data-on-cyber-fraudsters-in-2024-790206">Turan</a>, <a href="https://turan.az/en/social/ministry-of-internal-affairs-urges-caution-against-cybercriminals-790115">Turan (DİN)</a></li>
+      <li>Mərkəzi Bank statistikası və nömrə bloklama mexanizmi: <a href="https://tech.az/en/posts/the-central-bank-of-azerbaijan-publishes-digital-fraud-statistics-across-banks-5860">tech.az</a>, <a href="https://report.az/en/amp/finance/cba-azerbaijan-creating-mechanisms-to-block-suspicious-numbers">Report.az</a></li>
+      <li>Nar Digital Security: <a href="https://www.nar.az/en/digital-security">nar.az</a></li>
+      <li>Azercell fraud xəbərdarlıqları: <a href="https://azercell.com/en/personal/help/fraud-prevention.html">azercell.com</a>, <a href="https://www.azernews.az/business/221804.html">AzerNews</a>, <a href="https://www.azernews.az/analysis/80359.html">AzerNews (SMS filtrasiyası)</a></li>
+      <li>Bakcell: <a href="https://bakcell.com/en/news/bakcell-is-successfully-fighting-against-fraud">bakcell.com</a></li>
+      <li>Saxta operator paketləri saytları: <a href="https://caliber.az/en/post/azerbaijan-detects-tiktok-accounts-impersonating-payment-systems">Caliber.az</a></li>
+      <li>Mobil fırıldaqla mübarizə: <a href="https://www.mastercard.com/az/az/news-and-trends/stories/2025/fighting-mobile-scams.html">Mastercard Azərbaycan</a></li>
+      <li>T-Mobile Scam Shield, Vodafone Secure Net, GSMA Open Gateway / CAMARA SIM Swap API ümumi ictimai bilik əsasında qeyd olunub; təqdimatda rəsmi saytlarından istinad əlavə edin.</li>
+    </ul>
+  </div>
+</section>
+</main>
+<footer><div class="wrap">SİPƏR · Şahin Səlimov · Layihə qaralaması v1.0, noyabr 2026. Büdcə, qiymət və gəlir rəqəmləri fərziyyədir.</div></footer>
