@@ -1,0 +1,349 @@
+<title>SİPƏR Satış Paketi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: playbook. Sticky section nav on wide screens, single column of numbered steps; copyable templates in mono boxes. */
+:root{
+  --bg:#f6f6f4; --surface:#ffffff; --raise:#fafaf8; --ink:#17191c; --muted:#5a6068; --line:#dcdedf;
+  --accent:#c2410c; --accent-soft:#fbeadf; --ok:#1f7a4d; --ok-soft:#e2f2ea; --warn:#a16207; --warn-soft:#f8efd9; --code-bg:#f1f2f1;
+  --f-text:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101214; --surface:#181b1f; --raise:#1c2024; --ink:#e7e9eb; --muted:#9ea5ad; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418; --ok:#5fc492; --ok-soft:#173326; --warn:#e0b04f; --warn-soft:#352a14; --code-bg:#121518; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101214; --surface:#181b1f; --raise:#1c2024; --ink:#e7e9eb; --muted:#9ea5ad; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418; --ok:#5fc492; --ok-soft:#173326; --warn:#e0b04f; --warn-soft:#352a14; --code-bg:#121518; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-text);font-size:16px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px}
+@media (max-width:860px){.layout{grid-template-columns:1fr}.side{display:none}}
+.side nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);display:flex;flex-direction:column;gap:2px;font-size:.86rem;padding-top:40px}
+.side a{color:var(--muted);text-decoration:none;padding:5px 0 5px 10px;border-left:2px solid var(--line)}
+.side a:hover,.side a:focus-visible{color:var(--accent);border-left-color:var(--accent)}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+h1{font-size:clamp(2rem,5vw,2.8rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.35rem,3vw,1.7rem);font-weight:800}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0;max-width:70ch}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+header{padding-block:44px 28px;display:flex;flex-direction:column;gap:12px}
+.links3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+@media (max-width:640px){.links3{grid-template-columns:1fr}}
+.lk{background:var(--surface);border:1px solid var(--line);padding:12px 14px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:2px}
+.lk span{font-family:var(--f-mono);font-size:.72rem;color:var(--accent);letter-spacing:.06em;text-transform:uppercase}
+.lk:hover{border-color:var(--accent)}
+section{padding-block:40px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:16px}
+.tbl{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:600px}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--raise)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.check li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;background:var(--surface);border:1px solid var(--line);padding:10px 12px;font-size:.93rem}
+.check input{width:16px;height:16px;margin-top:4px;accent-color:var(--accent)}
+.check .why{display:block;color:var(--muted);font-size:.85rem}
+.tpl{background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column}
+.tpl .bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--raise)}
+.tpl .bar b{font-size:.88rem}
+.tpl pre{margin:0;padding:14px;font:.86rem/1.6 var(--f-mono);white-space:pre-wrap;word-break:break-word;background:var(--code-bg)}
+.copy{appearance:none;font:600 .78rem var(--f-text);border:1px solid var(--accent);color:var(--accent);background:transparent;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.copy:hover{background:var(--accent-soft)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;font-size:.94rem}
+.callout.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.list{margin:0;padding-left:20px}.list li{margin:5px 0}
+.steps{counter-reset:s;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;font-size:.93rem}
+.steps li::before{content:counter(s);font-family:var(--f-mono);font-weight:600;color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--code-bg);padding:1px 5px;border:1px solid var(--line);word-break:break-all}
+footer{padding-block:28px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="wrap layout">
+<aside class="side"><nav aria-label="Bölmələr">
+  <a href="#ne-lazim">1. Nə lazımdır</a>
+  <a href="#hediyye">2. “Hədiyyə” hesabatı</a>
+  <a href="#kim">3. Kimə yazmaq</a>
+  <a href="#mektub">4. Hazır məktublar</a>
+  <a href="#gorus">5. Görüş ssenarisi</a>
+  <a href="#etiraz">6. Etirazlara cavab</a>
+  <a href="#pilot">7. Pilot təklifi</a>
+  <a href="#qiymet">8. Qiymət cədvəli</a>
+  <a href="#hüquq">9. Hüquqi hazırlıq</a>
+  <a href="#plan">10. 30 günlük plan</a>
+</nav></aside>
+
+<main>
+<header>
+  <div class="eyebrow">SİPƏR · Satış paketi · Mobil operatorlar üçün</div>
+  <h1>Operatoru görüşə necə çağırmaq</h1>
+  <p class="muted">Operator rəhbərləri hər həftə onlarla “innovativ həll” təklifi alır. Görüşə çağırılan təklif üç şeyə malik olur: onların öz brendi haqqında real tapıntı, 2 dəqiqədə sınanan işlək demo və onlar üçün sıfır risk. Bu paket məhz bunları hazırlayır.</p>
+  <div class="links3">
+    <a class="lk" href="https://claude.ai/artifact/M89WFYDpDWHTRadyFWbGfK"><span>Demo</span>Canlı prototip</a>
+    <a class="lk" href="https://claude.ai/artifact/Xr5Q9ScUPwWqVs8Knwx79h"><span>Layihə</span>Biznes sənədi</a>
+    <a class="lk" href="#mektub"><span>Məktublar</span>Kopyala və göndər</a>
+  </div>
+</header>
+
+<section id="ne-lazim">
+  <div class="eyebrow">1 · Nə lazımdır</div>
+  <h2>Görüşdən əvvəl hazır olmalı 10 şey</h2>
+  <p class="muted">İşarələr yalnız sizin brauzerinizdə yadda saxlanılır.</p>
+  <ul class="check" id="checklist">
+    <li><input type="checkbox" id="c1"><label for="c1"><b>Canlı demo linki</b><span class="why">Hazırdır. Paylaşmazdan əvvəl Share menyusundan ictimai giriş açın. Daha güclü variant: öz domeninizdə yerləşdirmək (məsələn, siper.az, əgər boşdursa).</span></label></li>
+    <li><input type="checkbox" id="c2"><label for="c2"><b>Operatorun brendi haqqında “hədiyyə” hesabatı</b><span class="why">Ən güclü qapı açan vasitə. Bölmə 2-də necə hazırlanacağı yazılıb.</span></label></li>
+    <li><input type="checkbox" id="c3"><label for="c3"><b>Texniki həmtəsisçi</b><span class="why">Operatorun CISO-su ilk görüşdə texniki sual verəcək. ML və ya kibertəhlükəsizlik mühəndisi yanınızda olmalıdır, pay qarşılığında belə olsa.</span></label></li>
+    <li><input type="checkbox" id="c4"><label for="c4"><b>Qeydiyyatlı şirkət (MMC)</b><span class="why">Operatorlar fiziki şəxslə NDA və pilot müqaviləsi imzalamır.</span></label></li>
+    <li><input type="checkbox" id="c5"><label for="c5"><b>Korporativ e-poçt və sadə veb səhifə</b><span class="why">“ad@siper.az” gmail-dən daha ciddi görünür. Səhifədə: nə edirsiniz, komanda, demo linki.</span></label></li>
+    <li><input type="checkbox" id="c6"><label for="c6"><b>Bir səhifəlik təqdimat (one-pager, PDF)</b><span class="why">Məktuba əlavə olunur. Layihə sənədinin xülasəsi: problem, 3 məhsul, pilot şərtləri.</span></label></li>
+    <li><input type="checkbox" id="c7"><label for="c7"><b>8–10 slaydlıq görüş təqdimatı</b><span class="why">Bölmə 5-dəki ssenarinin ardıcıllığı ilə.</span></label></li>
+    <li><input type="checkbox" id="c8"><label for="c8"><b>NDA şablonu</b><span class="why">Operator öz NDA-sını təklif edəcək, amma sizin də hazır olsun. Hüquqşünasa yoxlatdırın.</span></label></li>
+    <li><input type="checkbox" id="c9"><label for="c9"><b>Pilot (POC) təklifi, 1 səhifə</b><span class="why">Bölmə 7-də hazırdır.</span></label></li>
+    <li><input type="checkbox" id="c10"><label for="c10"><b>LinkedIn profili</b><span class="why">Məktubu alan şəxs ilk olaraq sizi LinkedIn-də axtaracaq. Başlıq: “Founder, SİPƏR · AI anti-fraud for telecom”.</span></label></li>
+  </ul>
+</section>
+
+<section id="hediyye">
+  <div class="eyebrow">2 · Qapı açan “hədiyyə”</div>
+  <h2>Onların brendini təqlid edən saytları tapıb pulsuz göndərin</h2>
+  <p>“Sizin adınızla son 90 gündə 11 saxta domen qeydiyyatdan keçib, 4-ü hələ aktivdir” cümləsi istənilən “bizim AI həllimiz var” cümləsindən güclüdür. Bu araşdırma yalnız açıq mənbələrlə aparılır, heç bir sistemə toxunulmur.</p>
+  <ol class="steps">
+    <li><span><b>Sertifikat jurnalları:</b> brauzerdə <code>https://crt.sh/?q=%25azercell%25</code> açın (bakcell, nar, narmobile üçün də). Rəsmi domenlərdən (azercell.com, bakcell.com, nar.az) fərqli olan bütün domenləri cədvələ yazın.</span></li>
+    <li><span><b>Oxşar domenlər:</b> pulsuz <code>dnstwist</code> alətini (GitHub-da açıq mənbəli) işə salın: <code>dnstwist --registered azercell.com</code>. Hərf dəyişikliyi ilə qeydiyyatdan keçmiş domenləri göstərir.</span></li>
+    <li><span><b>Aktivliyi yoxlayın:</b> hər şübhəli domeni <code>urlscan.io</code>-da axtarın (özünüz açmayın). Ekran görüntüsü varsa, saxta səhifənin necə göründüyü bilinir.</span></li>
+    <li><span><b>Sosial şəbəkələr:</b> Instagram, TikTok və Facebook-da operatorun adı ilə “hədiyyə”, “bonus”, “pulsuz internet” paylaşan saxta səhifələri axtarın, ekran görüntüsü alın.</span></li>
+    <li><span><b>Fişinq SMS nümunələri:</b> tanışlarınızdan aldıqları şübhəli SMS-lərin ekran görüntüsünü toplayın (nömrələri gizlədin). Bunlar həm hesabata, həm də demonun nümunələrinə gedir.</span></li>
+    <li><span><b>Hesabat:</b> 2 səhifə: tapıntılar cədvəli (domen, qeydiyyat tarixi, status, ekran görüntüsü), risk izahı, “SİPƏR bunu necə avtomatik edəcək” bir abzası.</span></li>
+  </ol>
+  <div class="callout warn"><b>Qırmızı xətlər:</b> şübhəli saytlara heç bir məlumat daxil etməyin, operatorun öz sistemlərini skan etməyin, tapıntıları ictimaiyyətə paylaşmayın. Hesabat yalnız operatorun təhlükəsizlik rəhbərinə şəxsən göndərilir. Bu, həm etik, həm də etibar məsələsidir.</div>
+  <p class="muted">Bu araşdırmanı mən bu mühitdən edə bilmədim, çünki sertifikat jurnallarının saytına çıxış bağlıdır. Nəticələri mənə göndərsəniz, hesabatı birlikdə formalaşdıraq.</p>
+</section>
+
+<section id="kim">
+  <div class="eyebrow">3 · Kimə yazmaq</div>
+  <h2>Doğru şəxs: qərar verən və problemi hiss edən</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Vəzifə</th><th>Niyə</th><th>LinkedIn axtarışı</th></tr></thead>
+    <tbody>
+      <tr><td><b>Fraud Management / Revenue Assurance rəhbəri</b></td><td>Fırıldaq problemini hər gün görür, ən isti alıcıdır</td><td class="num">"fraud" Azercell</td></tr>
+      <tr><td><b>CISO / İnformasiya təhlükəsizliyi direktoru</b></td><td>Texniki qərarı verir, hədiyyə hesabatını ən çox o qiymətləndirəcək</td><td class="num">"information security" Bakcell</td></tr>
+      <tr><td><b>B2B / Enterprise direktoru</b></td><td>Banklara API satışı onun gəlir planıdır</td><td class="num">"B2B" OR "enterprise" Nar</td></tr>
+      <tr><td><b>İnnovasiya / Rəqəmsal xidmətlər rəhbəri</b></td><td>Startaplarla pilot etməyə ən açıq şəxs</td><td class="num">"innovation" OR "digital" Azercell</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Ardıcıllıq:</b> əvvəlcə Fraud və ya CISO-ya hədiyyə hesabatı ilə yazın. Cavab gəlməsə, 7 gün sonra İnnovasiya rəhbərinə. Eyni şirkətdə eyni gün iki nəfərə yazmayın.</p>
+  <p><b>İsti girişlər:</b> Bakutel kimi İKT sərgiləri, İnnovasiya və Rəqəmsal İnkişaf Agentliyinin startap tədbirləri, operatorların öz akselerator və hakaton proqramları (cari çağırışları onların saytlarından yoxlayın). Tədbirdə 2 dəqiqəlik demo göstərmək soyuq məktubdan on qat təsirlidir.</p>
+</section>
+
+<section id="mektub">
+  <div class="eyebrow">4 · Hazır məktublar</div>
+  <h2>Kopyalayın, [kvadrat mötərizələri] doldurun, göndərin</h2>
+
+  <div class="tpl"><div class="bar"><b>1. İlk məktub (e-poçt)</b><button class="copy" data-for="m1">Kopyala</button></div>
+<pre id="m1">Mövzu: [Operator] adından 11 saxta domen: pulsuz hesabat
+
+Hörmətli [Ad Soyad],
+
+Mən Şahin Səlimov, SİPƏR startapının təsisçisiyəm. Mobil operatorlar üçün Azərbaycan dilində fişinq SMS-lərini və saxta "bank zəngləri"ni dayandıran AI həll hazırlayırıq.
+
+Hazırlıq zamanı açıq mənbələrdə [Operator] adını təqlid edən [say] domen və [say] saxta sosial şəbəkə səhifəsi tapdıq. Onlardan [say]-i hələ aktivdir. Qısa hesabatı əlavə edirəm. Bu, pulsuzdur və heç bir öhdəlik yaratmır.
+
+2024-də Azərbaycanda kart fırıldaqları ilə 22 milyon manatdan çox vəsait oğurlanıb və bu fırıldaqların əksəriyyəti zəng və SMS vasitəsilə başlayır. SİPƏR üç işi görür:
+- Azərbaycan və rus dilində fişinq SMS-ləri real vaxtda aşkarlayır
+- Banklar üçün "təsdiqlənmiş zəng" və SIM dəyişdirmə yoxlaması API-si təqdim edir. Bu, [Operator] üçün banklardan yeni gəlir mənbəyidir
+- Bütün məlumat sizin serverinizdə qalır
+
+2 dəqiqəlik canlı demo: [demo linki]
+
+[Operator] ilə 90 günlük pulsuz pilot təklif edirik. Gələn həftə 20 dəqiqəlik görüş sizə uyğundurmu?
+
+Hörmətlə,
+Şahin Səlimov
+Təsisçi, SİPƏR
+[telefon] · [e-poçt] · [LinkedIn]</pre></div>
+
+  <div class="tpl"><div class="bar"><b>2. LinkedIn qoşulma qeydi (300 simvoldan az)</b><button class="copy" data-for="m2">Kopyala</button></div>
+<pre id="m2">Salam [Ad], [Operator] adını təqlid edən saxta domenlər haqqında qısa pulsuz hesabat hazırlamışam. Fişinq SMS-ləri Azərbaycan dilində aşkarlayan AI həll üzərində işləyirik. Hesabatı sizə göndərə bilərəmmi?</pre></div>
+
+  <div class="tpl"><div class="bar"><b>3. Xatırlatma, 4 gün sonra</b><button class="copy" data-for="m3">Kopyala</button></div>
+<pre id="m3">Mövzu: Re: [Operator] adından saxta domenlər
+
+Hörmətli [Ad],
+
+Əvvəlki məktubumun gözdən qaçdığını düşünürəm. Hesabatdakı [ən təhlükəli domen] domeni hələ də aktivdir və [bank kartı məlumatı / şəxsi kabinet şifrəsi] toplayır. Bunu sizin təhlükəsizlik komandanızın bilməsini vacib hesab edirəm.
+
+Demo burada: [link]. Sizin üçün daha uyğun şəxs varsa, yönləndirə bilərsinizmi?
+
+Hörmətlə,
+Şahin</pre></div>
+
+  <div class="tpl"><div class="bar"><b>4. Son məktub, 10 gün sonra</b><button class="copy" data-for="m4">Kopyala</button></div>
+<pre id="m4">Mövzu: Bağlayıram
+
+Hörmətli [Ad],
+
+Sizi narahat etməmək üçün bu, son məktubumdur. Əgər fişinq və bank fırıldaqları hazırda prioritet deyilsə, tam başa düşürəm.
+
+Bir qeyd: Mərkəzi Bank şübhəli nömrələrin bloklanması mexanizmi üzərində işləyir və texniki hissə operatorların şəbəkəsindən keçəcək. Bu mövzu gündəmə gələndə SİPƏR hazır olacaq.
+
+Uğurlar,
+Şahin Səlimov</pre></div>
+
+  <div class="tpl"><div class="bar"><b>5. Telefon və ya tədbirdə 30 saniyəlik təqdimat</b><button class="copy" data-for="m5">Kopyala</button></div>
+<pre id="m5">[0–8 san] Salam, mən Şahin, SİPƏR-in təsisçisiyəm. Fişinq SMS-ləri və saxta bank zənglərini operator şəbəkəsində Azərbaycan dilində dayandıran AI həll qururuq.
+[8–18 san] Keçən il kart fırıldaqları ilə 22 milyon manatdan çox oğurlanıb. Zəng də, SMS də sizin şəbəkədən keçir, amma zərəri müştəri çəkir.
+[18–25 san] Biz bunu dayandırırıq, üstəlik banklara SIM dəyişdirmə yoxlaması satmaqla sizə yeni gəlir gətiririk.
+[25–30 san] Telefonunuzda iki dəqiqəlik demonu göstərə bilərəm?</pre></div>
+
+  <h3>Operator üzrə fərdiləşdirmə cümlələri</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Operator</th><th>Məktuba əlavə ediləcək cümlə</th></tr></thead>
+    <tbody>
+      <tr><td><b>Azercell</b></td><td>“Abunəçiləriniz üçün tətbiq etdiyiniz SMS filtrasiyasını Azərbaycan dilli AI modeli ilə gücləndirməyi və dəqiqliyi ölçülə bilən şəkildə artırmağı təklif edirik.”</td></tr>
+      <tr><td><b>Bakcell</b></td><td>“Bazarda fişinq və bank fırıldağına qarşı xüsusi məhsulu ilk təqdim edən operator olmaq imkanını sizə təklif edirik.”</td></tr>
+      <tr><td><b>Nar</b></td><td>“Mövcud Digital Security xidmətinizi rəqib kimi yox, tamamlayıcı kimi gücləndirmək istəyirik: Azərbaycan dilli SMS analizi və banklarla inteqrasiya.”</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="gorus">
+  <div class="eyebrow">5 · Görüş ssenarisi</div>
+  <h2>20 dəqiqəlik görüş, dəqiqə-dəqiqə</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Vaxt</th><th>Nə edirsiniz</th><th>Məqsəd</th></tr></thead>
+    <tbody>
+      <tr><td class="num">00:00–02:00</td><td>Təqdimat, minnətdarlıq. Soruşun: “Hazırda fırıldaq mövzusunda sizi ən çox nə narahat edir?”</td><td>Onlar danışsın, siz dinləyin</td></tr>
+      <tr><td class="num">02:00–05:00</td><td>Hədiyyə hesabatının 2–3 ən kəskin tapıntısı</td><td>Etibar: “bu adam artıq bizim üçün iş görüb”</td></tr>
+      <tr><td class="num">05:00–07:00</td><td>Problem: 22 mln ₼, 16 804 hal, “bank əməkdaşı” ssenarisi, Mərkəzi Bankın nömrə bloklama mexanizmi</td><td>Təcililik</td></tr>
+      <tr><td class="num">07:00–12:00</td><td>Canlı demo: (1) onların öz adı ilə saxta SMS-i yapışdırın, “Fırıldaq” görsünlər; (2) zəng ekranı; (3) SIM Risk API və bank qərarı</td><td>“Wow” anı</td></tr>
+      <tr><td class="num">12:00–14:00</td><td>Operatora fayda: banklardan yeni gəlir, brend etibarı, tənzimləyici hazırlıq</td><td>Biznes dəyəri</td></tr>
+      <tr><td class="num">14:00–17:00</td><td>Pilot təklifi: 90 gün, pulsuz, məlumat onların serverində, uğur meyarları əvvəlcədən razılaşdırılır</td><td>Riski sıfırlamaq</td></tr>
+      <tr><td class="num">17:00–20:00</td><td>Suallar. Sonda konkret addım: “Növbəti həftə texniki komandanızla 30 dəqiqəlik görüş təyin edə bilərikmi?”</td><td>Növbəti görüş</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout ok"><b>Demo hiyləsi:</b> görüşdən əvvəl demonun nümunələrinə həmin operatorun adı ilə real fişinq SMS-ini (hədiyyə hesabatından) əlavə edin. Öz brendlərinin saxta mesajının ekranda qırmızı yandığını görmək ən güclü andır. Bunu sizin üçün dəyişə bilərəm.</div>
+</section>
+
+<section id="etiraz">
+  <div class="eyebrow">6 · Etirazlara cavab</div>
+  <h2>Eşidəcəyiniz 8 sual</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Etiraz</th><th>Cavab</th></tr></thead>
+    <tbody>
+      <tr><td>“Bizim artıq SMS firewall-umuz var.”</td><td>“Əla, biz onu əvəz etmirik. Sizin firewall-unuza Azərbaycan dili üzrə əlavə qərar qatı kimi qoşuluruq. Pilotda ölçək: firewall-un buraxdığı fişinq mesajlarından neçəsini biz tuturuq.”</td></tr>
+      <tr><td>“Qlobal vendorla işləyirik.”</td><td>“Qlobal vendorlar Azərbaycan dilinin, yerli bank adlarının və ‘kartiniz bloklanib’ kimi yazılışların nüanslarını bilmir. Biz yeni fırıldaq nümunəsinə günlər yox, saatlar ərzində uyğunlaşırıq.”</td></tr>
+      <tr><td>“Abunəçi məlumatını üçüncü tərəfə verə bilmərik.”</td><td>“Verməyəcəksiniz. Model sizin serverinizdə işləyir, biz SMS mətnini heç vaxt görmürük. Banka da yalnız ‘bəli/xeyr’ cavabı gedir.”</td></tr>
+      <tr><td>“Siz kiçik startapsınız, sabah yox olsanız?”</td><td>“Mənbə kodu escrow-a qoyulur, sizdə olan model sizin infrastrukturunuzda işləməyə davam edir. Pilot pulsuzdur, siz heç nə itirmirsiniz.”</td></tr>
+      <tr><td>“Səhv bloklama olsa, müştəri şikayət edəcək.”</td><td>“Pilotda yalnız ‘müşahidə’ rejimində işləyirik: heç nə bloklamırıq, sadəcə ölçürük. Bloklamaya yalnız rəqəmlər sübut edəndən sonra keçirik.”</td></tr>
+      <tr><td>“Bu nə qədər başa gələcək?”</td><td>“Pilot pulsuzdur. Sonrası üçün iki model var: illik lisenziya və ya bank gəlirindən pay. İkincisində sizin büdcədən xərc yoxdur.”</td></tr>
+      <tr><td>“Banklar bunu alacaq?”</td><td>“Bank əməkdaşı adından fırıldaq banklara birbaşa zərər və reputasiya itkisi vurur. Pilotun ikinci mərhələsində 1–2 bankla sınaq edirik. Bank maraqlanmasa, bunu pulsuz öyrənmiş olursunuz.”</td></tr>
+      <tr><td>“Hüquqi tərəfi necə olacaq?”</td><td>“Pilotdan əvvəl sizin hüquq şöbənizlə NDA və məlumatların emalı razılaşması imzalayırıq. Fərdi məlumatlar qanunvericiliyinə uyğunluğu birlikdə yoxlayırıq.”</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="pilot">
+  <div class="eyebrow">7 · Pilot təklifi</div>
+  <h2>Bir səhifəlik POC şərtləri</h2>
+  <div class="tpl"><div class="bar"><b>Pilot təklifi mətni</b><button class="copy" data-for="m6">Kopyala</button></div>
+<pre id="m6">SİPƏR × [Operator]: 90 günlük pilot təklifi
+
+1. Məqsəd
+[Operator] şəbəkəsində Azərbaycan və rus dilli fişinq SMS-lərinin aşkarlanma dəqiqliyini ölçmək və banklar üçün SIM Risk API-nin texniki mümkünlüyünü yoxlamaq.
+
+2. Əhatə
+Mərhələ A (gün 1–60): SMS Qoruyucu "müşahidə" rejimində. Heç bir mesaj bloklanmır, yalnız qiymətləndirilir.
+Mərhələ B (gün 61–90): SIM Risk API-nin 1 tərəfdaş bankla test mühitində sınağı.
+
+3. Məlumat
+Model [Operator]-un serverində işləyir. SİPƏR SMS mətninə və abunəçi məlumatına çıxış əldə etmir. Hesabatlarda yalnız ümumiləşdirilmiş statistika istifadə olunur.
+
+4. Uğur meyarları
+- Fişinq SMS-lərin aşkarlanma dəqiqliyi: 95% və ya daha yüksək
+- Normal SMS-in səhvən fişinq kimi qiymətləndirilməsi: 0.1%-dən az
+- Qərar vaxtı: SMS başına 100 ms-dən az
+- [Operator]-un mövcud filtrinin buraxdığı fişinq mesajlarının aşkarlanma payı
+
+5. Xərc
+Pilot [Operator] üçün pulsuzdur. [Operator] yalnız server resursu (1 virtual server) və texniki əlaqələndirici təqdim edir.
+
+6. Pilotdan sonra
+Meyarlar yerinə yetirilərsə, tərəflər 30 gün ərzində kommersiya şərtlərini müzakirə edir. Öhdəlik yoxdur.
+
+7. Hüquqi
+NDA və məlumatların emalı razılaşması pilotdan əvvəl imzalanır.
+
+Əlaqə: Şahin Səlimov, Təsisçi · [telefon] · [e-poçt]</pre></div>
+</section>
+
+<section id="qiymet">
+  <div class="eyebrow">8 · Qiymət cədvəli</div>
+  <h2>Pilotdan sonra təklif ediləcək qiymətlər</h2>
+  <p class="muted">Başlanğıc mövqe kimi fərziyyədir. İlk görüşdə qiymət deməyin, yalnız soruşulsa “pilotdan sonra iki model” deyin.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Məhsul</th><th>Model A: lisenziya</th><th>Model B: gəlir payı</th></tr></thead>
+    <tbody>
+      <tr><td>SMS Qoruyucu</td><td class="num">qurulum 25–40 min ₼ + illik 60–120 min ₼</td><td>Tətbiq olunmur</td></tr>
+      <tr><td>SIM Risk API</td><td class="num">illik platforma haqqı</td><td>Bankdan alınan sorğu haqqının 40–50%-i SİPƏR-ə</td></tr>
+      <tr><td>Təsdiqlənmiş bank zəngi</td><td class="num">illik platforma haqqı</td><td>Bank abunəliyinin 40–50%-i SİPƏR-ə</td></tr>
+      <tr><td>Ailə Qoruması (abunəçi)</td><td>Tətbiq olunmur</td><td>Abunəçi ödənişinin 30–40%-i SİPƏR-ə</td></tr>
+      <tr><td>Təhlükəsizlik auditi</td><td class="num">layihə başına 10–25 min ₼</td><td>Tətbiq olunmur</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="hüquq">
+  <div class="eyebrow">9 · Hüquqi hazırlıq</div>
+  <h2>Pilotdan əvvəl həll edilməli məsələlər</h2>
+  <ul class="list">
+    <li>Şirkət qeydiyyatı (MMC) və nizamnamədə həmtəsisçilərin pay bölgüsü (vesting: 4 il, 1 il gözləmə müddəti).</li>
+    <li>NDA şablonu və məlumatların emalı razılaşması (DPA).</li>
+    <li>Fərdi məlumatlar və elektron rabitə qanunvericiliyi üzrə hüquqşünas rəyi: operatorun SMS mətnini avtomatik təhlil etməsinin hüquqi əsası nədir, abunəçi razılığı lazımdırmı.</li>
+    <li>SIM Risk API üçün: bank və operator arasında məlumat mübadiləsinin hüquqi çərçivəsi (Mərkəzi Bankın tələbləri də nəzərə alınmaqla).</li>
+    <li>Əqli mülkiyyət: modelin və kodun sizə məxsus olması, operatora yalnız istifadə lisenziyası verilməsi.</li>
+  </ul>
+  <div class="callout warn">Bu bölmə hüquqi məsləhət deyil. Mən Azərbaycan qanunvericiliyinin bu məsələlərə necə tətbiq olunduğunu dəqiq bilmirəm. Rabitə və fərdi məlumatlar sahəsində təcrübəli hüquqşünasla məsləhətləşin.</div>
+</section>
+
+<section id="plan">
+  <div class="eyebrow">10 · 30 günlük plan</div>
+  <h2>Bu gündən ilk görüşə qədər</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Günlər</th><th>İş</th><th>Nəticə</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1–3</td><td>LinkedIn profilini yeniləmək; texniki həmtəsisçi axtarışına başlamaq (universitet, CTF komandaları, LinkedIn)</td><td>Profil hazır, 5 namizəd</td></tr>
+      <tr><td class="num">4–7</td><td>Üç operator üçün hədiyyə hesabatı (bölmə 2)</td><td>3 hesabat</td></tr>
+      <tr><td class="num">8–10</td><td>Demoya real nümunələrin əlavə edilməsi; one-pager və 8 slayd</td><td>Satış materialları</td></tr>
+      <tr><td class="num">11–12</td><td>Hər operatorda 2–3 hədəf şəxsin tapılması (bölmə 3)</td><td>6–9 əlaqə</td></tr>
+      <tr><td class="num">13</td><td>İlk məktublar: əvvəlcə Bakcell, sonra Azercell, sonra Nar (gündə bir operator)</td><td>Göndərildi</td></tr>
+      <tr><td class="num">17–20</td><td>Xatırlatmalar; paralel olaraq LinkedIn mesajları</td><td>İlk cavablar</td></tr>
+      <tr><td class="num">20–30</td><td>Görüşlər; şirkət qeydiyyatı və NDA hazırlığı; son məktublar</td><td>1–2 görüş hədəfi</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Realist gözlənti: korporativ satışda soyuq məktubların kiçik bir hissəsi cavab alır. Hədiyyə hesabatı və tədbirlərdə şəxsi tanışlıq bu nisbəti xeyli artırır. İlk görüşdən pilot müqaviləsinə qədər bir neçə ay keçə bilər, ona görə audit xidməti ilə paralel gəlir planlayın.</p>
+</section>
+</main>
+</div>
+<footer><div class="wrap">SİPƏR satış paketi · Şahin Səlimov · v1.0, noyabr 2026</div></footer>
+
+<script>
+(function(){
+  document.querySelectorAll('.copy').forEach(b=>b.addEventListener('click',()=>{
+    const el=document.getElementById(b.dataset.for);const txt=el.innerText;
+    const done=()=>{const o=b.textContent;b.textContent='Kopyalandı';setTimeout(()=>b.textContent=o,1500);};
+    const fallback=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seçildi, Ctrl+C';setTimeout(()=>b.textContent='Kopyala',2000);};
+    try{navigator.clipboard.writeText(txt).then(done,fallback);}catch(e){fallback();}
+  }));
+  const boxes=[...document.querySelectorAll('#checklist input')];
+  let saved={};try{saved=JSON.parse(localStorage.getItem('siper-check')||'{}');}catch(e){}
+  boxes.forEach(b=>{b.checked=!!saved[b.id];b.addEventListener('change',()=>{saved[b.id]=b.checked;try{localStorage.setItem('siper-check',JSON.stringify(saved));}catch(e){}});});
+})();
+</script>

@@ -1,0 +1,324 @@
+<title>SİPƏR Canlı Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: console-style tool. Header + tab bar, then a two-pane workspace (input left, verdict right) that stacks on phones. */
+:root{
+  --bg:#f4f5f6; --surface:#ffffff; --raise:#fafbfb; --ink:#16191d; --muted:#5b626a; --line:#d9dcdf;
+  --accent:#c2410c; --accent-soft:#fbeadf;
+  --safe:#1f7a4d; --safe-soft:#e1f2e9; --warn:#a16207; --warn-soft:#f8efd7; --bad:#b42318; --bad-soft:#fbe4e1;
+  --mark:#fde6b0; --code-bg:#f0f2f4;
+  --f-text:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1113; --surface:#171a1e; --raise:#1c2025; --ink:#e6e8ea; --muted:#9aa1a9; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418;
+  --safe:#5fc492; --safe-soft:#15301f; --warn:#e3b350; --warn-soft:#33290f; --bad:#f2786d; --bad-soft:#3a1916;
+  --mark:#5a4313; --code-bg:#111417; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1113; --surface:#171a1e; --raise:#1c2025; --ink:#e6e8ea; --muted:#9aa1a9; --line:#2a2f35;
+  --accent:#f08a4b; --accent-soft:#3a2418;
+  --safe:#5fc492; --safe-soft:#15301f; --warn:#e3b350; --warn-soft:#33290f; --bad:#f2786d; --bad-soft:#3a1916;
+  --mark:#5a4313; --code-bg:#111417; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-text);font-size:15px;line-height:1.55}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.muted{color:var(--muted)}
+header{padding-block:28px 18px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.brand h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.02em}
+.brand .pill{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:2px 8px}
+header p{max-width:70ch;color:var(--muted)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:.8rem;color:var(--muted);margin-top:4px}
+.stats b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:600 .9rem var(--f-text);color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--ink)}
+.panel{padding-block:22px 40px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:1rem;font-weight:700}
+.lbl{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+textarea,select,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--raise);border:1px solid var(--line);padding:10px 12px}
+textarea{min-height:130px;resize:vertical;font-size:.95rem}
+textarea:focus,select:focus,input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;font:500 .8rem var(--f-text);color:var(--ink);background:var(--raise);border:1px solid var(--line);padding:5px 10px;cursor:pointer}
+.chip:hover,.chip:focus-visible{border-color:var(--accent);color:var(--accent)}
+.chip .d{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.btn{appearance:none;font:600 .92rem var(--f-text);background:var(--accent);color:#fff;border:0;padding:10px 18px;cursor:pointer;align-self:flex-start}
+.btn:hover{filter:brightness(1.07)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding:14px;border:1px solid var(--line)}
+.verdict.safe{background:var(--safe-soft);border-color:var(--safe)}
+.verdict.warn{background:var(--warn-soft);border-color:var(--warn)}
+.verdict.bad{background:var(--bad-soft);border-color:var(--bad)}
+.gauge{width:78px;height:78px}
+.gauge text{font-family:var(--f-mono);font-weight:600}
+.v-title{font-size:1.25rem;font-weight:800}
+.verdict.safe .v-title{color:var(--safe)} .verdict.warn .v-title{color:var(--warn)} .verdict.bad .v-title{color:var(--bad)}
+.action{font-family:var(--f-mono);font-size:.78rem;margin-top:4px}
+.preview{background:var(--raise);border:1px solid var(--line);padding:12px;white-space:pre-wrap;word-break:break-word;font-size:.92rem}
+mark{background:var(--mark);color:inherit;padding:0 1px}
+.reasons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.reasons li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;font-size:.9rem;padding:8px 10px;background:var(--raise);border:1px solid var(--line)}
+.reasons .pts{font-family:var(--f-mono);font-weight:600;color:var(--bad);font-variant-numeric:tabular-nums}
+.reasons .pts.z{color:var(--safe)}
+.links{display:flex;flex-direction:column;gap:6px}
+.link{font-family:var(--f-mono);font-size:.82rem;padding:8px 10px;border:1px solid var(--line);background:var(--raise);word-break:break-all}
+.link .flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.flag{font-size:.68rem;padding:1px 6px;border:1px solid currentColor;letter-spacing:.03em}
+.flag.b{color:var(--bad)} .flag.s{color:var(--safe)}
+.empty{color:var(--muted);font-size:.9rem;padding:18px;border:1px dashed var(--line);text-align:center}
+
+/* phone */
+.phone{border:1px solid var(--line);border-radius:30px;background:#1a1d21;color:#e9ecef;padding:24px 18px 22px;max-width:320px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:12px;min-height:420px}
+.phone .top{text-align:center;font-size:.78rem;color:#98a0a8}
+.phone .who{text-align:center;font-size:1.2rem;font-weight:700}
+.phone .num{text-align:center;font-family:var(--f-mono);color:#c5cbd1}
+.banner{border-radius:14px;padding:12px;font-size:.86rem;line-height:1.45}
+.banner b{display:block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.banner.bad{background:#3d1a15;border:1px solid #7a2c22;color:#ffcfc6}
+.banner.good{background:#123020;border:1px solid #1f5a39;color:#bfeed3}
+.banner.warn{background:#352a10;border:1px solid #6f5518;color:#f6e0a8}
+.callbtns{display:flex;justify-content:space-around;margin-top:auto}
+.cb{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;color:#fff}
+.cb.r{background:#c0392b} .cb.g{background:#27864f}
+.scen{display:flex;flex-direction:column;gap:8px}
+.scen button{text-align:left}
+
+pre.json{margin:0;background:var(--code-bg);border:1px solid var(--line);padding:12px;font:.8rem/1.5 var(--f-mono);overflow-x:auto;white-space:pre}
+.decision{padding:12px;border:1px solid var(--line);font-size:.92rem}
+.decision.bad{background:var(--bad-soft);border-color:var(--bad)}
+.decision.safe{background:var(--safe-soft);border-color:var(--safe)}
+.note{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+footer{padding-block:24px 36px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><h1>SİPƏR</h1><span class="pill">Canlı demo · prototip</span></div>
+    <p>Azərbaycan dilində fişinq SMS-lərini, saxta “bank zəngləri”ni və SIM dəyişdirmə fırıldağını şəbəkə səviyyəsində dayandıran platformanın işlək nümunəsi. İstənilən SMS mətnini yapışdırın və nəticəni görün.</p>
+    <div class="stats" aria-live="polite"><span>Yoxlanılan SMS: <b id="st-n">0</b></span><span>Bloklanan: <b id="st-b">0</b></span><span>Xəbərdarlıq: <b id="st-w">0</b></span><span>Son qərar vaxtı: <b id="st-ms">–</b></span></div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-sms" aria-controls="p-sms" aria-selected="true">1. SMS Qoruyucu</button>
+    <button class="tab" role="tab" id="t-call" aria-controls="p-call" aria-selected="false">2. Bank zəngi təsdiqi</button>
+    <button class="tab" role="tab" id="t-api" aria-controls="p-api" aria-selected="false">3. SIM Risk API (banklar üçün)</button>
+  </div>
+
+  <!-- SMS -->
+  <section class="panel" id="p-sms" role="tabpanel" aria-labelledby="t-sms">
+    <div class="grid">
+      <div class="card">
+        <h2>SMS mətni</h2>
+        <label class="lbl" for="sms">Mətni yapışdırın və ya nümunə seçin</label>
+        <textarea id="sms" spellcheck="false"></textarea>
+        <div class="lbl">Nümunələr (uydurma, real mesajlar deyil)</div>
+        <div class="chips" id="samples"></div>
+        <div class="row"><button class="btn" id="check">Yoxla</button><span class="muted" style="font-size:.82rem">Yazdıqca avtomatik yoxlanılır</span></div>
+        <p class="note">Bu demo qayda əsaslı mühərrikdir və tamamilə brauzerdə işləyir, heç bir mətn heç yerə göndərilmir. Real məhsulda bunun yerinə operatorun serverində işləyən, Azərbaycan dilli fişinq nümunələri ilə öyrədilmiş AI model olacaq.</p>
+      </div>
+      <div class="card" id="result">
+        <h2>Qərar</h2>
+        <div id="res-body"><div class="empty">Mətn daxil edin, nəticə burada görünəcək.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALL -->
+  <section class="panel" id="p-call" role="tabpanel" aria-labelledby="t-call" hidden>
+    <div class="grid">
+      <div class="card">
+        <h2>Ssenari seçin</h2>
+        <p class="muted" style="font-size:.9rem">Banklar zəng etdikləri nömrələri SİPƏR-də qeydiyyatdan keçirir. Operator gələn zəngi bu reyestrlə və SIM risk siqnalları ilə müqayisə edir, abunəçinin ekranında nəticəni göstərir.</p>
+        <div class="scen" id="scen"></div>
+        <p class="note">Bank adları ümumidir. Real tətbiqdə nişan operatorun şəbəkəsi (məsələn, zəng edənin təsdiqlənmiş adının göstərilməsi) və ya operatorun tətbiqi vasitəsilə göstərilə bilər. Texniki variant operatorla birgə seçilir.</p>
+      </div>
+      <div class="card"><h2>Abunəçinin ekranı</h2><div id="phone"></div></div>
+    </div>
+  </section>
+
+  <!-- API -->
+  <section class="panel" id="p-api" role="tabpanel" aria-labelledby="t-api" hidden>
+    <div class="grid">
+      <div class="card">
+        <h2>Bank köçürməni təsdiqləməzdən əvvəl soruşur</h2>
+        <label class="lbl" for="api-num">Müştərinin nömrəsi (demo nömrələri)</label>
+        <select id="api-num"></select>
+        <label class="lbl" for="api-age">Yoxlama dövrü</label>
+        <select id="api-age"><option value="24">Son 24 saat</option><option value="72" selected>Son 72 saat</option><option value="240">Son 10 gün</option></select>
+        <label class="lbl" for="api-amt">Köçürmə məbləği, ₼</label>
+        <input type="text" id="api-amt" value="1 500" inputmode="decimal">
+        <button class="btn" id="api-go">Sorğu göndər</button>
+        <p class="note">Sorğu formatı GSMA Open Gateway təşəbbüsünün CAMARA SIM Swap API-sinə əsaslanır. Bank abunəçinin şəxsi məlumatını görmür, yalnız “SIM dəyişib / dəyişməyib” cavabını alır. Operator hər sorğu üçün bankdan ödəniş alır.</p>
+      </div>
+      <div class="card">
+        <h2>Sorğu və cavab</h2>
+        <div id="api-out"><div class="empty">Sorğu göndərin.</div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer><div class="wrap">SİPƏR prototipi · Şahin Səlimov · Demo məlumatları uydurmadır. Real məhsulda bütün məlumatlar operatorun infrastrukturunda qalır.</div></footer>
+
+<script>
+(function(){
+  "use strict";
+  // ---------- tabs ----------
+  const tabs=[...document.querySelectorAll('.tab')];
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>{x.setAttribute('aria-selected',x===t?'true':'false');document.getElementById(x.getAttribute('aria-controls')).hidden=(x!==t);});
+  }));
+
+  // ---------- engine ----------
+  const OFFICIAL=["azercell.com","bakcell.com","nar.az","kapitalbank.az","birbank.az","abb-bank.az","pashabank.az","leobank.az","unibank.az","accessbank.az","bankrespublika.az","xalqbank.az","yelo.az","mygov.az","e-gov.az","asan.gov.az","azerpost.az","gov.az"];
+  const BRANDS=[["azercell","Azercell"],["bakcell","Bakcell"],["narmobile","Nar"],["kapital","Kapital Bank"],["birbank","Birbank"],["abb","ABB"],["pasha","PAŞA Bank"],["leobank","Leobank"],["unibank","Unibank"],["accessbank","AccessBank"],["respublika","Bank Respublika"],["xalqbank","Xalq Bank"],["yelo","Yelo Bank"],["mygov","myGov"],["asan","ASAN"],["azerpost","Azərpoçt"],["azerpoct","Azərpoçt"],["azərpoçt","Azərpoçt"]];
+  const TEXT_BRAND=/(?<!\p{L})(azercell|bakcell|nar\b|kapital\s*bank|birbank|abb|pa[şs]a\s*bank|leobank|unibank|access\s*bank|bank\s*respublika|xalq\s*bank|yelo|mygov|asan|az[əe]rpo[çc]t|bank(?:dan|ınız|iniz|in)?|банк)/giu;
+  const SHORT=["bit.ly","tinyurl.com","cutt.ly","is.gd","t.ly","goo.su","clck.ru","rb.gy","shorturl.at","tiny.cc","ow.ly","s.id"];
+  const BADTLD=["xyz","top","click","live","online","site","shop","info","icu","cfd","sbs","buzz","link","rest","cyou","vip","work","support","help","pw","ru"];
+  const RULES=[
+    {id:"cred",pts:30,label:"Məxfi məlumat tələbi (kod, şifrə, CVV, kart nömrəsi)",re:[/(sms[\s-]*)?kod(u|unu|unuzu|lar)?\b/giu,/\b[şs]ifr[əe]\w*/giu,/\bparol\w*/giu,/\bcv[vc]\w*/giu,/kart(ın|in)?ızın? nömr[əe]\w*|kart nomre\w*/giu,/\bpin\b/giu,/(?<!\p{L})код/giu,/(?<!\p{L})парол/giu,/\bcvv\b/giu]},
+    {id:"urg",pts:15,label:"Təcililik və qorxutma təzyiqi",re:[/t[əe]cili/giu,/d[əe]rhal/giu,/blokla\w*|bloklan\w*/giu,/dayand[ıi]r[ıi]l\w*/giu,/son x[əe]b[əe]rdarl[ıi]q/giu,/\b24 saat\w*/giu,/\b\d+ d[əe]qiq[əe]\w*/giu,/ş[üu]bh[əe]li [əe]m[əe]liyyat\w*/giu,/срочно/giu,/заблокир\w*/giu]},
+    {id:"prize",pts:15,label:"Hədiyyə, uduş və ya pul vədi",re:[/qazand[ıi]n[ıi]z/giu,/h[əe]diyy[əe]\w*/giu,/\bbonus\w*/giu,/pulsuz/giu,/m[üu]kafat\w*/giu,/udu[şs]\w*/giu,/kompensasiya\w*/giu,/geri [öo]d[əe]ni[şs]\w*/giu,/t[əe]brikl[əe]r/giu,/выиграл\w*/giu,/приз\w*/giu]},
+    {id:"parcel",pts:10,label:"Bağlama və gömrük ssenarisi",re:[/ba[ğg]lama\w*/giu,/g[öo]mr[üu]k\w*/giu,/kuryer\w*/giu,/[çc]atd[ıi]r[ıi]lma\w*/giu,/посылк\w*/giu]},
+    {id:"act",pts:10,label:"Linkə keçmək və ya məlumat daxil etmək çağırışı",re:[/daxil olun/giu,/t[əe]sdiql[əe]\w*/giu,/aktivl[əe][şs]dir\w*/giu,/ke[çc]id edin/giu,/linki?[əe]? (daxil|ke[çc])\w*/giu,/m[əe]lumatlar[ıi]n[ıi]z[ıi] yenil\w*/giu,/подтверд\w*/giu]},
+    {id:"tell",pts:20,label:"Kodu başqa şəxsə demək tələbi",re:[/biz[əe] (deyin|g[öo]nd[əe]rin|bildirin)/giu,/operatora (deyin|bildirin)/giu,/сообщите/giu,/назовите/giu]}
+  ];
+  const URL_RE=/\b((?:https?:\/\/)?(?:\d{1,3}(?:\.\d{1,3}){3}|(?:[a-z0-9¡-￿-]+\.)+(?:[a-z]{2,24}|xn--[a-z0-9-]+))(?::\d+)?(?:\/[^\s]*)?)/giu;
+
+  function domainOf(u){let s=u.replace(/^https?:\/\//i,'');s=s.split(/[\/?#:]/)[0].toLowerCase();return s.replace(/[.,;)]+$/,'');}
+  function isOfficial(d){return OFFICIAL.some(o=>d===o||d.endsWith('.'+o));}
+  function analyzeLink(raw){
+    const url=raw.replace(/[.,;)!]+$/,'');const d=domainOf(url);const flags=[];let pts=5;
+    const tld=d.split('.').pop();
+    if(/^\d{1,3}(\.\d{1,3}){3}$/.test(d)){flags.push(['b','IP ünvan, domen yoxdur']);pts+=25;}
+    if(d.includes('xn--')){flags.push(['b','Punycode: oxşar hərflərlə saxta ad']);pts+=25;}
+    if(SHORT.some(s=>d===s)){flags.push(['b','Qısaldılmış link, əsl ünvan gizlədilir']);pts+=15;}
+    if(BADTLD.includes(tld)){flags.push(['b','Riskli domen zonası .'+tld]);pts+=15;}
+    if(/^http:\/\//i.test(url)){flags.push(['b','Şifrələnməmiş HTTP']);pts+=5;}
+    const official=isOfficial(d);
+    if(official){flags.push(['s','Rəsmi domen']);pts=0;}
+    else{const hit=BRANDS.find(([k])=>d.includes(k));if(hit){flags.push(['b',hit[1]+' adını təqlid edən domen']);pts+=35;}}
+    return {url,domain:d,flags,pts,official};
+  }
+  function analyze(text){
+    const t0=performance.now();
+    const reasons=[];const ranges=[];let score=0;
+    RULES.forEach(r=>{let hit=false;r.re.forEach(re=>{re.lastIndex=0;let m;while((m=re.exec(text))){if(!m[0])break;hit=true;ranges.push([m.index,m.index+m[0].length]);}});if(hit){score+=r.pts;reasons.push([r.pts,r.label]);}});
+    const links=[];URL_RE.lastIndex=0;let m;
+    while((m=URL_RE.exec(text))){const raw=m[1];if(/^\d+([.,]\d+)?$/.test(raw))continue;const d=domainOf(raw);if(!/[a-z]/i.test(d.split('.').pop()))continue;links.push(analyzeLink(raw));ranges.push([m.index,m.index+raw.length]);}
+    links.forEach(l=>{score+=l.pts;});
+    if(links.length&&links.some(l=>l.pts>5))reasons.push([links.reduce((a,l)=>a+l.pts,0),'Linkdə risk əlamətləri ('+links.length+' link)']);
+    else if(links.length&&!links.some(l=>!l.official))reasons.push([0,'Link rəsmi domenə aparır']);
+    else if(links.length)reasons.push([links.reduce((a,l)=>a+l.pts,0),'Mesajda link var']);
+    // brand impersonation: brand named in text + non-official link, or bank named + credential/tell
+    TEXT_BRAND.lastIndex=0;const brandHit=TEXT_BRAND.test(text);
+    if(brandHit&&links.some(l=>!l.official)){score+=25;reasons.push([25,'Brend adı çəkilir, amma link rəsmi sayta aparmır']);}
+    const credOrTell=reasons.some(r=>/Məxfi|Kodu/.test(r[1]));
+    if(brandHit&&credOrTell){score+=15;reasons.push([15,'Bank və ya qurum adından məxfi məlumat istənilir. Banklar bunu heç vaxt istəmir']);}
+    score=Math.min(100,score);
+    if(!reasons.length)reasons.push([0,'Fırıldaq əlaməti tapılmadı']);
+    reasons.sort((a,b)=>b[0]-a[0]);
+    return {score,reasons,links,ranges,ms:(performance.now()-t0)};
+  }
+  function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+  function highlight(text,ranges){
+    if(!ranges.length)return esc(text);
+    ranges.sort((a,b)=>a[0]-b[0]);const merged=[];ranges.forEach(r=>{const l=merged[merged.length-1];if(l&&r[0]<=l[1])l[1]=Math.max(l[1],r[1]);else merged.push([r[0],r[1]]);});
+    let out='',i=0;merged.forEach(([a,b])=>{out+=esc(text.slice(i,a))+'<mark>'+esc(text.slice(a,b))+'</mark>';i=b;});return out+esc(text.slice(i));
+  }
+  function gauge(score,cls){
+    const c=2*Math.PI*32,off=c*(1-score/100);const col=cls==='bad'?'var(--bad)':cls==='warn'?'var(--warn)':'var(--safe)';
+    return `<svg class="gauge" viewBox="0 0 78 78" role="img" aria-label="Risk balı ${score} / 100"><circle cx="39" cy="39" r="32" fill="none" stroke="var(--line)" stroke-width="7"/><circle cx="39" cy="39" r="32" fill="none" stroke="${col}" stroke-width="7" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 39 39)" stroke-linecap="butt"/><text x="39" y="44" text-anchor="middle" font-size="18" fill="var(--ink)">${score}</text></svg>`;
+  }
+  const stats={n:0,b:0,w:0};let lastCounted='';
+  function render(count){
+    const text=document.getElementById('sms').value;const body=document.getElementById('res-body');
+    if(!text.trim()){body.innerHTML='<div class="empty">Mətn daxil edin, nəticə burada görünəcək.</div>';return;}
+    const r=analyze(text);
+    const cls=r.score>=60?'bad':r.score>=30?'warn':'safe';
+    const title=cls==='bad'?'Fırıldaq':cls==='warn'?'Şübhəli':'Təhlükəsiz';
+    const act=cls==='bad'?'Operator qərarı: BLOKLA · abunəçiyə çatdırılmır':cls==='warn'?'Operator qərarı: XƏBƏRDAR ET · mesaj “şübhəli” nişanı ilə çatdırılır':'Operator qərarı: BURAX';
+    let html=`<div class="verdict ${cls}">${gauge(r.score,cls)}<div><div class="v-title">${title}</div><div class="action">${act}</div><div class="action muted">Risk balı ${r.score}/100 · qərar ${r.ms<0.1?'<0.1':r.ms.toFixed(1)} ms</div></div></div>`;
+    html+=`<div class="lbl">İşarələnmiş mətn</div><div class="preview">${highlight(text,r.ranges)}</div>`;
+    html+=`<div class="lbl">Səbəblər</div><ul class="reasons">${r.reasons.map(([p,l])=>`<li><span class="pts ${p?'':'z'}">${p?'+'+p:'0'}</span><span>${esc(l)}</span></li>`).join('')}</ul>`;
+    if(r.links.length){html+=`<div class="lbl">Linklərin təhlili</div><div class="links">${r.links.map(l=>`<div class="link">${esc(l.url)}<div class="flags">${l.flags.length?l.flags.map(([k,f])=>`<span class="flag ${k}">${esc(f)}</span>`).join(''):'<span class="flag b">Naməlum domen</span>'}</div></div>`).join('')}</div>`;}
+    body.innerHTML=html;
+    document.getElementById('st-ms').textContent=(r.ms<0.1?'<0.1':r.ms.toFixed(1))+' ms';
+    if(count&&text!==lastCounted){lastCounted=text;stats.n++;if(cls==='bad')stats.b++;if(cls==='warn')stats.w++;
+      document.getElementById('st-n').textContent=stats.n;document.getElementById('st-b').textContent=stats.b;document.getElementById('st-w').textContent=stats.w;}
+  }
+  const SAMPLES=[
+    ["bad","Saxta bank linki","Kapital Bank: Kartiniz tehlukesizlik sebebi ile bloklanib. 24 saat erzinde tesdiqlemek ucun daxil olun: http://kapitalbank-tesdiq.top/az"],
+    ["bad","Operator “hədiyyəsi”","Təbriklər! Azercell 30 illik yubiley münasibətilə sizə 50 GB hədiyyə etdi. Aktivləşdirmək üçün: bit.ly/az50gb-bonus"],
+    ["bad","Saxta bağlama","Hörmətli müştəri, bağlamanız gömrükdə saxlanılıb. Çatdırılma haqqı 1.20 AZN. Ödəniş: azerpost-delivery.online/pay"],
+    ["bad","“Bank əməkdaşı”","Salam, bankdan narahat edirik. Hesabınızda şübhəli əməliyyat var. Əməliyyatı ləğv etmək üçün sizə gələn SMS kodunu bizə deyin."],
+    ["bad","Rus dilində","Ваша карта заблокирована. Срочно сообщите код из SMS оператору банка."],
+    ["safe","Real balans xəbəri","Azercell: Balansınız 2 AZN-dən azdır. Balansı artırmaq üçün *100# yığın."],
+    ["safe","Real ödəniş bildirişi","Kartınızdan 25.40 AZN ödəniş edildi. Bu siz deyilsinizsə, bankınızın qaynar xəttinə zəng edin. Ətraflı: kapitalbank.az"]
+  ];
+  const chips=document.getElementById('samples');
+  SAMPLES.forEach(([k,label,txt])=>{const b=document.createElement('button');b.className='chip';b.type='button';b.innerHTML=`<span class="d" style="background:var(--${k==='bad'?'bad':'safe'})"></span>${esc(label)}`;b.addEventListener('click',()=>{document.getElementById('sms').value=txt;render(true);});chips.appendChild(b);});
+  const ta=document.getElementById('sms');let deb;
+  ta.addEventListener('input',()=>{render(false);clearTimeout(deb);deb=setTimeout(()=>render(true),900);});
+  document.getElementById('check').addEventListener('click',()=>render(true));
+  ta.value=SAMPLES[0][2];render(true);
+
+  // ---------- call screen ----------
+  const SCEN=[
+    {k:"good",name:"Təsdiqlənmiş bank zəngi",who:"Bank X · Müştəri xidməti",num:"+994 12 *** ** 00",banner:["good","SİPƏR · Təsdiqlənmiş","Bu zəng Bank X-in qeydiyyatlı xəttindən gəlir. Yenə də: bank heç vaxt SMS kodu və ya CVV soruşmur."]},
+    {k:"bad",name:"Özünü bank kimi təqdim edən naməlum nömrə",who:"Naməlum nömrə",num:"+994 55 *** ** 17",banner:["bad","SİPƏR · Fırıldaq riski yüksək","Bu nömrə son 1 saatda 140+ abunəçiyə zəng edib və 23 şikayət alıb. Heç bir bankın qeydiyyatlı nömrəsi deyil. Kart məlumatı və kod verməyin."]},
+    {k:"warn",name:"SIM kartı yenicə dəyişdirilmiş nömrədən zəng",who:"Ailə üzvü (kontakt)",num:"+994 50 *** ** 42",banner:["warn","SİPƏR · Diqqət","Bu nömrənin SIM kartı 2 saat əvvəl dəyişdirilib. Pul və ya kod istəsə, şəxsin özü ilə başqa yolla əlaqə saxlayıb yoxlayın."]},
+    {k:"bad",name:"Xaricdən qısa “cavabsız” zəng (Wangiri)",who:"Beynəlxalq nömrə",num:"+882 *** *** 91",banner:["bad","SİPƏR · Geri zəng etməyin","Bu nömrədən minlərlə bir saniyəlik zəng edilir. Geri zəng yüksək tarifli xəttə yönləndirilir və balansınızdan pul çıxır."]}
+  ];
+  const scen=document.getElementById('scen');
+  function showCall(s){document.getElementById('phone').innerHTML=`<div class="phone"><div class="top">Gələn zəng</div><div class="who">${esc(s.who)}</div><div class="num">${esc(s.num)}</div><div class="banner ${s.banner[0]}"><b>${esc(s.banner[1])}</b>${esc(s.banner[2])}</div><div class="callbtns"><span class="cb r" aria-label="Rədd et">Rədd</span><span class="cb g" aria-label="Cavab ver">Cavab</span></div></div>`;}
+  SCEN.forEach((s,i)=>{const b=document.createElement('button');b.className='chip';b.type='button';b.innerHTML=`<span class="d" style="background:var(--${s.k==='good'?'safe':s.k==='warn'?'warn':'bad'})"></span>${esc(s.name)}`;b.addEventListener('click',()=>showCall(s));scen.appendChild(b);});
+  showCall(SCEN[1]);
+
+  // ---------- SIM API ----------
+  const NUMS=[["+994501111111","Müştəri A · SIM 3 saat əvvəl dəyişib",3],["+994552222222","Müştəri B · SIM dəyişməyib (2 il)",17520],["+994703333333","Müştəri C · SIM 4 gün əvvəl dəyişib",96]];
+  const sel=document.getElementById('api-num');
+  NUMS.forEach(([n,l])=>{const o=document.createElement('option');o.value=n;o.textContent=n.replace(/(\+994)(\d\d)(\d{3})(\d\d)(\d\d)/,'$1 $2 $3 $4 $5')+' · '+l.split(' · ')[1];sel.appendChild(o);});
+  document.getElementById('api-go').addEventListener('click',()=>{
+    const n=sel.value,age=+document.getElementById('api-age').value;const rec=NUMS.find(x=>x[0]===n);const hrs=rec[2];
+    const swapped=hrs<=age;const amt=document.getElementById('api-amt').value.trim()||'0';
+    const changed=new Date(Date.now()-hrs*3600e3).toISOString().replace(/\.\d+Z$/,'Z');
+    const req=`POST /sim-swap/v0/check
+Host: api.operator.az
+Authorization: Bearer ****  (bankın açarı)
+Content-Type: application/json
+
+{
+  "phoneNumber": "${n}",
+  "maxAge": ${age}
+}`;
+    const res=`HTTP/1.1 200 OK
+
+{
+  "swapped": ${swapped}
+}`;
+    const res2=`POST /sim-swap/v0/retrieve-date  →
+{
+  "latestSimChange": "${changed}"
+}`;
+    const dec=swapped?`<div class="decision bad"><b>Bankın qərarı: ${esc(amt)} ₼ köçürməni dayandır.</b><br>SIM kart son ${age} saat ərzində dəyişdirilib. Müştəri ilə qeydiyyatlı ünvan və ya filialda əlavə yoxlama aparılsın.</div>`:`<div class="decision safe"><b>Bankın qərarı: ${esc(amt)} ₼ köçürməni davam etdir.</b><br>Son ${age} saatda SIM dəyişikliyi yoxdur, SIM dəyişdirmə fırıldağı riski aşağıdır.</div>`;
+    document.getElementById('api-out').innerHTML=`<div class="lbl">Bankın sorğusu</div><pre class="json">${esc(req)}</pre><div class="lbl">Operatorun cavabı · ~40 ms</div><pre class="json">${esc(res)}</pre><pre class="json">${esc(res2)}</pre>${dec}<p class="note">Operator gəliri: hər sorğu üçün bankdan ödəniş (məbləğ müqavilə ilə). Banka nə ad, nə ünvan, nə də zəng tarixçəsi verilir.</p>`;
+  });
+  document.getElementById('api-go').click();
+})();
+</script>
