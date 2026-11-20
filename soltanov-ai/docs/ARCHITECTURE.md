@@ -82,6 +82,13 @@ Qayda əsaslı + AI təklifi. Daxili alətlər real işləyir:
 | Profil tənzimləmə | Son 7 gündə ≥5 ideya keçilib |
 | Telegram bildirişi | Bildiriş qoşulmayıb |
 
+## 7.1 Səsli əmrlər (bütün funksiyalar üçün)
+
+- Hər ekranda üzən "Səslə istə" düyməsi və bölmə daxilində kontekst düymələri.
+- Axın: səs → mətn (redaktə olunur) → `voice.js` niyyəti təyin edir (Claude JSON schema, offline açar söz router) → icra.
+- Niyyətlər: `ideas` (mövzu üzrə sifariş ideyaları), `ad` (5 ssenari), `refresh` (slotu dəyiş), `profile` (daimi istək → `profile.wishes`, hər prompt-a əlavə olunur), `tool` (Proq aləti).
+- Trial-da sifariş ideyaları üçün ayrıca gündəlik limit (`TRIAL_DAILY_CUSTOM_LIMIT`).
+
 ## 8. Təhlükəsizlik
 
 - Admin endpoint-ləri `ADMIN_TOKEN` ilə (sabit vaxtlı müqayisə).

@@ -1,7 +1,7 @@
 // Caches only the static app shell. API responses are never cached, so an
 // expired trial cannot be used offline.
-const CACHE = "sa-shell-v1";
-const SHELL = ["/styles.css", "/app.js", "/icon.svg", "/manifest.webmanifest"];
+const CACHE = "sa-shell-v2";
+const SHELL = ["/styles.css", "/app.js", "/logo.png", "/icon-192.png", "/manifest.webmanifest"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

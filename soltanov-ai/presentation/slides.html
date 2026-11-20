@@ -12,7 +12,7 @@
   .slide:last-child { page-break-after: auto; }
   .num { position: absolute; bottom: 52px; right: 120px; color: var(--muted); font-size: 20px; font-weight: 600; }
   .foot { position: absolute; bottom: 52px; left: 120px; color: var(--muted); font-size: 20px; display: flex; align-items: center; gap: 12px; font-weight: 700; }
-  .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--volt); color: var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 15px; }
+  .mark { width: 40px; height: 40px; border-radius: 50%; display: block; }
   .kicker { color: var(--volt); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 22px; margin-bottom: 22px; }
   h1 { font-size: 92px; line-height: 1.02; letter-spacing: -.04em; margin: 0 0 28px; font-weight: 900; }
   h2 { font-size: 64px; line-height: 1.08; letter-spacing: -.03em; margin: 0 0 22px; font-weight: 850; }
@@ -25,7 +25,7 @@
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 36px; }
   .card p { margin: 0; font-size: 23px; color: var(--muted); }
-  .badge { display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--volt); color: var(--ink); font-weight: 800; font-size: 18px; margin-bottom: 18px; }
+  .badge { white-space: nowrap; display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--volt); color: var(--ink); font-weight: 800; font-size: 18px; margin-bottom: 18px; }
   .badge.dark { background: var(--bg2); color: var(--volt); border: 1px solid rgba(198,255,61,.35); }
   .big { font-size: 84px; font-weight: 900; color: var(--volt); letter-spacing: -.03em; line-height: 1; }
   .phone { width: 380px; border-radius: 46px; border: 10px solid #1d2027; box-shadow: 0 40px 80px rgba(0,0,0,.55); overflow: hidden; background: #000; flex: none; }
@@ -70,17 +70,17 @@
 <section class="slide" style="display:flex;align-items:center">
   <div style="flex:1">
     <div class="kicker">Şükran Soltanov üçün · Satışa hazır məhsul</div>
-    <h1>Soltanov AI</h1>
+    <div style="display:flex;align-items:center;gap:34px;margin-bottom:28px"><img src="../public/logo.png" style="width:150px;height:150px;border-radius:50%"><h1 style="margin:0">Soltanov AI</h1></div>
     <p class="lead" style="font-size:38px;max-width:980px">İdmançı-bloqer üçün şəxsi AI kontent prodüseri. Hər gün 3 dəfə <span class="volt">onun xarakterinə uyğun</span>, çəkilməyə hazır Reels ideyaları və səsli reklam brifindən 5 hazır ssenari.</p>
-    <div class="row" style="margin-top:56px;gap:22px">
-      <span class="badge">Gündə 3 slot</span><span class="badge dark">Səs → 5 ssenari</span><span class="badge dark">Proq alətləri</span><span class="badge dark">3 gün test → satış</span>
+    <div class="row" style="margin-top:48px;gap:14px;flex-wrap:wrap;max-width:1000px">
+      <span class="badge">Gündə 3 slot</span><span class="badge dark">Səs → 5 ssenari</span><span class="badge dark">Proq alətləri</span><span class="badge dark">Hər şey səslə</span><span class="badge dark">3 gün test → satış</span>
     </div>
   </div>
   <div class="phones" style="margin-right:20px">
     <div class="phone" style="transform:rotate(-4deg) translateY(30px)"><img src="assets/today.png"></div>
     <div class="phone" style="transform:rotate(4deg)"><img src="assets/ad-result.png"></div>
   </div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">01</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">01</div>
 </section>
 
 <!-- 2. Problem -->
@@ -93,7 +93,7 @@
     <div class="card"><div class="big">3</div><h3 style="margin-top:22px">Dağınıq iş axını</h3><p>Qiymət, müqavilə şərtləri, çəkiliş planı, teleprompter — hamısı ayrı yerlərdə və ya heç yerdə.</p></div>
   </div>
   <p class="quote" style="margin-top:70px">Ümumi "fitness məsləhətləri" kömək etmir. Ona <span class="volt">özünün tərzində</span> — aktiv, enerjili, əyləncəli ideyalar lazımdır.</p>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">02</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">02</div>
 </section>
 
 <!-- 3. Solution overview -->
@@ -106,11 +106,11 @@
     <div class="card"><span class="badge dark">Proq</span><h3>Ehtiyaca görə alət</h3><p>Qiymət kalkulyatoru, müqavilə checklist, kontent təqvimi, teleprompter — vəziyyətə uyğun avtomatik təklif olunur.</p></div>
   </div>
   <div class="grid3" style="margin-top:28px">
-    <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Yükləmə tələb etmir</b> — link ilə açılır, telefona tətbiq kimi əlavə olunur.</p></div>
+    <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Hər funksiya səslə</b> — “mənə bu mövzuda Reels ideyaları hazırla” demək kifayətdir.</p></div>
     <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Claude AI</b> ilə strukturlaşdırılmış nəticə; AI açarı olmasa belə şablon rejimində işləyir.</p></div>
     <div class="card" style="padding:26px 36px"><p><b style="color:var(--text)">Telegram bildirişi</b> — yeni ideyalar vaxtında telefona gəlir.</p></div>
   </div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">03</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">03</div>
 </section>
 
 <!-- 4. Persona -->
@@ -128,7 +128,7 @@
     </ul>
   </div>
   <div class="phone"><img src="assets/onboarding.png"></div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">04</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">04</div>
 </section>
 
 <!-- 5. Daily flow -->
@@ -149,7 +149,7 @@
     <div class="phone"><img src="assets/today.png"></div>
     <div class="phone"><img src="assets/idea.png"></div>
   </div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">05</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">05</div>
 </section>
 
 <!-- 6. No repeats -->
@@ -163,7 +163,7 @@
     <div class="card"><h3>4. Davranışdan öyrənmə</h3><p>Üst-üstə keçilən sütun müvəqqəti çıxarılır. Statuslar: yeni → saxlanılıb → çəkilib → paylaşılıb.</p></div>
   </div>
   <p class="lead" style="margin-top:44px">Server yatmış olsa belə (autoscale hostinq), tətbiq açılan anda buraxılmış slot dərhal yaradılır — ideyasız gün olmur.</p>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">06</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">06</div>
 </section>
 
 <!-- 7. Voice -> 5 scripts -->
@@ -182,7 +182,7 @@
     <div class="phone"><img src="assets/ad-input.png"></div>
     <div class="phone"><img src="assets/ad-result.png"></div>
   </div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">07</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">07</div>
 </section>
 
 <!-- 8. Proq -->
@@ -201,7 +201,29 @@
     </table>
   </div>
   <div class="phone"><img src="assets/proq.png"></div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">08</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">08</div>
+</section>
+
+<!-- 8b. Voice everywhere -->
+<section class="slide" style="display:flex;gap:70px;align-items:center">
+  <div style="flex:1">
+    <div class="kicker">Səslə idarə</div>
+    <h2>Bütün funksiyalara<br>səslə istək</h2>
+    <p class="lead" style="margin-bottom:26px">Hər ekranda “Səslə istə” düyməsi. Danışır — sistem nə istədiyini özü anlayır və lazımi bölməni işə salır.</p>
+    <table class="t">
+      <tr><th>Deyir</th><th>Sistem edir</th></tr>
+      <tr><td>“Mənə zal mövzusunda Reels ideyaları hazırla”</td><td>Həmin mövzuda dərhal ideyalar</td></tr>
+      <tr><td>“FitBar protein barı üçün reklam istəyir…”</td><td>5 reklam ssenarisi</td></tr>
+      <tr><td>“Axşam ideyalarını dəyiş”</td><td>19:00 slotu yenilənir</td></tr>
+      <tr><td>“Bundan sonra daha çox yumor olsun”</td><td>Daimi istək — bütün gələcək ideyalarda nəzərə alınır</td></tr>
+      <tr><td>“Qiyməti hesabla”, “teleprompteri aç”</td><td>Uyğun Proq aləti açılır</td></tr>
+    </table>
+  </div>
+  <div class="phones">
+    <div class="phone"><img src="assets/voice.png"></div>
+    <div class="phone"><img src="assets/voice-result.png"></div>
+  </div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">09</div>
 </section>
 
 <!-- 9. Two forms -->
@@ -231,7 +253,7 @@
     </div>
   </div>
   <p class="lead" style="margin-top:36px">Edition-lar texniki olaraq ayrıdır: trial serveri lisenziya açarını qəbul etmir, tam versiya trial linkini qəbul etmir.</p>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">09</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">10</div>
 </section>
 
 <!-- 10. Lock logic -->
@@ -254,7 +276,7 @@
     </ul>
   </div>
   <div class="phone" style="align-self:center"><img src="assets/locked.png"></div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">10</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">11</div>
 </section>
 
 <!-- 11. Sales flow -->
@@ -270,7 +292,7 @@
     <div class="step" style="border-color:var(--volt)"><div class="n">06</div><h3>Tam versiya</h3><p>Paket quraşdırılır, lisenziya açarı verilir</p></div>
   </div>
   <img class="shot" src="assets/admin.png" style="width:1000px;height:470px;object-fit:cover;object-position:top;margin:40px auto 0">
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">11</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">12</div>
 </section>
 
 <!-- 12. Architecture -->
@@ -280,7 +302,7 @@
   <div class="arch">
     <div class="box"><h3>Klient (PWA)</h3>
       <div class="mod"><b>Bu gün</b> <span>— slotlar, ideyalar</span></div>
-      <div class="mod"><b>Reklam</b> <span>— səs yazısı</span></div>
+      <div class="mod"><b>Səslə istə</b> <span>— hər ekranda</span></div>
       <div class="mod"><b>Proq</b> <span>— alətlər</span></div>
       <div class="mod"><b>Arxiv / Profil</b></div>
       <div class="mod"><b>Admin panel</b> <span>— sahib</span></div>
@@ -290,6 +312,7 @@
       <div class="mod"><b>ideas + scheduler</b> <span>— 09/13/19, təkrar filtri</span></div>
       <div class="mod"><b>ads</b> <span>— transkripsiya, 5 ssenari</span></div>
       <div class="mod"><b>proq</b> <span>— alət təklif mühərriki</span></div>
+      <div class="mod"><b>voice</b> <span>— səsli əmr yönləndiricisi</span></div>
       <div class="mod"><b>db</b> <span>— JSON fayl, atomik yazı</span></div>
     </div>
     <div class="box"><h3>Xidmətlər</h3>
@@ -302,9 +325,9 @@
   <div class="grid3" style="margin-top:40px">
     <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">1 asılılıq</b> (Anthropic SDK). Replit, VPS, Render-də işləyir.</p></div>
     <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">Təhlükəsizlik:</b> hash-lənmiş token-lər, rate limit, CSP, imzalı cookie.</p></div>
-    <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">15 avtomatik test:</b> blok, cihaz limiti, slotlar, tam HTTP axını.</p></div>
+    <div class="card" style="padding:24px 30px"><p><b style="color:var(--text)">19 avtomatik test:</b> blok, cihaz limiti, slotlar, səsli əmrlər, tam HTTP axını.</p></div>
   </div>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">12</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">13</div>
 </section>
 
 <!-- 13. Launch -->
@@ -326,7 +349,7 @@
     </ul>
   </div>
   <p class="quote" style="margin-top:70px">Mövzu axtarmağa sərf olunan vaxt → <span class="volt">çəkilişə</span>.</p>
-  <div class="foot"><div class="mark">S</div>Soltanov AI</div><div class="num">13</div>
+  <div class="foot"><img class="mark" src="../public/logo.png">Soltanov AI</div><div class="num">14</div>
 </section>
 
 </body>

@@ -5,7 +5,8 @@ import crypto from "node:crypto";
 import { config, ROOT, assertProductionConfig } from "./config.js";
 import { Store } from "./db.js";
 import * as A from "./access.js";
-import { ensureToday, generateSlot, localClock, nextSlot } from "./ideas.js";
+import { ensureToday, generateSlot, generateCustom, localClock, nextSlot, dueSlots } from "./ideas.js";
+import { routeCommand, slotIndexOf, addWish } from "./voice.js";
 import { createAdScripts, transcribe } from "./ads.js";
 import { suggestForAd, suggestForDashboard } from "./proq.js";
 import { startScheduler, startTelegramLinker } from "./scheduler.js";
@@ -210,7 +211,7 @@ export function createApp({ store, secret = config.sessionSecret, adminToken = c
       const acc = auth(req);
       const body = await readJSON(req);
       const clean = {};
-      for (const k of Object.keys(DEFAULT_PROFILE)) if (typeof body[k] === "string") clean[k] = body[k].trim().slice(0, 300);
+      for (const k of Object.keys(DEFAULT_PROFILE)) if (typeof body[k] === "string") clean[k] = body[k].trim().slice(0, k === "wishes" ? 1500 : 300);
       acc.profile = { ...(acc.profile || {}), ...clean };
       store.log("profile.updated", { accountId: acc.id });
       store.save();
@@ -240,6 +241,47 @@ export function createApp({ store, secret = config.sessionSecret, adminToken = c
       const ideas = await generateSlot(store, acc, { date, slotIndex, force: true });
       send(res, 200, { ideas });
     }],
+    ["POST", /^\/api\/ideas\/custom$/, async (req, res) => {
+      const acc = auth(req);
+      rateLimit(req, "custom", 6);
+      const body = await readJSON(req);
+      if (String(body.request || "").trim().length < 3) throw new HttpError(400, "İstəyi bir az ətraflı deyin.");
+      if (!A.takeQuota(acc, "custom", config.trialDailyCustomLimit, config.timezone)) throw new HttpError(429, "Test versiyasında gündəlik sifariş limiti doldu.");
+      send(res, 200, { ideas: await generateCustom(store, acc, { request: body.request, count: body.count }) });
+    }],
+    ["POST", /^\/api\/voice\/command$/, async (req, res) => {
+      const acc = auth(req);
+      rateLimit(req, "voice", 8);
+      const body = await readJSON(req);
+      const text = String(body.text || "").trim().slice(0, 6000);
+      if (text.length < 3) throw new HttpError(400, "Səs mətni boşdur — yenidən danışın və ya yazın.");
+      const route = await routeCommand(text, String(body.context || ""), store, acc);
+      store.log("voice.command", { accountId: acc.id, message: route.intent });
+      const quota = (kind, limit, msg) => {
+        if (!A.takeQuota(acc, kind, limit, config.timezone)) throw new HttpError(429, msg);
+      };
+      if (route.intent === "ad") {
+        quota("ads", config.trialDailyAdLimit, "Test versiyasında gündəlik reklam limiti doldu.");
+        const ad = await createAdScripts(store, acc, { transcript: text });
+        return send(res, 200, { intent: "ad", text, ad, proq: suggestForAd(ad) });
+      }
+      if (route.intent === "refresh") {
+        quota("refresh", config.trialDailyRefreshLimit, "Test versiyasında gündəlik yeniləmə limiti doldu.");
+        const due = dueSlots(config.slots, config.timezone);
+        const slotIndex = slotIndexOf(route.slot, due.length ? due[due.length - 1] : 0);
+        const { date } = localClock(config.timezone);
+        return send(res, 200, { intent: "refresh", text, slotIndex, ideas: await generateSlot(store, acc, { date, slotIndex, force: true }) });
+      }
+      if (route.intent === "profile") {
+        const wishes = addWish(acc, route.wish || text);
+        store.save();
+        return send(res, 200, { intent: "profile", text, wishes, account: accountView(acc) });
+      }
+      if (route.intent === "tool" && route.tool && route.tool !== "none") return send(res, 200, { intent: "tool", text, tool: route.tool });
+      quota("custom", config.trialDailyCustomLimit, "Test versiyasında gündəlik sifariş limiti doldu.");
+      const ideas = await generateCustom(store, acc, { request: route.request || text, count: route.count });
+      return send(res, 200, { intent: "ideas", text, request: route.request || text, ideas });
+    }],
     ["POST", /^\/api\/ideas\/([\w-]+)\/status$/, async (req, res, m) => {
       const acc = auth(req);
       const { status } = await readJSON(req);
@@ -251,7 +293,7 @@ export function createApp({ store, secret = config.sessionSecret, adminToken = c
       store.save();
       send(res, 200, { ok: true, idea });
     }],
-    ["POST", /^\/api\/ads\/transcribe$/, async (req, res) => {
+    ["POST", /^\/api\/(?:ads|voice)\/transcribe$/, async (req, res) => {
       const acc = auth(req);
       rateLimit(req, "transcribe", 10);
       if (!config.openaiKey) throw new HttpError(501, "Server transkripsiyası qoşulmayıb", { code: "no_transcribe" });

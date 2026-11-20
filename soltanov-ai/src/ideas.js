@@ -95,61 +95,68 @@ export async function generateSlot(store, acc, { date, slotIndex, force = false 
     if (existing.length && !force) return existing;
     if (force) existing.forEach((i) => (i.replaced = true));
 
-    const pillars = pickPillars(acc, config.ideasPerSlot, list);
-    const prevTitles = list.slice(-120).map((i) => i.title);
-    const skippedHints = list.filter((i) => i.status === "skipped").slice(-8).map((i) => i.title);
-
-    let raw = [];
-    let source = "offline";
-    if (aiEnabled()) {
-      try {
-        const { data } = await generateJSON({
-          system: SYSTEM_IDEAS,
-          user: ideasUserPrompt({
-            profile: acc.profile,
-            count: pillars.length,
-            slotIndex,
-            pillars,
-            avoidTitles: prevTitles.slice(-60),
-            skippedHints,
-            dateLabel: date,
-          }),
-          schema: IDEA_SCHEMA,
-        });
-        raw = (data.ideas || []).filter((i) => !isDuplicate(i.title, prevTitles));
-        source = "ai";
-      } catch (e) {
-        store.log("ai.error", { accountId: acc.id, scope: "ideas", message: String(e.message).slice(0, 200) });
-      }
-    }
-    // Top up with offline ideas if AI is off, failed, or returned duplicates.
-    if (raw.length < pillars.length) {
-      const missing = pillars.slice(raw.length);
-      const taken = [...prevTitles, ...raw.map((r) => r.title)];
-      raw.push(...offlineIdeas({ profile: acc.profile, pillars: missing, seed: hashSeed(key + Date.now()), exclude: (t) => isDuplicate(t, taken) }));
-    }
-
-    const created = raw.slice(0, pillars.length).map((r, idx) => ({
-      id: "idea_" + crypto.randomBytes(6).toString("base64url"),
-      accountId: acc.id,
-      date,
-      slotIndex,
-      slotTime: config.slots[slotIndex],
-      createdAt: new Date().toISOString(),
-      status: "new",
-      pillarId: pillars[idx]?.id,
-      source: r.offline ? "offline" : source,
-      ...r,
-    }));
-    list.push(...created);
-    if (list.length > 1500) list.splice(0, list.length - 1500);
-    acc.usage.ideasGenerated += created.length;
-    store.log("ideas.generated", { accountId: acc.id, date, slotIndex, count: created.length, source });
-    store.save();
+    const created = await makeIdeas(store, acc, { date, slotIndex, count: config.ideasPerSlot, seedKey: key });
+    store.log("ideas.generated", { accountId: acc.id, date, slotIndex, count: created.length, source: created[0]?.source });
     return created;
   })().finally(() => locks.delete(key));
   locks.set(key, job);
   return job;
+}
+
+/** Shared generator for scheduled slots and voice/custom requests. */
+async function makeIdeas(store, acc, { date, slotIndex, count, request = "", seedKey }) {
+  const list = store.ideasOf(acc.id);
+  const pillars = pickPillars(acc, count, list);
+  const prevTitles = list.slice(-120).map((i) => i.title);
+  const skippedHints = list.filter((i) => i.status === "skipped").slice(-8).map((i) => i.title);
+
+  let raw = [];
+  let source = "offline";
+  if (aiEnabled()) {
+    try {
+      const { data } = await generateJSON({
+        system: SYSTEM_IDEAS,
+        user: ideasUserPrompt({ profile: acc.profile, count: pillars.length, slotIndex, pillars, avoidTitles: prevTitles.slice(-60), skippedHints, dateLabel: date, request }),
+        schema: IDEA_SCHEMA,
+      });
+      raw = (data.ideas || []).filter((i) => !isDuplicate(i.title, prevTitles));
+      source = "ai";
+    } catch (e) {
+      store.log("ai.error", { accountId: acc.id, scope: "ideas", message: String(e.message).slice(0, 200) });
+    }
+  }
+  if (raw.length < pillars.length) {
+    const missing = pillars.slice(raw.length);
+    const taken = [...prevTitles, ...raw.map((r) => r.title)];
+    raw.push(...offlineIdeas({ profile: acc.profile, pillars: missing, seed: hashSeed(seedKey + Date.now()), exclude: (t) => isDuplicate(t, taken), request }));
+  }
+  const created = raw.slice(0, pillars.length).map((r, idx) => ({
+    id: "idea_" + crypto.randomBytes(6).toString("base64url"),
+    accountId: acc.id,
+    date,
+    slotIndex,
+    slotTime: slotIndex >= 0 ? config.slots[slotIndex] : "Sifariş",
+    request: request || undefined,
+    createdAt: new Date().toISOString(),
+    status: "new",
+    pillarId: pillars[idx]?.id,
+    source: r.offline ? "offline" : source,
+    ...r,
+  }));
+  list.push(...created);
+  if (list.length > 1500) list.splice(0, list.length - 1500);
+  acc.usage.ideasGenerated += created.length;
+  store.save();
+  return created;
+}
+
+/** Ideas on demand ("mənə bu mövzuda reels ideyaları hazırla"). slotIndex -1 = custom request. */
+export async function generateCustom(store, acc, { request, count = 3 }) {
+  const { date } = localClock(config.timezone);
+  const n = Math.min(5, Math.max(1, Number(count) || 3));
+  const created = await makeIdeas(store, acc, { date, slotIndex: -1, count: n, request: String(request).slice(0, 500), seedKey: acc.id + request });
+  store.log("ideas.custom", { accountId: acc.id, count: created.length, source: created[0]?.source });
+  return created;
 }
 
 function hashSeed(s) {

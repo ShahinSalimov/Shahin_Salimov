@@ -20,7 +20,7 @@ body {
   font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
-  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  padding-bottom: calc(150px + env(safe-area-inset-bottom));
 }
 button, input, textarea, select { font: inherit; color: inherit; }
 a { color: var(--volt); }
@@ -35,6 +35,7 @@ a { color: var(--volt); }
 }
 .topbar .wrap { display: flex; align-items: center; gap: 12px; height: 58px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+.brand-logo { width: 36px; height: 36px; border-radius: 50%; display: block; flex: none; }
 .brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--volt); display: grid; place-items: center; color: var(--volt-ink); font-weight: 900; font-size: 14px; }
 .brand small { color: var(--muted); font-weight: 600; font-size: 12px; }
 .spacer { flex: 1; }
@@ -168,3 +169,17 @@ textarea { min-height: 110px; resize: vertical; }
 .empty { color: var(--muted); padding: 20px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; }
 .search { margin-bottom: 12px; }
 .note { font-size: 12px; color: var(--muted); }
+
+/* voice */
+.voice-fab { position: fixed; right: 16px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 35; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 999px; border: 0; background: var(--volt); color: var(--volt-ink); font-weight: 800; box-shadow: 0 10px 30px rgba(198, 255, 61, 0.25); cursor: pointer; }
+.voice-fab svg { width: 20px; height: 20px; }
+@media (min-width: 800px) { .voice-fab { right: calc(50% - 380px + 16px); } }
+.voice-cta { width: 100%; display: flex; gap: 14px; align-items: center; text-align: left; padding: 14px 16px; margin: 4px 0 14px; border-radius: 16px; border: 1px solid rgba(198, 255, 61, 0.35); background: linear-gradient(135deg, rgba(198, 255, 61, 0.1), rgba(198, 255, 61, 0.02)); cursor: pointer; }
+.voice-cta svg { width: 26px; height: 26px; color: var(--volt); flex: none; }
+.voice-cta b { display: block; font-size: 15px; }
+.voice-cta span { display: block; color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--bg2); color: var(--muted); border-radius: 999px; padding: 7px 12px; font-size: 12px; cursor: pointer; text-align: left; }
+.chip:hover { color: var(--text); border-color: var(--volt); }
+.wish { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.wish span { flex: 1; }

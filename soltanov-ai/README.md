@@ -1,6 +1,6 @@
 # Soltanov AI
 
-Kişi idmançı-bloqer üçün şəxsi AI kontent prodüseri: gündə 3 dəfə onun xarakterinə uyğun, çəkilməyə hazır Instagram Reels ideyaları, səsli reklam brifindən 5 ssenari və iş axınına görə "proq" alətləri.
+Şükran Soltanov üçün şəxsi AI kontent prodüseri: gündə 3 dəfə onun xarakterinə uyğun, çəkilməyə hazır Instagram Reels ideyaları, səsli reklam brifindən 5 ssenari, iş axınına görə "proq" alətləri. Bütün funksiyalara səslə istək göndərmək olur ("mənə bu mövzuda Reels ideyaları hazırla").
 
 Plan və arxitektura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Təqdimat: [presentation/SoltanovAI-Teqdimat.pdf](presentation/SoltanovAI-Teqdimat.pdf)
 
@@ -38,13 +38,13 @@ Tam versiyanı satanda: paketi müştərinin serverinə (və ya öz serverinizə
 | `OPENAI_API_KEY` | Səs → mətn (opsional) |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` | 09:00/13:00/19:00 bildirişləri (opsional) |
 | `IDEA_SLOTS`, `IDEAS_PER_SLOT`, `TIMEZONE` | Slot vaxtları və sayı |
-| `TRIAL_HOURS`, `TRIAL_MAX_DEVICES`, `TRIAL_DAILY_AD_LIMIT` | Test şərtləri |
+| `TRIAL_HOURS`, `TRIAL_MAX_DEVICES`, `TRIAL_DAILY_AD_LIMIT`, `TRIAL_DAILY_CUSTOM_LIMIT` | Test şərtləri |
 | `OWNER_NAME`, `OWNER_CONTACT_URL` | Blok ekranındakı "Tam versiyanı əldə et" düyməsi |
 
 ## Əmrlər
 
 ```bash
-npm test                 # 15 test: trial blok, cihaz limiti, sessiya, slotlar, təkrar filtri, HTTP axını
+npm test                 # 19 test: trial blok, cihaz limiti, sessiya, slotlar, təkrar filtri, səsli əmrlər, HTTP axını
 npm run package:app      # tam versiya təhvil paketi
 npm run pdf              # təqdimat PDF-ini yenidən yarat (Chromium lazımdır)
 ```
@@ -52,3 +52,21 @@ npm run pdf              # təqdimat PDF-ini yenidən yarat (Chromium lazımdır
 ## Məlumat
 
 Bütün məlumat `data/db-<edition>.json` faylındadır (yedəkləmək üçün bu faylı kopyalamaq kifayətdir). Link token-ləri və lisenziya açarları yalnız SHA-256 hash kimi saxlanılır.
+
+## Səsli əmrlər
+
+Hər ekranda "Səslə istə" düyməsi var. Səs mətnə çevrilir (`/api/voice/transcribe`), sonra `/api/voice/command` istəyi uyğun funksiyaya yönləndirir:
+
+| Deyir | Nəticə |
+|---|---|
+| "Mənə zal mövzusunda Reels ideyaları hazırla" | Həmin mövzuda ideyalar ("Səsli sifariş" etiketi ilə "Bu gün" bölməsində) |
+| "X brendi reklam istəyir…" | 5 reklam ssenarisi |
+| "Axşam ideyalarını dəyiş" | Slot yenilənir |
+| "Bundan sonra daha çox yumor olsun" | Daimi istək kimi profilə yazılır, bütün gələcək ideyalarda nəzərə alınır |
+| "Qiyməti hesabla", "teleprompteri aç" | Proq aləti açılır |
+
+Yönləndirmə Claude ilə edilir; AI açarı yoxdursa açar sözlərə əsaslanan router işləyir.
+
+## Brend
+
+Loqo Şükran Soltanovun video kadrından hazırlanıb (Instagram interfeysi və play işarəsi təmizlənib, üz dəyişdirilməyib): `brand/logo-1024.png`, tətbiq ikonları `public/icon-*.png`, `public/logo.png`.

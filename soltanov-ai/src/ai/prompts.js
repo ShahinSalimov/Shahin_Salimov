@@ -15,6 +15,7 @@ export const DEFAULT_PROFILE = {
   language: "az",
   avoid: "siyasət, din, vulqar söz, təhlükəli trüklər, başqasını alçaltmaq",
   goals: "izləyici artımı, reklamçılar üçün cəlbedici profil",
+  wishes: "",
 };
 
 // Content pillars weighted toward entertainment (rotated per slot).
@@ -49,7 +50,8 @@ export function profileBlock(p) {
     `Auditoriya: ${x.audience}`,
     `Məqsəd: ${x.goals}`,
     `HEÇ VAXT etməz: ${x.avoid}`,
-  ].join("\n");
+    x.wishes ? `Onun daimi istəkləri (səslə bildirib, mütləq nəzərə al): ${x.wishes}` : "",
+  ].filter(Boolean).join("\n");
 }
 
 export const SYSTEM_IDEAS = `Sən Azərbaycanın ən güclü Instagram Reels kreativ prodüserisən. Bir kişi idmançı-bloqerlə işləyirsən.
@@ -66,12 +68,15 @@ Qaydalar:
 - Verilən "təkrarlama" siyahısındakı mövzulara oxşar ideya vermə.
 - Təhlükəli trük, başqasını alçaltma, vulqar söz yoxdur.`;
 
-export function ideasUserPrompt({ profile, count, slotIndex, pillars, avoidTitles, skippedHints, dateLabel }) {
+export function ideasUserPrompt({ profile, count, slotIndex, pillars, avoidTitles, skippedHints, dateLabel, request }) {
+  const task = request
+    ? `XÜSUSİ SİFARİŞ (özü səslə istəyib, əsas tələb budur): "${request}"\nBu sifarişə uyğun ${count} fərqli ideya ver. Sütunları sifarişə uyğunlaşdır, amma ideyalar bir-birini təkrarlamasın.`
+    : `${SLOT_MOODS[slotIndex] || ""}\nBu slot üçün ${count} ideya ver.`;
   return `Profil:
 ${profileBlock(profile)}
 
-Tarix: ${dateLabel}. ${SLOT_MOODS[slotIndex] || ""}
-Bu slot üçün ${count} ideya ver. Hər ideya bu kontent sütunlarından birinə aid olsun (sıra ilə):
+Tarix: ${dateLabel}.
+${task} Hər ideya bu kontent sütunlarından birinə aid olsun (sıra ilə):
 ${pillars.map((p, i) => `${i + 1}. ${p.name} — ${p.hint}`).join("\n")}
 
 Təkrarlama (son ideyalar, bunlara oxşar olmasın):
@@ -190,5 +195,30 @@ export const AD_SCHEMA = {
       },
     },
     proqHints: { type: "array", items: { type: "string" } },
+  },
+};
+
+// ---- Voice command router ----
+export const SYSTEM_ROUTER = `Sən Soltanov AI tətbiqinin səsli əmr yönləndiricisisən. İstifadəçi (kişi idmançı-bloqer) Azərbaycan dilində səslə istək göndərir.
+İstəyi bu niyyətlərdən birinə aid et:
+- "ideas": konkret mövzu/tərzdə Reels ideyası istəyir ("mənə ... mövzusunda reels ideyaları hazırla", "zalla bağlı gülməli video fikri ver")
+- "ad": reklam təklifindən danışır, brend/məhsul/reklam ssenarisi istəyir
+- "refresh": bugünkü səhər/günorta/axşam ideyalarını dəyişmək istəyir
+- "profile": gələcək bütün ideyalar üçün daimi istək/üstünlük bildirir ("bundan sonra daha çox yumor olsun", "rəqs etmirəm")
+- "tool": alət açmaq istəyir: pricing (qiymət hesabla), contract (müqavilə), calendar (təqvim/plan), teleprompter
+- "unknown": aydın deyil
+Yalnız JSON qaytar.`;
+
+export const ROUTER_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["intent", "request", "count", "slot", "tool", "wish"],
+  properties: {
+    intent: { type: "string", enum: ["ideas", "ad", "refresh", "profile", "tool", "unknown"] },
+    request: { type: "string" },
+    count: { type: "integer" },
+    slot: { type: "string", enum: ["morning", "noon", "evening", "none"] },
+    tool: { type: "string", enum: ["pricing", "contract", "calendar", "teleprompter", "none"] },
+    wish: { type: "string" },
   },
 };

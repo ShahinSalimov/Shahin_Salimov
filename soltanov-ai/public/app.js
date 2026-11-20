@@ -108,7 +108,7 @@ async function enterFlow() {
 function renderLicense() {
   root.innerHTML = `
   <div class="screen"><div class="box">
-    <div class="brand" style="justify-content:center;margin-bottom:18px"><div class="brand-mark">S</div>Soltanov AI</div>
+    <div class="brand" style="justify-content:center;margin-bottom:18px"><img class="brand-logo" src="/logo.png" alt="" />Soltanov AI</div>
     <h1>Giriş</h1>
     <p class="sub">Test linki ilə daxil olursunuzsa, göndərilən linki birbaşa açın. Tam versiya üçün lisenziya açarını daxil edin.</p>
     <label class="field"><span>Lisenziya açarı</span><input type="text" id="key" placeholder="SA-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" /></label>
@@ -166,14 +166,16 @@ function renderShell() {
   const tabs = [["today", "Bu gün"], ["ad", "Reklam"], ["proq", "Proq"], ["archive", "Arxiv"], ["me", "Profil"]];
   root.innerHTML = `
   <header class="topbar"><div class="wrap">
-    <div class="brand"><div class="brand-mark">S</div><div>Soltanov AI<br><small>${state.me.edition === "trial" ? "Test versiyası" : "Tam versiya"}</small></div></div>
+    <div class="brand"><img class="brand-logo" src="/logo.png" alt="" /><div>Soltanov AI<br><small>${state.me.edition === "trial" ? "Test versiyası" : "Tam versiya"}</small></div></div>
     <div class="spacer"></div><span id="countdown"></span>
   </div></header>
   <main class="wrap" id="view"></main>
+  <button class="voice-fab" id="voicefab" aria-label="Səslə istək">${icons.ad}<span>Səslə istə</span></button>
   <nav class="tabs"><div class="wrap">
     ${tabs.map(([id, n]) => `<button class="tab" data-tab="${id}">${icons[id]}${n}</button>`).join("")}
   </div></nav>`;
   root.querySelectorAll(".tab").forEach((b) => (b.onclick = () => go(b.dataset.tab)));
+  $("#voicefab").onclick = () => openVoice();
   updateCountdown();
 }
 
@@ -189,6 +191,11 @@ function updateCountdown() {
   el.innerHTML = `<span class="pill ${ms < 864e5 ? "warn" : "trial"}">Test: ${d ? d + "g " : ""}${h}s ${m}d</span>`;
 }
 
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-voice]");
+  if (b) openVoice(b.dataset.voice);
+});
+
 function go(tab) {
   state.tab = tab;
   root.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
@@ -202,7 +209,9 @@ const loader = (t = "Hazırlanır…") => `<div class="loader"><div class="spin"
 
 async function viewToday() {
   const v = $("#view");
-  v.innerHTML = `<h1>Bugünkü Reels ideyaları</h1><p class="sub" id="slotinfo"></p><div id="proqbox"></div><div id="ideas">${loader("İdeyalar hazırlanır… (ilk dəfə 20–40 saniyə çəkə bilər)")}</div>`;
+  v.innerHTML = `<h1>Bugünkü Reels ideyaları</h1><p class="sub" id="slotinfo"></p>
+    <button class="voice-cta" data-voice="ideas">${icons.ad}<div><b>Səslə ideya sifariş et</b><span>“Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla”</span></div></button>
+    <div id="proqbox"></div><div id="ideas">${loader("İdeyalar hazırlanır… (ilk dəfə 20–40 saniyə çəkə bilər)")}</div>`;
   const n = state.me.nextSlot;
   $("#slotinfo").textContent = `Gündə 3 dəfə yeni ideyalar: ${state.me.slots.join(" · ")}. Növbəti: ${n.tomorrow ? "sabah " : ""}${n.time}.`;
   try {
@@ -220,9 +229,15 @@ function renderTodayIdeas() {
   if (!box) return;
   const bySlot = {};
   for (const i of state.ideas) (bySlot[i.slotIndex] ||= []).push(i);
-  const slots = Object.keys(bySlot).map(Number).sort((a, b) => b - a);
-  if (!slots.length) { box.innerHTML = `<div class="empty">İlk ideyalar ${esc(state.me.slots[0])}-da gələcək.</div>`; return; }
-  box.innerHTML = slots.map((s) => `
+  const slots = Object.keys(bySlot).map(Number).filter((n) => n >= 0).sort((a, b) => b - a);
+  const custom = (bySlot[-1] || []).slice().reverse();
+  if (!slots.length && !custom.length) { box.innerHTML = `<div class="empty">İlk ideyalar ${esc(state.me.slots[0])}-da gələcək.</div>`; return; }
+  const groups = {};
+  for (const i of custom) (groups[i.request || "Sifariş"] ||= []).push(i);
+  const customHtml = Object.entries(groups).map(([req, list]) => `
+    <div class="slot-head"><span class="time">Sifariş</span><span class="name">“${esc(req.length > 70 ? req.slice(0, 70) + "…" : req)}”</span></div>
+    ${list.map(ideaCard).join("")}`).join("");
+  box.innerHTML = customHtml + slots.map((s) => `
     <div class="slot-head"><span class="time">${esc(state.me.slots[s])}</span><span class="name">${SLOT_NAMES[s] || ""}</span><span class="spacer"></span>
       <button class="btn small ghost" data-refresh="${s}">Başqa ideyalar</button></div>
     ${bySlot[s].map(ideaCard).join("")}`).join("");
@@ -245,7 +260,7 @@ function ideaText(i) {
 function ideaCard(i) {
   return `
   <article class="card idea" data-id="${esc(i.id)}">
-    <div class="tags"><span class="tag volt">${esc(i.pillar)}</span><span class="tag">${esc(i.format)}</span><span class="tag">${Number(i.durationSec) || "?"} san</span>
+    <div class="tags">${i.slotIndex === -1 ? '<span class="tag volt">Səsli sifariş</span>' : ""}<span class="tag volt">${esc(i.pillar)}</span><span class="tag">${esc(i.format)}</span><span class="tag">${Number(i.durationSec) || "?"} san</span>
       ${i.status !== "new" ? `<span class="tag status-${esc(i.status)}">${STATUS[i.status] || ""}</span>` : ""}</div>
     <h3>${esc(i.title)}</h3>
     <div class="hook"><b>İlk 3 saniyə</b><div class="say">“${esc(i.hook?.text)}”</div><div class="see">${esc(i.hook?.visual)}</div></div>
@@ -301,8 +316,6 @@ function renderProq(box, list) {
 
 // ---------------- Reklam (voice -> 5 scripts) ----------------
 
-const rec = { media: null, chunks: [], start: 0, tick: null, speech: null, speechText: "" };
-
 function viewAd() {
   const v = $("#view");
   const f = state.me.features;
@@ -310,7 +323,7 @@ function viewAd() {
     <h1>Reklam təklifi → 5 ssenari</h1>
     <p class="sub">Reklamı səslə danış: brend, məhsul, nə istəyirlər, son tarix. Sistem 5 fərqli konsept və saniyə-saniyə ssenari hazırlayacaq.</p>
     <div class="card">
-      <div class="rec"><button class="rec-btn" id="recbtn">Yaz</button><div class="rec-time" id="rectime">0:00</div>
+      <div class="rec"><button class="rec-btn" id="recbtn">Danış</button><div class="rec-time" id="rectime">0:00</div>
       <p class="rec-hint" id="rechint">${f.transcribe ? "Danışıb bitirəndə yenidən bas — səs avtomatik mətnə çevriləcək." : "Danışıb bitirəndə yenidən bas. Brauzer dəstəkləyirsə nitq mətnə yazılacaq, yoxdursa aşağıya əl ilə yazın."}</p></div>
       <label class="field"><span>Brif mətni</span><textarea id="brief" placeholder="Məs: Salam, X idman qidaları brendi yeni protein barını reklam etmək istəyir. 1 Reels, 30 saniyə, məşqdən sonra istifadə göstərilsin, 25 noyabra qədər..."></textarea><em>Səsdən çıxan mətni burada düzəldə bilərsiniz.</em></label>
       <label class="field"><span>Əlavə qeyd (opsional)</span><input type="text" id="extra" placeholder="məs: mütləq yumorlu olsun, dostum da kadrda olacaq" /></label>
@@ -318,69 +331,78 @@ function viewAd() {
     </div>
     <div id="adresult"></div>
     <h2>Əvvəlki reklamlar</h2><div id="adhistory">${loader()}</div>`;
-  $("#recbtn").onclick = toggleRec;
+  attachRecorder({ btn: $("#recbtn"), timeEl: $("#rectime"), hintEl: $("#rechint"), textEl: $("#brief"), doneHint: "Hazırdır. Mətni yoxlayıb “5 ssenari yarat” basın." });
   $("#genbtn").onclick = generateAd;
   loadAdHistory();
   if (state.lastAd) renderAdResult(state.lastAd.ad, state.lastAd.proq);
 }
 
-async function toggleRec() {
-  const btn = $("#recbtn");
-  if (rec.media && rec.media.state === "recording") return stopRec();
-  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return toast("Bu brauzer səs yazmağı dəstəkləmir — mətni yazın");
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const type = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((t) => MediaRecorder.isTypeSupported?.(t)) || "";
-    rec.media = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
-    rec.chunks = [];
-    rec.media.ondataavailable = (e) => e.data.size && rec.chunks.push(e.data);
-    rec.media.onstop = onRecStop;
-    rec.media.start(1000);
-    rec.start = Date.now();
-    btn.classList.add("live"); btn.textContent = "Dayandır";
-    rec.tick = setInterval(() => {
-      const s = Math.floor((Date.now() - rec.start) / 1000);
-      const el = $("#rectime"); if (el) el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-      if (s >= 180) stopRec();
-    }, 250);
-    startSpeech();
-  } catch { toast("Mikrofona icazə verilmədi"); }
-}
+// ---------------- Reusable voice recorder ----------------
+// Records audio; text goes into `textEl` via server transcription (OpenAI) or the
+// browser's speech recognition. Used by the ad tab and by the global voice sheet.
+let activeRec = null;
 
-function startSpeech() {
-  if (state.me.features.transcribe) return;
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  rec.speech = new SR();
-  rec.speech.lang = "az-AZ";
-  rec.speech.continuous = true;
-  rec.speech.interimResults = false;
-  rec.speechText = "";
-  rec.speech.onresult = (e) => {
-    for (let k = e.resultIndex; k < e.results.length; k++) if (e.results[k].isFinal) rec.speechText += e.results[k][0].transcript + " ";
-    const b = $("#brief"); if (b) b.value = rec.speechText.trim();
+function attachRecorder({ btn, timeEl, hintEl, textEl, doneHint = "Hazırdır. Mətni yoxlayıb göndərin." }) {
+  const r = { media: null, chunks: [], start: 0, tick: null, speech: null, speechText: "" };
+  const setHint = (t) => hintEl && (hintEl.textContent = t);
+  const stop = () => {
+    clearInterval(r.tick);
+    if (r.media?.state === "recording") r.media.stop();
+    r.media?.stream.getTracks().forEach((t) => t.stop());
+    try { r.speech?.stop(); } catch {}
+    btn.classList.remove("live"); btn.textContent = "Danış";
+    if (activeRec === r) activeRec = null;
   };
-  try { rec.speech.start(); } catch {}
-}
-
-function stopRec() {
-  clearInterval(rec.tick);
-  rec.media?.stop();
-  rec.media?.stream.getTracks().forEach((t) => t.stop());
-  try { rec.speech?.stop(); } catch {}
-  const btn = $("#recbtn"); if (btn) { btn.classList.remove("live"); btn.textContent = "Yaz"; }
-}
-
-async function onRecStop() {
-  const blob = new Blob(rec.chunks, { type: rec.media.mimeType || "audio/webm" });
-  if (!state.me.features.transcribe) { toast(rec.speechText ? "Mətn hazırdır — yoxlayın" : "Mətni əl ilə tamamlayın"); return; }
-  $("#rechint").textContent = "Səs mətnə çevrilir…";
-  try {
-    const r = await api("POST", "/api/ads/transcribe", undefined, blob);
-    const b = $("#brief");
-    b.value = (b.value ? b.value + "\n" : "") + r.text;
-    $("#rechint").textContent = "Hazırdır. Mətni yoxlayıb “5 ssenari yarat” basın.";
-  } catch (e) { if (e.status !== 423) $("#rechint").textContent = e.body?.error || "Transkripsiya alınmadı — mətni əl ilə yazın."; }
+  r.stop = stop;
+  const onStop = async () => {
+    const blob = new Blob(r.chunks, { type: r.media.mimeType || "audio/webm" });
+    if (!state.me.features.transcribe) { setHint(r.speechText ? doneHint : "Mətni əl ilə tamamlayın və göndərin."); return; }
+    setHint("Səs mətnə çevrilir…");
+    try {
+      const res = await api("POST", "/api/voice/transcribe", undefined, blob);
+      textEl.value = (textEl.value ? textEl.value + "\n" : "") + res.text;
+      setHint(doneHint);
+      textEl.dispatchEvent(new Event("input"));
+    } catch (e) { if (e.status !== 423) setHint(e.body?.error || "Transkripsiya alınmadı — mətni əl ilə yazın."); }
+  };
+  const startSpeech = () => {
+    if (state.me.features.transcribe) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    r.speech = new SR();
+    r.speech.lang = "az-AZ"; r.speech.continuous = true; r.speech.interimResults = false;
+    const base = textEl.value ? textEl.value + " " : "";
+    r.speech.onresult = (e) => {
+      for (let k = e.resultIndex; k < e.results.length; k++) if (e.results[k].isFinal) r.speechText += e.results[k][0].transcript + " ";
+      textEl.value = (base + r.speechText).trim();
+    };
+    try { r.speech.start(); } catch {}
+  };
+  btn.onclick = async () => {
+    if (r.media?.state === "recording") return stop();
+    if (activeRec) activeRec.stop();
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return toast("Bu brauzer səs yazmağı dəstəkləmir — mətni yazın");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const type = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((t) => MediaRecorder.isTypeSupported?.(t)) || "";
+      r.media = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+      r.chunks = []; r.speechText = "";
+      r.media.ondataavailable = (e) => e.data.size && r.chunks.push(e.data);
+      r.media.onstop = onStop;
+      r.media.start(1000);
+      r.start = Date.now();
+      activeRec = r;
+      btn.classList.add("live"); btn.textContent = "Dayandır";
+      setHint("Dinləyirəm… bitirəndə yenidən bas.");
+      r.tick = setInterval(() => {
+        const sec = Math.floor((Date.now() - r.start) / 1000);
+        if (timeEl) timeEl.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+        if (sec >= 180) stop();
+      }, 250);
+      startSpeech();
+    } catch { toast("Mikrofona icazə verilmədi"); }
+  };
+  return r;
 }
 
 async function generateAd() {
@@ -450,6 +472,75 @@ async function loadAdHistory() {
       renderAdResult(ad, []);
     }));
   } catch {}
+}
+
+
+// ---------------- Global voice commands ----------------
+
+const VOICE_EXAMPLES = {
+  today: ["Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla", "Axşam ideyalarını dəyiş", "Dostumla edə biləcəyim 3 çağırış ideyası ver"],
+  ideas: ["Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla", "Qidalanma haqqında əyləncəli 3 ideya ver", "Maşında çəkə biləcəyim POV ideyaları"],
+  ad: ["FitBar brendi protein barı üçün 1 Reels istəyir, ödəniş 400 manat", "Krossovka mağazası ilə əməkdaşlıq, yumorlu olsun"],
+  proq: ["Bu reklamın qiymətini hesabla", "Teleprompteri aç", "Müqavilə checklistini göstər"],
+  archive: ["Mənə məşq + twist tipli 5 ideya hazırla"],
+  me: ["Bundan sonra daha çox yumor olsun", "Rəqs videoları istəmirəm", "Videolarda qardaşım da olur"],
+};
+const VOICE_TITLES = { ideas: "Səslə ideya sifarişi", ad: "Səslə reklam brifi", proq: "Səslə alət aç", me: "Səslə daimi istək" };
+
+function openVoice(context) {
+  const ctx = context || state.tab;
+  const ex = VOICE_EXAMPLES[ctx] || VOICE_EXAMPLES.today;
+  const o = sheet(VOICE_TITLES[ctx] || "Səslə istək", `
+    <p class="sub">Nə istədiyinizi deyin — sistem özü anlayıb lazımi bölməni işə salacaq: ideya, reklam ssenarisi, slot yeniləmə, daimi istək və ya alət.</p>
+    <div class="rec"><button class="rec-btn" id="vbtn">Danış</button><div class="rec-time" id="vtime">0:00</div><p class="rec-hint" id="vhint">Basın və danışın. Bitirəndə yenidən basın.</p></div>
+    <label class="field"><span>İstək mətni</span><textarea id="vtext" placeholder="${esc(ex[0])}"></textarea><em>Səsdən çıxan mətni düzəldə bilərsiniz.</em></label>
+    <div class="chips">${ex.map((t) => `<button class="chip" data-ex="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+    <button class="btn primary big" id="vsend" style="margin-top:14px">Göndər</button>
+    <div id="vout"></div>`);
+  const textEl = $("#vtext", o);
+  const rec = attachRecorder({ btn: $("#vbtn", o), timeEl: $("#vtime", o), hintEl: $("#vhint", o), textEl, doneHint: "Hazırdır — yoxlayıb “Göndər” basın." });
+  o.querySelectorAll("[data-ex]").forEach((c) => (c.onclick = () => { textEl.value = c.dataset.ex; textEl.focus(); }));
+  const close = () => { rec.stop(); o.remove(); };
+  o.onclick = (e) => { if (e.target === o || e.target.dataset.close !== undefined) close(); };
+  $("#vsend", o).onclick = async () => {
+    rec.stop();
+    const text = textEl.value.trim();
+    if (text.length < 3) return toast("Əvvəl danışın və ya yazın");
+    const btn = $("#vsend", o);
+    btn.disabled = true; btn.textContent = "İcra olunur…";
+    $("#vout", o).innerHTML = loader("İstək təhlil olunur və icra edilir… (20–60 san)");
+    try {
+      const r = await api("POST", "/api/voice/command", { text, context: ctx === "ideas" ? "today" : ctx });
+      o.remove();
+      handleVoiceResult(r);
+    } catch (e) {
+      if (e.status === 423) return;
+      btn.disabled = false; btn.textContent = "Göndər";
+      $("#vout", o).innerHTML = `<div class="empty">${esc(e.body?.error || "Alınmadı")}</div>`;
+    }
+  };
+}
+
+function handleVoiceResult(r) {
+  if (r.intent === "ideas") {
+    state.ideas = [...state.ideas, ...r.ideas];
+    go("today");
+    toast(`${r.ideas.length} yeni ideya hazırdır`);
+  } else if (r.intent === "refresh") {
+    state.ideas = state.ideas.filter((i) => i.slotIndex !== r.slotIndex).concat(r.ideas);
+    go("today");
+    toast(`${state.me.slots[r.slotIndex]} ideyaları yeniləndi`);
+  } else if (r.intent === "ad") {
+    state.lastAd = { ad: r.ad, proq: r.proq };
+    go("ad");
+    const b = $("#brief"); if (b) b.value = r.text;
+  } else if (r.intent === "profile") {
+    state.me.account = { ...state.me.account, ...r.account };
+    toast("Yadda saxlanıldı — növbəti ideyalar buna görə hazırlanacaq", 3200);
+    if (state.tab === "me") viewMe();
+  } else if (r.intent === "tool" && TOOLS[r.tool]) {
+    TOOLS[r.tool].open();
+  }
 }
 
 // ---------------- Proq tools ----------------
@@ -558,6 +649,7 @@ const TOOLS = {
 
 function viewProq() {
   $("#view").innerHTML = `<h1>Proq — köməkçi alətlər</h1><p class="sub">İş axınında ehtiyac yarananda sistem bu alətləri özü təklif edir. İstənilən vaxt buradan da açmaq olar.</p>
+    <button class="voice-cta" data-voice="proq">${icons.ad}<div><b>Səslə aç</b><span>“Bu reklamın qiymətini hesabla”, “teleprompteri aç”</span></div></button>
     <div id="proqsug"></div>
     <div class="grid">${Object.entries(TOOLS).map(([id, t]) => `<button class="card tool" data-tool="${id}"><h3>${esc(t.name)}</h3><p>${esc(t.desc)}</p></button>`).join("")}</div>`;
   $("#view").querySelectorAll("[data-tool]").forEach((b) => (b.onclick = () => TOOLS[b.dataset.tool].open()));
@@ -597,6 +689,7 @@ const PROFILE_FIELDS = [
   ["recurringCast", "Videolarda kimlər olur", "məşq yoldaşı, qardaş, dostlar…"],
   ["audience", "Auditoriya", "Azərbaycan, 16–35 yaş…"],
   ["avoid", "Heç vaxt etmədiyiniz şeylər", "siyasət, vulqar söz, təhlükəli trük…"],
+  ["wishes", "Daimi istəklər (səslə də əlavə olunur)", "məs: daha çox yumor, dostumla çağırışlar…"],
 ];
 
 function renderOnboarding(first) {
@@ -638,14 +731,25 @@ function viewMe() {
       <div class="kv"><b>Telegram bildirişi</b>${a.telegramLinked ? "Qoşulub" : "Qoşulmayıb"}</div>
       <div class="kv"><b>AI rejimi</b>${state.me.features.ai ? "Claude AI" : "Offline şablon rejimi"}</div>
     </div>
+    <button class="voice-cta" data-voice="me">${icons.ad}<div><b>Səslə daimi istək bildir</b><span>“Bundan sonra daha çox yumor olsun, rəqs videosu istəmirəm”</span></div></button>
+    ${p.wishes ? `<h2>Daimi istəklərim</h2><div class="card">${p.wishes.split("\n").filter(Boolean).map((w, n) => `<div class="wish"><span>${esc(w)}</span><button class="btn small ghost" data-delwish="${n}">Sil</button></div>`).join("")}</div>` : ""}
     <div class="actions">
       <button class="btn primary" id="edit">Profili dəyiş</button>
       <button class="btn" id="tg">Telegram qoş</button>
       <button class="btn ghost" id="install">Telefona quraşdır</button>
     </div>
     <h2>Kontent tərzim</h2>
-    <div class="card">${PROFILE_FIELDS.slice(3).map(([k, l]) => `<div class="kv"><b>${l}</b>${esc(p[k])}</div>`).join("")}</div>`;
+    <div class="card">${PROFILE_FIELDS.slice(3).filter(([k]) => k !== "wishes").map(([k, l]) => `<div class="kv"><b>${l}</b>${esc(p[k])}</div>`).join("")}</div>`;
   $("#edit").onclick = () => renderOnboarding(false);
+  document.querySelectorAll("[data-delwish]").forEach((b) => (b.onclick = async () => {
+    const list = p.wishes.split("\n").filter(Boolean);
+    list.splice(Number(b.dataset.delwish), 1);
+    try {
+      const r = await api("PUT", "/api/profile", { wishes: list.join("\n") });
+      state.me.account = { ...state.me.account, ...r.account };
+      viewMe();
+    } catch (e) { if (e.status !== 423) toast("Alınmadı"); }
+  }));
   $("#tg").onclick = () => TOOLS.telegram.open();
   $("#install").onclick = () => {
     if (window._installPrompt) { window._installPrompt.prompt(); return; }

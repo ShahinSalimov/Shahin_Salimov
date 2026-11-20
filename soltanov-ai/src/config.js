@@ -32,6 +32,7 @@ export const config = {
   trialMaxDevices: int(env.TRIAL_MAX_DEVICES, 2),
   trialDailyAdLimit: int(env.TRIAL_DAILY_AD_LIMIT, 10),
   trialDailyRefreshLimit: int(env.TRIAL_DAILY_REFRESH_LIMIT, 6),
+  trialDailyCustomLimit: int(env.TRIAL_DAILY_CUSTOM_LIMIT, 8),
   fullMaxDevices: int(env.FULL_MAX_DEVICES, 3),
   timezone: env.TIMEZONE || "Asia/Baku",
   slots: (env.IDEA_SLOTS || "09:00,13:00,19:00").split(",").map((s) => s.trim()).filter(Boolean),

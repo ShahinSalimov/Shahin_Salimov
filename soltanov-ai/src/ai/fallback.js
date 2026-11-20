@@ -53,7 +53,19 @@ function rng(seed) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
 }
 
-export function offlineIdeas({ profile, pillars, seed = Date.now(), exclude = () => false }) {
+export function topicFrom(request) {
+  return String(request || "")
+    .replace(/[.!?]+$/g, "")
+    .replace(/(^|\s)(mənə|bizə|zəhmət olmasa|xahiş edirəm|bir|neçə|\d+)(?=\s|$)/giu, " ")
+    .replace(/(reels|rils|video)?\s*(ideyaları|ideyası|ideya|fikirləri|fikir|mövzuları)\s*(hazırla|ver|tap|düşün|yaz|lazımdır)?/gi, "")
+    .replace(/(^|\s)(mövzusunda|mövzusuna|haqqında|ilə bağlı|üçün)(?=\s|$)/giu, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, 60);
+}
+
+export function offlineIdeas({ profile, pillars, seed = Date.now(), exclude = () => false, request = "" }) {
+  const topic = topicFrom(request);
   const p = { ...DEFAULT_PROFILE, ...(profile || {}) };
   const sport = p.sport.split(/[,/]/)[0].trim() || "idman";
   const r = rng(seed);
@@ -66,8 +78,9 @@ export function offlineIdeas({ profile, pillars, seed = Date.now(), exclude = ()
       const move = MOVES[Math.floor(r() * MOVES.length)];
       const fill = (s) => s.replaceAll("{sport}", sport).replaceAll("{move}", move);
       const [title, hookText, hookVisual] = bank[i].map(fill);
-      if (exclude(title) || out.some((o) => o.title === title)) continue;
-      picked = { title, hookText, hookVisual };
+      const fullTitle = topic ? `${topic[0].toLocaleUpperCase("az") + topic.slice(1)} — ${title}` : title;
+      if (exclude(fullTitle) || out.some((o) => o.title === fullTitle)) continue;
+      picked = { title: fullTitle, hookText, hookVisual };
       break;
     }
     if (!picked) continue;
