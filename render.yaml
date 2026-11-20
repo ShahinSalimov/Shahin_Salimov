@@ -1,0 +1,39 @@
+# Render Blueprint — Soltanov AI (3 günlük test linki)
+# Render → New → Blueprint → bu reponu seçin. Sirlər (SESSION_SECRET, ADMIN_TOKEN) avtomatik yaranır,
+# açarları (ANTHROPIC_API_KEY və s.) Render özü soruşacaq.
+services:
+  - type: web
+    name: soltanov-ai
+    runtime: node
+    rootDir: soltanov-ai
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: soltanov-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: EDITION
+        value: trial
+      - key: DATA_DIR
+        value: /var/data
+      - key: TIMEZONE
+        value: Asia/Baku
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OWNER_NAME
+        value: Şahin Səlimov
+      - key: OWNER_CONTACT_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false

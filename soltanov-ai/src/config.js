@@ -25,7 +25,7 @@ export const config = {
   edition: env.EDITION === "full" ? "full" : "trial",
   port: int(env.PORT, 5000),
   dataDir: path.resolve(ROOT, env.DATA_DIR || "data"),
-  publicUrl: (env.PUBLIC_URL || "").replace(/\/$/, ""),
+  publicUrl: (env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || "").replace(/\/$/, ""),
   sessionSecret: env.SESSION_SECRET || "",
   adminToken: env.ADMIN_TOKEN || "",
   trialHours: int(env.TRIAL_HOURS, 72),
