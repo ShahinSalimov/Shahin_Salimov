@@ -1,13 +1,13 @@
-# Salimofff Aİ
+# Vexora AI
 
-AI ilə şəkil və video yaratma platforması: Kəşf et (Explore), Yaratma studiyası (Generator) və endirimli Qiymətlər.
+AI ilə şəkil və video yaratma platforması: Explore, Generator və endirimli Pricing. 7 dil dəstəyi (default: English).
 
 ## İşə salma
 
 ```bash
 pnpm install
-pnpm --filter @workspace/salimofff-ai run dev        # http://localhost:5173
-pnpm --filter @workspace/salimofff-ai run build
+pnpm --filter @workspace/vexora-ai run dev        # http://localhost:5173
+pnpm --filter @workspace/vexora-ai run build
 ```
 
 ## Struktur
@@ -15,12 +15,23 @@ pnpm --filter @workspace/salimofff-ai run build
 | Qovluq | Məzmun |
 |---|---|
 | `src/styles/theme.css` | Tailwind v4 `@theme` tokenləri (qırmızı / qara / sarı), şriftlər, animasiyalar |
+| `src/i18n/` | Dil sistemi: `config.ts` (dillər), `locales/en.ts` (mənbə lüğət), `locales/*.ts` (tərcümələr), `useI18n()` hook |
 | `src/types/` | Bütün domen tipləri |
 | `src/data/` | Kateqoriyalar, modellər, sintetik kataloq, **qiymət konfiqi** (`pricing.ts`) |
 | `src/services/ai/` | `AIProvider` interfeysi + mock və HTTP adapter. `VITE_AI_API_URL` verilsə HTTP-yə keçir |
 | `src/services/payments/` | `PaymentGateway` interfeysi + mock gateway |
 | `src/store/AppStore.tsx` | Route, kredit, plan, kitabxana, checkout state |
 | `src/components/{explore,generator,pricing,layout,ui,media}` | Modul-modul UI |
+
+## Dillər (i18n)
+
+Dəstəklənən dillər: `en` (default), `az`, `tr`, `ru`, `de`, `es`, `fr`.
+
+- Dil seçimi: başlıqdakı dil menyusu → brauzerdə yadda saxlanır. Link ilə açmaq üçün: `/?lang=ru`.
+- Yeni mətn əlavə etmək: əvvəl `locales/en.ts`-ə açar yaz, sonra qalan dillərə. Hər hansı dildə açar çatışmırsa, `typecheck` xəta verir.
+- Yeni dil əlavə etmək: `config.ts`-ə dil kodunu, `locales/`-a fayl, `locales/index.ts`-ə import əlavə et.
+- Rus dili üçün şriftlər avtomatik Unbounded + Manrope-a keçir (Syne və Plus Jakarta Sans əsas kiril hərflərini dəstəkləmir).
+- Kataloqdakı iş adları və prompt-lar istifadəçi kontenti sayılır və ingiliscə qalır.
 
 ## Qeydlər
 

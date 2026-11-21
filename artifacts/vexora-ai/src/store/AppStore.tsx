@@ -38,15 +38,15 @@ function usePersisted<T>(key: string, initial: T) {
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [route, setRoute] = useState<Route>(readHash);
-  const [credits, setCredits] = usePersisted('sai.credits', getPlan('free').creditsPerMonth);
-  const [planId, setPlanId] = usePersisted<PlanId>('sai.plan', 'free');
-  const [cycle, setCycle] = usePersisted<BillingCycle>('sai.cycle', 'monthly');
-  const [library, setLibrary] = usePersisted<GenerationResult[]>('sai.library', []);
+  const [credits, setCredits] = usePersisted('vx.credits', getPlan('free').creditsPerMonth);
+  const [planId, setPlanId] = usePersisted<PlanId>('vx.plan', 'free');
+  const [cycle, setCycle] = usePersisted<BillingCycle>('vx.cycle', 'monthly');
+  const [library, setLibrary] = usePersisted<GenerationResult[]>('vx.library', []);
   const [checkout, setCheckout] = useState<CheckoutItem | null>(null);
   const [remixPrompt, setRemixPrompt] = useState<string | null>(null);
 
   useEffect(() => {
-    const on = () => setRoute(readHash());
+    const on = () => { setRoute(readHash()); setCheckout(null); };
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);

@@ -5,12 +5,13 @@ import { GenerativeArt } from '@/components/media/GenerativeArt';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { getModel } from '@/data/models';
-import { compact } from '@/lib/format';
+import { useI18n } from '@/i18n';
 import { useApp } from '@/store/AppStore';
 import type { ExploreItem } from '@/types';
 
 export function PreviewModal({ item, onClose }: { item: ExploreItem | null; onClose: () => void }) {
   const { remix } = useApp();
+  const { t, fmt } = useI18n();
   const [copied, setCopied] = useState(false);
   if (!item) return null;
   const model = getModel(item.modelId);
@@ -25,7 +26,7 @@ export function PreviewModal({ item, onClose }: { item: ExploreItem | null; onCl
         </div>
         <div className="flex flex-col gap-5 p-6">
           <div className="flex flex-wrap gap-2 pr-10">
-            <Badge tone="red">{item.kind === 'video' ? `Video · ${item.durationSec}s` : 'Şəkil'}</Badge>
+            <Badge tone="red">{item.kind === 'video' ? t('preview.videoLength', { s: item.durationSec ?? 0 }) : t('explore.image')}</Badge>
             <Badge tone="yellow">{model.name}</Badge>
             <Badge>{item.aspect}</Badge>
           </div>
@@ -35,19 +36,19 @@ export function PreviewModal({ item, onClose }: { item: ExploreItem | null; onCl
           </div>
           <div className="rounded-2xl bg-ink-900 p-4 ring-1 ring-ink-700">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-volt-400">Prompt</span>
-              <button onClick={copy} className="flex items-center gap-1 text-xs text-muted hover:text-volt-300 cursor-pointer"><Copy size={12} /> {copied ? 'Kopyalandı' : 'Kopyala'}</button>
+              <span className="text-xs font-semibold uppercase tracking-wider text-volt-400">{t('preview.prompt')}</span>
+              <button onClick={copy} className="flex items-center gap-1 text-xs text-muted hover:text-volt-300 cursor-pointer"><Copy size={12} /> {copied ? t('preview.copied') : t('preview.copy')}</button>
             </div>
             <p className="font-mono text-sm leading-relaxed text-cream/90">{item.prompt}</p>
           </div>
           <dl className="grid grid-cols-3 gap-3 text-center">
-            {[['Bəyənmə', compact(item.likes)], ['Remix', compact(item.remixes)], ['Seed', String(item.seed % 100000)]].map(([k, v]) => (
+            {[[t('preview.likes'), fmt.compact(item.likes)], [t('preview.remixes'), fmt.compact(item.remixes)], [t('preview.seed'), String(item.seed % 100000)]].map(([k, v]) => (
               <div key={k} className="rounded-xl bg-ink-800 p-3"><dt className="text-[11px] text-ink-400">{k}</dt><dd className="font-mono text-sm">{v}</dd></div>
             ))}
           </dl>
           <div className="mt-auto flex gap-2">
-            <Button size="lg" className="flex-1" onClick={() => { remix(item.prompt); onClose(); }}><Wand2 size={18} /> Bu prompt ilə yarat</Button>
-            <Button size="lg" variant="outline" aria-label="Bəyən"><Heart size={18} /></Button>
+            <Button size="lg" className="flex-1" onClick={() => { remix(item.prompt); onClose(); }}><Wand2 size={18} /> {t('preview.useprompt')}</Button>
+            <Button size="lg" variant="outline" aria-label={t('preview.like')}><Heart size={18} /></Button>
           </div>
         </div>
       </div>

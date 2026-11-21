@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Salimofff Aİ design tokens — red / black / yellow only */
+/* Vexora AI design tokens — red / black / yellow only */
 @theme {
   --color-ink-950: #070405;
   --color-ink-900: #0b0708;
@@ -47,6 +47,12 @@
     from { opacity: 0; transform: translateY(14px) scale(.98); }
     to { opacity: 1; transform: none; }
   }
+}
+
+/* Syne / Plus Jakarta Sans lack basic Cyrillic → swap to Unbounded / Manrope for Russian */
+:root:lang(ru) {
+  --font-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

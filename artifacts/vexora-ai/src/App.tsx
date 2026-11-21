@@ -1,4 +1,5 @@
 import { AppStoreProvider, useApp } from '@/store/AppStore';
+import { I18nProvider } from '@/i18n';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProfilePage } from '@/components/layout/ProfilePage';
@@ -19,11 +20,13 @@ function Routes() {
 
 export default function App() {
   return (
+    <I18nProvider>
     <AppStoreProvider>
       <Header />
       <main className="mx-auto max-w-7xl px-4 sm:px-6"><Routes /></main>
       <Footer />
       <CheckoutModal />
     </AppStoreProvider>
+    </I18nProvider>
   );
 }

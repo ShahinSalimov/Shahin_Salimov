@@ -2,25 +2,27 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { GenerativeArt } from '@/components/media/GenerativeArt';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/store/AppStore';
+import { useI18n } from '@/i18n';
 
 export function ExploreHero() {
   const { navigate } = useApp();
+  const { t } = useI18n();
   return (
     <section className="relative grid items-center gap-10 py-10 md:grid-cols-[1.2fr_1fr] md:py-16">
       <div className="relative z-10">
         <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-volt-500/10 px-3 py-1 text-xs font-semibold text-volt-300 ring-1 ring-volt-500/30">
-          <Sparkles size={13} /> Yeni: Pulse Motion cinematic video
+          <Sparkles size={13} /> {t('hero.badge')}
         </p>
         <h1 className="font-display text-4xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
-          İdeyanı yaz.<br />
-          <span className="text-gradient">Reklamın hazır olsun.</span>
+          {t('hero.title1')}<br />
+          <span className="text-gradient">{t('hero.title2')}</span>
         </h1>
         <p className="mt-5 max-w-lg text-base text-muted sm:text-lg">
-          Realistic şəkil və qısa video klipləri bir paneldən yarat. Kreatorların işlərini kəşf et, istənilən prompt-u bir kliklə remix et.
+          {t('hero.subtitle')}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button size="lg" onClick={() => navigate('create')}>Pulsuz başla <ArrowRight size={18} /></Button>
-          <Button size="lg" variant="outline" onClick={() => navigate('pricing')}>Endirimli planlar</Button>
+          <Button size="lg" onClick={() => navigate('create')}>{t('hero.start')} <ArrowRight size={18} /></Button>
+          <Button size="lg" variant="outline" onClick={() => navigate('pricing')}>{t('hero.plans')}</Button>
         </div>
       </div>
       <div className="relative hidden h-[420px] md:block" aria-hidden>

@@ -3,7 +3,7 @@ import type { CreditPack, Plan } from '@/types';
 /**
  * PRICING CONFIG — single source of truth.
  *
- * `listMonthly` = Salimofff's regular price; `monthly` / `yearlyPerMonth` = discounted price shown to users.
+ * `listMonthly` = Vexora's regular price; `monthly` / `yearlyPerMonth` = discounted price shown to users.
  *
  * REFERENCE_PRICES must be filled in with the competitor's *verified* current prices
  * (they could not be fetched automatically). `assertCheaperThanReference` in dev
@@ -15,28 +15,26 @@ export const REFERENCE_PRICES: Partial<Record<Plan['id'], { monthly: number; yea
   // studio:  { monthly: 0, yearlyPerMonth: 0 },
 };
 
-export const YEARLY_EXTRA_LABEL = 'İllik ödənişdə əlavə endirim';
-
 export const PLANS: Plan[] = [
   {
-    id: 'free', name: 'Free', tagline: 'Platformanı sına',
+    id: 'free', name: 'Free',
     listMonthly: 0, monthly: 0, yearlyPerMonth: 0, creditsPerMonth: 30,
-    features: ['30 kredit / ay', 'Ember Flash modeli', 'Su nişanlı yükləmə', 'İctimai qalereya'],
+    features: [{ key: 'flash' }, { key: 'watermark' }, { key: 'publicGallery' }],
   },
   {
-    id: 'starter', name: 'Starter', tagline: 'Fərdi kreatorlar üçün',
+    id: 'starter', name: 'Starter',
     listMonthly: 12, monthly: 7, yearlyPerMonth: 5, creditsPerMonth: 400,
-    features: ['400 kredit / ay', 'Bütün şəkil modelləri', 'Su nişansız yükləmə', 'Pulse Lite video', '2 paralel generasiya'],
+    features: [{ key: 'allImage' }, { key: 'noWatermark' }, { key: 'pulseLite' }, { key: 'parallel', vars: { n: 2 } }],
   },
   {
-    id: 'creator', name: 'Creator', tagline: 'Reklam videoları çəkənlər üçün', highlight: true,
+    id: 'creator', name: 'Creator', highlight: true,
     listMonthly: 36, monthly: 19, yearlyPerMonth: 14, creditsPerMonth: 1500,
-    features: ['1 500 kredit / ay', 'Pulse Motion cinematic video', 'Kommersiya lisenziyası', '4 paralel generasiya', 'Prioritet növbə'],
+    features: [{ key: 'pulseMotion' }, { key: 'commercial' }, { key: 'parallel', vars: { n: 4 } }, { key: 'priority' }],
   },
   {
-    id: 'studio', name: 'Studio', tagline: 'Agentlik və komandalar',
+    id: 'studio', name: 'Studio',
     listMonthly: 89, monthly: 49, yearlyPerMonth: 37, creditsPerMonth: 5000,
-    features: ['5 000 kredit / ay', 'Bütün Pro modellər', '8 paralel generasiya', 'Komanda paylaşımı (3 yer)', 'API girişi (tezliklə)'],
+    features: [{ key: 'allPro' }, { key: 'parallel', vars: { n: 8 } }, { key: 'seats', vars: { n: 3 } }, { key: 'api' }],
   },
 ];
 

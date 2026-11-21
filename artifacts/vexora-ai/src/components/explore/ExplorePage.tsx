@@ -8,10 +8,12 @@ import { MediaCard } from './MediaCard';
 import { PreviewModal } from './PreviewModal';
 import { useExploreFilter } from './useExploreFilter';
 import { Button } from '@/components/ui/Button';
+import { useI18n } from '@/i18n';
 
 export function ExplorePage() {
   const { filters, update, reset, results } = useExploreFilter(EXPLORE_ITEMS);
   const [active, setActive] = useState<ExploreItem | null>(null);
+  const { t } = useI18n();
   return (
     <>
       <ExploreHero />
@@ -23,8 +25,8 @@ export function ExplorePage() {
       ) : (
         <div className="mt-16 flex flex-col items-center gap-4 text-center">
           <SearchX size={40} className="text-blaze-400" />
-          <p className="text-muted">Bu filtrlərə uyğun nəticə yoxdur.</p>
-          <Button variant="outline" onClick={reset}>Filtrləri sıfırla</Button>
+          <p className="text-muted">{t('explore.empty')}</p>
+          <Button variant="outline" onClick={reset}>{t('explore.reset')}</Button>
         </div>
       )}
       <PreviewModal item={active} onClose={() => setActive(null)} />

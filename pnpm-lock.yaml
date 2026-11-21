@@ -600,7 +600,7 @@ importers:
         specifier: 'catalog:'
         version: 3.25.76
 
-  artifacts/salimofff-ai:
+  artifacts/vexora-ai:
     devDependencies:
       '@tailwindcss/vite':
         specifier: 'catalog:'

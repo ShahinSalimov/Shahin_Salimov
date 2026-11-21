@@ -3,16 +3,18 @@ import { aiProvider } from '@/services/ai';
 import { useApp } from '@/store/AppStore';
 import type { GenerationJob, GenerationParams } from '@/types';
 
+export type GenError = 'noCredits' | null;
+
 export function useGeneration() {
   const { spendCredits, addCredits, addToLibrary } = useApp();
   const [jobs, setJobs] = useState<GenerationJob[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<GenError>(null);
   const controllers = useRef(new Map<string, AbortController>());
 
   const run = useCallback(async (params: GenerationParams) => {
     setError(null);
     const cost = aiProvider.estimateCost(params);
-    if (!spendCredits(cost)) { setError('Kredit kifayət etmir. Paket al və ya planı yüksəlt.'); return; }
+    if (!spendCredits(cost)) { setError('noCredits'); return; }
     const ctrl = new AbortController();
     let jobId = '';
     try {
@@ -23,7 +25,7 @@ export function useGeneration() {
       addToLibrary(final.results);
     } catch (e) {
       addCredits(cost); // refund on failure / cancel
-      setJobs((js) => js.map((j) => (j.id === jobId ? { ...j, status: 'failed', error: (e as Error).name === 'AbortError' ? 'Ləğv edildi' : 'Xəta baş verdi' } : j)));
+      setJobs((js) => js.map((j) => (j.id === jobId ? { ...j, status: 'failed', error: (e as Error).name === 'AbortError' ? 'cancelled' : 'failed' } : j)));
     } finally {
       controllers.current.delete(jobId);
     }

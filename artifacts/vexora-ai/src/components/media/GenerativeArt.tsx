@@ -2,6 +2,7 @@ import { memo, useId } from 'react';
 import { rng, pick } from '@/lib/random';
 import type { AspectRatio, MediaKind } from '@/types';
 import { aspectToRatio } from '@/lib/format';
+import { useI18n } from '@/i18n';
 
 const PALETTES = [
   ['#0b0708', '#ff2a3c', '#ffc21a', '#a80a1f'],
@@ -15,6 +16,7 @@ interface Props { seed: number; aspect: AspectRatio; kind?: MediaKind; animate?:
 /** Procedural, copyright-free placeholder artwork. Same seed → same picture. */
 export const GenerativeArt = memo(function GenerativeArt({ seed, aspect, kind = 'image', animate = false, className }: Props) {
   const uid = useId().replace(/:/g, '');
+  const { t } = useI18n();
   const r = rng(seed);
   const pal = pick(r, PALETTES);
   const W = 400;
@@ -30,7 +32,7 @@ export const GenerativeArt = memo(function GenerativeArt({ seed, aspect, kind = 
   const dur = 6 + r() * 6;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label="Sintetik önizləmə">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" className={className} role="img" aria-label={t('common.synthetic')}>
       <defs>
         <filter id={`b${uid}`}><feGaussianBlur stdDeviation={mode === 0 ? 38 : 26} /></filter>
         <filter id={`n${uid}`}>

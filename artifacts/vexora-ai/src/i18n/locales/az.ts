@@ -1,0 +1,69 @@
+import type { Dict } from '../types';
+
+export const az: Dict = {
+  meta: { title: 'Vexora AI — AI şəkil və video studiyası', description: 'Realistic AI şəkillər və qısa video reklamları bir studiyada yarat.' },
+  nav: {
+    explore: 'Kəşf et', create: 'Yarat', pricing: 'Qiymətlər', profile: 'Profil',
+    home: 'Vexora AI — ana səhifə', main: 'Əsas naviqasiya', mobile: 'Mobil naviqasiya',
+    creditsLeft: '{n} kredit qalıb', language: 'Dil',
+  },
+  footer: { rights: '© {year} Vexora AI. Bütün hüquqlar qorunur.', synthetic: 'Önizləmələr prosedur yolla yaradılmış sintetik vizuallardır.' },
+  hero: {
+    badge: 'Yeni: Pulse Motion cinematic video', title1: 'İdeyanı yaz.', title2: 'Reklamın hazır olsun.',
+    subtitle: 'Realistic şəkil və qısa video klipləri bir paneldən yarat. Kreatorların işlərini kəşf et, istənilən prompt-u bir kliklə remix et.',
+    start: 'Pulsuz başla', plans: 'Endirimli planlar',
+  },
+  categories: { all: 'Hamısı', ads: 'Reklam', product: 'Məhsul', portrait: 'Portret', cinematic: 'Cinematic', fashion: 'Fashion', food: 'Food', architecture: 'Memarlıq', abstract: 'Abstrakt' },
+  explore: {
+    search: 'Axtarış', searchPlaceholder: 'Prompt, mövzu və ya müəllif axtar…',
+    kind: 'Media növü', all: 'Hamısı', image: 'Şəkil', video: 'Video',
+    sort: 'Sıralama', trending: 'Trend', newest: 'Ən yeni', mostLiked: 'Ən çox bəyənilən',
+    results: '{n} nəticə', empty: 'Bu filtrlərə uyğun nəticə yoxdur.', reset: 'Filtrləri sıfırla', featured: 'Seçilmiş', open: '{title} — önizləməni aç',
+  },
+  preview: { prompt: 'Prompt', copy: 'Kopyala', copied: 'Kopyalandı', likes: 'Bəyənmə', remixes: 'Remix', seed: 'Seed', useprompt: 'Bu prompt ilə yarat', like: 'Bəyən', videoLength: 'Video · {s}s' },
+  models: {
+    'ember-img-2': 'Realistic foto, dəqiq işıq', 'ember-img-fast': 'Sürətli eskiz və variantlar', 'ember-img-pro': '4K detal, məhsul çəkilişi',
+    'pulse-vid-1': 'Cinematic camera movement', 'pulse-vid-lite': 'Qısa Reels / TikTok klipləri',
+  },
+  styles: { none: 'Sərbəst', realistic: 'Realistic', cinematic: 'Cinematic', studio: 'Studio product', neon: 'Neon noir', editorial: 'Editorial' },
+  gen: {
+    title1: 'Yaratma', title2: 'studiyası', subtitle: 'Model seç, prompt yaz, parametrləri tənzimlə.',
+    kind: 'Media növü', image: 'Şəkil', video: 'Video',
+    model: 'Model', prompt: 'Prompt', negative: 'Negative prompt', style: 'Stil', aspect: 'Aspect ratio',
+    count: 'Say: {n}', countAria: 'Nəticə sayı', duration: 'Müddət: {n}s', durationAria: 'Video müddəti',
+    seed: 'Seed', seedRandom: 'Təsadüfi', randomSeed: 'Təsadüfi seed', clearSeed: 'Seed-i sıfırla',
+    submit: 'Yarat', cr: 'kr', perSec: '/s',
+    noCredits: 'Kredit kifayət etmir. Paket al və ya planı yüksəlt.', buy: 'Kredit al',
+    emptyTitle: 'Nəticələr burada görünəcək', emptyText: 'Kəşf et bölməsindən hazır prompt-u remix edə bilərsən.', inspire: 'İlham al',
+    cancel: 'Ləğv et', ready: 'Hazır', cancelled: 'Ləğv edildi', failed: 'Xəta baş verdi', download: 'Yüklə (demo)',
+  },
+  pricing: {
+    promo: 'Açılış endirimi', title1: 'Daha çox yarat,', title2: 'daha az ödə',
+    subtitle: 'Bütün ödənişli planlarda kommersiya istifadəsi ilə şəffaf kredit sistemi.',
+    cycle: 'Ödəniş dövrü', monthly: 'Aylıq', yearly: 'İllik', upTo: '−{n}%-dək',
+    popular: 'Ən populyar', perMonth: '/ay',
+    saveYearly: 'İllik {total} — {save} qənaət', saveMonthly: 'Ayda {save} qənaət',
+    creditsPerMonth: '{n} kredit / ay', current: 'Cari plan', startFree: 'Pulsuz başla', choose: '{name} seç',
+    packsTitle: 'Əlavə kredit paketləri', packsSubtitle: 'Bir dəfəlik ödəniş, kreditlərin vaxtı bitmir.', bonus: '+{n} bonus', packCredits: '{n} kr',
+  },
+  plans: { free: { tagline: 'Platformanı sına' }, starter: { tagline: 'Fərdi kreatorlar üçün' }, creator: { tagline: 'Video reklam hazırlayanlar üçün' }, studio: { tagline: 'Agentlik və komandalar' } },
+  features: {
+    flash: 'Ember Flash modeli', watermark: 'Su nişanlı yükləmə', publicGallery: 'İctimai qalereya',
+    allImage: 'Bütün şəkil modelləri', noWatermark: 'Su nişansız yükləmə', pulseLite: 'Pulse Lite video', parallel: '{n} paralel generasiya',
+    pulseMotion: 'Pulse Motion cinematic video', commercial: 'Kommersiya lisenziyası', priority: 'Prioritet növbə',
+    allPro: 'Bütün Pro modellər', seats: 'Komanda paylaşımı ({n} yer)', api: 'API girişi (tezliklə)',
+  },
+  checkout: {
+    title: 'Ödəniş', confirm: 'Sifarişi təsdiqlə', planLine: '{plan} · {cycle}', packLine: '{n} kredit paketi',
+    discount: 'Endirim ({n}%)', total: 'Cəmi', card: 'Kart məlumatı',
+    demo: 'Demo rejim: real ödəniş alınmır. Gateway qoşulanda bu sahələr onun hosted form-u ilə əvəzlənəcək.',
+    pay: '{amount} ödə', processing: 'Emal olunur…', cancelAnytime: 'İstənilən vaxt ləğv et',
+    successTitle: 'Ödəniş tamamlandı', successText: 'Hesabına {n} kredit əlavə olundu.', continue: 'Davam et',
+  },
+  profile: {
+    guest: 'Qonaq istifadəçi', demo: 'Hesab sistemi demo rejimdədir — məlumat brauzerdə saxlanılır.', upgrade: 'Planı yüksəlt',
+    credits: 'Kredit', plan: 'Plan', library: 'Kitabxana', yearly: 'illik', monthly: 'aylıq',
+    works: 'Mənim işlərim', empty: 'Hələ heç nə yaratmamısan.', start: 'İndi başla →',
+  },
+  common: { close: 'Bağla', synthetic: 'Sintetik önizləmə' },
+};

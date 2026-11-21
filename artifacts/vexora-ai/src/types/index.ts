@@ -1,9 +1,11 @@
+import type { Dict } from '@/i18n/types';
+
 export type MediaKind = 'image' | 'video';
 
 export type CategoryId =
   | 'all' | 'ads' | 'portrait' | 'product' | 'cinematic' | 'fashion' | 'food' | 'architecture' | 'abstract';
 
-export interface Category { id: CategoryId; label: string }
+export interface Category { id: CategoryId }
 
 export type AspectRatio = '1:1' | '4:5' | '9:16' | '16:9' | '3:4';
 
@@ -37,13 +39,13 @@ export interface AIModel {
   id: string;
   name: string;
   kind: MediaKind;
-  tagline: string;
   creditCost: number; // per output (per second for video)
   maxDuration?: number;
   badge?: 'new' | 'pro' | 'fast';
 }
 
-export interface StylePreset { id: string; label: string; suffix: string }
+export type StyleId = keyof Dict['styles'];
+export interface StylePreset { id: StyleId; suffix: string }
 
 export interface GenerationParams {
   modelId: string;
@@ -51,7 +53,7 @@ export interface GenerationParams {
   prompt: string;
   negativePrompt: string;
   aspect: AspectRatio;
-  styleId: string;
+  styleId: StyleId;
   count: number;
   durationSec: number;
   seed: number | null;
@@ -78,7 +80,8 @@ export interface GenerationJob {
   progress: number; // 0..1
   cost: number;
   results: GenerationResult[];
-  error?: string;
+  /** i18n key under `gen.` */
+  error?: 'cancelled' | 'failed';
 }
 
 export type BillingCycle = 'monthly' | 'yearly';
@@ -87,14 +90,16 @@ export type PlanId = 'free' | 'starter' | 'creator' | 'studio';
 export interface Plan {
   id: PlanId;
   name: string;
-  tagline: string;
   listMonthly: number;      // regular price (USD / month)
   monthly: number;          // discounted monthly price
   yearlyPerMonth: number;   // discounted price per month when billed yearly
   creditsPerMonth: number;
-  features: string[];
+  features: PlanFeature[];
   highlight?: boolean;
 }
+
+export type FeatureKey = keyof Dict['features'];
+export interface PlanFeature { key: FeatureKey; vars?: Record<string, number> }
 
 export interface CreditPack { id: string; credits: number; listPrice: number; price: number; bonus?: number }
 

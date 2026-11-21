@@ -1,0 +1,69 @@
+import type { Dict } from '../types';
+
+export const tr: Dict = {
+  meta: { title: 'Vexora AI — AI görsel ve video stüdyosu', description: 'Gerçekçi AI görseller ve kısa video reklamları tek bir stüdyoda oluştur.' },
+  nav: {
+    explore: 'Keşfet', create: 'Oluştur', pricing: 'Fiyatlar', profile: 'Profil',
+    home: 'Vexora AI — ana sayfa', main: 'Ana menü', mobile: 'Mobil menü',
+    creditsLeft: '{n} kredi kaldı', language: 'Dil',
+  },
+  footer: { rights: '© {year} Vexora AI. Tüm hakları saklıdır.', synthetic: 'Önizlemeler prosedürel olarak üretilmiş sentetik görsellerdir.' },
+  hero: {
+    badge: 'Yeni: Pulse Motion cinematic video', title1: 'Fikrini yaz.', title2: 'Reklamın hazır.',
+    subtitle: 'Gerçekçi görselleri ve kısa video kliplerini tek panelden oluştur. Üreticilerin işlerini keşfet, istediğin prompt’u tek tıkla remix et.',
+    start: 'Ücretsiz başla', plans: 'İndirimli planlar',
+  },
+  categories: { all: 'Tümü', ads: 'Reklam', product: 'Ürün', portrait: 'Portre', cinematic: 'Cinematic', fashion: 'Moda', food: 'Yemek', architecture: 'Mimari', abstract: 'Soyut' },
+  explore: {
+    search: 'Ara', searchPlaceholder: 'Prompt, konu veya üretici ara…',
+    kind: 'Medya türü', all: 'Tümü', image: 'Görsel', video: 'Video',
+    sort: 'Sırala', trending: 'Trend', newest: 'En yeni', mostLiked: 'En çok beğenilen',
+    results: '{n} sonuç', empty: 'Bu filtrelere uyan sonuç yok.', reset: 'Filtreleri sıfırla', featured: 'Öne çıkan', open: '{title} — önizlemeyi aç',
+  },
+  preview: { prompt: 'Prompt', copy: 'Kopyala', copied: 'Kopyalandı', likes: 'Beğeni', remixes: 'Remix', seed: 'Seed', useprompt: 'Bu prompt ile oluştur', like: 'Beğen', videoLength: 'Video · {s}sn' },
+  models: {
+    'ember-img-2': 'Gerçekçi fotoğraf, hassas ışık', 'ember-img-fast': 'Hızlı eskiz ve varyasyonlar', 'ember-img-pro': '4K detay, ürün çekimleri',
+    'pulse-vid-1': 'Cinematic camera movement', 'pulse-vid-lite': 'Kısa Reels / TikTok klipleri',
+  },
+  styles: { none: 'Serbest', realistic: 'Realistic', cinematic: 'Cinematic', studio: 'Studio product', neon: 'Neon noir', editorial: 'Editorial' },
+  gen: {
+    title1: 'Oluşturma', title2: 'stüdyosu', subtitle: 'Model seç, prompt yaz, parametreleri ayarla.',
+    kind: 'Medya türü', image: 'Görsel', video: 'Video',
+    model: 'Model', prompt: 'Prompt', negative: 'Negative prompt', style: 'Stil', aspect: 'Aspect ratio',
+    count: 'Adet: {n}', countAria: 'Sonuç sayısı', duration: 'Süre: {n}sn', durationAria: 'Video süresi',
+    seed: 'Seed', seedRandom: 'Rastgele', randomSeed: 'Rastgele seed', clearSeed: 'Seed’i temizle',
+    submit: 'Oluştur', cr: 'kr', perSec: '/sn',
+    noCredits: 'Yeterli kredi yok. Paket al veya planını yükselt.', buy: 'Kredi al',
+    emptyTitle: 'Sonuçların burada görünecek', emptyText: 'Keşfet bölümünden hazır bir prompt’u remix edebilirsin.', inspire: 'İlham al',
+    cancel: 'İptal', ready: 'Hazır', cancelled: 'İptal edildi', failed: 'Bir hata oluştu', download: 'İndir (demo)',
+  },
+  pricing: {
+    promo: 'Lansman indirimi', title1: 'Daha çok üret,', title2: 'daha az öde',
+    subtitle: 'Tüm ücretli planlarda ticari kullanımla şeffaf kredi sistemi.',
+    cycle: 'Ödeme dönemi', monthly: 'Aylık', yearly: 'Yıllık', upTo: '−{n}%’e kadar',
+    popular: 'En popüler', perMonth: '/ay',
+    saveYearly: 'Yıllık {total} — {save} tasarruf', saveMonthly: 'Ayda {save} tasarruf',
+    creditsPerMonth: '{n} kredi / ay', current: 'Mevcut plan', startFree: 'Ücretsiz başla', choose: '{name} seç',
+    packsTitle: 'Ek kredi paketleri', packsSubtitle: 'Tek seferlik ödeme. Kredilerin süresi dolmaz.', bonus: '+{n} bonus', packCredits: '{n} kr',
+  },
+  plans: { free: { tagline: 'Platformu dene' }, starter: { tagline: 'Bireysel üreticiler için' }, creator: { tagline: 'Video reklam üretenler için' }, studio: { tagline: 'Ajanslar ve ekipler' } },
+  features: {
+    flash: 'Ember Flash modeli', watermark: 'Filigranlı indirme', publicGallery: 'Herkese açık galeri',
+    allImage: 'Tüm görsel modelleri', noWatermark: 'Filigransız indirme', pulseLite: 'Pulse Lite video', parallel: '{n} paralel üretim',
+    pulseMotion: 'Pulse Motion cinematic video', commercial: 'Ticari lisans', priority: 'Öncelikli sıra',
+    allPro: 'Tüm Pro modeller', seats: 'Ekip paylaşımı ({n} kişi)', api: 'API erişimi (yakında)',
+  },
+  checkout: {
+    title: 'Ödeme', confirm: 'Siparişi onayla', planLine: '{plan} · {cycle}', packLine: '{n} kredi paketi',
+    discount: 'İndirim (%{n})', total: 'Toplam', card: 'Kart bilgileri',
+    demo: 'Demo modu: gerçek ödeme alınmaz. Bu alanlar ödeme altyapısının hosted formuyla değiştirilecek.',
+    pay: '{amount} öde', processing: 'İşleniyor…', cancelAnytime: 'İstediğin zaman iptal et',
+    successTitle: 'Ödeme tamamlandı', successText: 'Hesabına {n} kredi eklendi.', continue: 'Devam et',
+  },
+  profile: {
+    guest: 'Misafir kullanıcı', demo: 'Hesap sistemi demo modunda — veriler tarayıcında saklanır.', upgrade: 'Planı yükselt',
+    credits: 'Kredi', plan: 'Plan', library: 'Kütüphane', yearly: 'yıllık', monthly: 'aylık',
+    works: 'Çalışmalarım', empty: 'Henüz bir şey oluşturmadın.', start: 'Hemen başla →',
+  },
+  common: { close: 'Kapat', synthetic: 'Sentetik önizleme' },
+};

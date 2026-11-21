@@ -3,10 +3,12 @@ import { GenerativeArt } from '@/components/media/GenerativeArt';
 import { Badge } from '@/components/ui/Badge';
 import { getModel } from '@/data/models';
 import { aspectToRatio } from '@/lib/format';
+import { useI18n } from '@/i18n';
 import type { GenerationJob } from '@/types';
 
 export function JobCard({ job, onCancel }: { job: GenerationJob; onCancel: (id: string) => void }) {
   const { params } = job;
+  const { t } = useI18n();
   const busy = job.status === 'queued' || job.status === 'running';
   const slots = params.kind === 'video' ? 1 : params.count;
   return (
@@ -14,11 +16,11 @@ export function JobCard({ job, onCancel }: { job: GenerationJob; onCancel: (id: 
       <header className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="line-clamp-1 text-sm font-semibold">{params.prompt}</p>
-          <p className="text-xs text-ink-400">{getModel(params.modelId).name} · {params.aspect} · {job.cost} kr</p>
+          <p className="text-xs text-ink-400">{getModel(params.modelId).name} · {params.aspect} · {job.cost} {t('gen.cr')}</p>
         </div>
         {busy ? (
-          <button onClick={() => onCancel(job.id)} className="flex items-center gap-1 text-xs text-muted hover:text-blaze-300 cursor-pointer"><X size={14} /> Ləğv et</button>
-        ) : job.status === 'failed' ? <Badge tone="red">{job.error}</Badge> : <Badge tone="yellow">Hazır</Badge>}
+          <button onClick={() => onCancel(job.id)} className="flex items-center gap-1 text-xs text-muted hover:text-blaze-300 cursor-pointer"><X size={14} /> {t('gen.cancel')}</button>
+        ) : job.status === 'failed' ? <Badge tone="red">{t(`gen.${job.error ?? 'failed'}`)}</Badge> : <Badge tone="yellow">{t('gen.ready')}</Badge>}
       </header>
       {busy && (
         <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-ink-700" role="progressbar" aria-valuenow={Math.round(job.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
@@ -30,7 +32,7 @@ export function JobCard({ job, onCancel }: { job: GenerationJob; onCancel: (id: 
           ? job.results.map((r) => (
             <figure key={r.id} className="group relative overflow-hidden rounded-2xl ring-1 ring-ink-700">
               <GenerativeArt seed={r.seed} aspect={r.aspect} kind={r.kind} animate={r.kind === 'video'} className="block w-full h-auto" />
-              <button className="absolute bottom-2 right-2 grid size-9 place-items-center rounded-full bg-ink-900/80 opacity-0 transition group-hover:opacity-100 hover:text-volt-300 cursor-pointer" aria-label="Yüklə (demo)">
+              <button className="absolute bottom-2 right-2 grid size-9 place-items-center rounded-full bg-ink-900/80 opacity-0 transition group-hover:opacity-100 hover:text-volt-300 cursor-pointer" aria-label={t('gen.download')}>
                 <Download size={16} />
               </button>
             </figure>

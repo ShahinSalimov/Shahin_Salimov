@@ -1,11 +1,13 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useI18n } from '@/i18n';
 
 interface Props { open: boolean; onClose: () => void; title: string; children: ReactNode; className?: string }
 
 export function Modal({ open, onClose, title, children, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -28,7 +30,7 @@ export function Modal({ open, onClose, title, children, className }: Props) {
         tabIndex={-1}
         className={cn('relative w-full max-h-[92vh] overflow-auto rounded-t-3xl sm:rounded-3xl bg-ink-850 ring-1 ring-ink-700 animate-rise outline-none', className)}
       >
-        <button onClick={onClose} aria-label="Bağla" className="absolute right-4 top-4 z-10 grid size-9 place-items-center rounded-full bg-ink-900/80 text-cream hover:text-volt-300 cursor-pointer">
+        <button onClick={onClose} aria-label={t('common.close')} className="absolute right-4 top-4 z-10 grid size-9 place-items-center rounded-full bg-ink-900/80 text-cream hover:text-volt-300 cursor-pointer">
           <X size={18} />
         </button>
         {children}
