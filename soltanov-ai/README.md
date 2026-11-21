@@ -1,6 +1,6 @@
 # Soltanov AI
 
-Şükran Soltanov üçün şəxsi AI kontent prodüseri: gündə 3 dəfə onun xarakterinə uyğun, çəkilməyə hazır Instagram Reels ideyaları, səsli reklam brifindən 5 ssenari, iş axınına görə "proq" alətləri. Bütün funksiyalara səslə istək göndərmək olur ("mənə bu mövzuda Reels ideyaları hazırla").
+Şükran Soltanov üçün şəxsi AI kontent prodüseri: gündə 3 dəfə onun xarakterinə uyğun, çəkilməyə hazır Instagram Reels və TikTok ideyaları (hər platforma üçün ayrı caption, hashtag və paylaşım qeydi), səsli reklam brifindən 5 ssenari, iş axınına görə "proq" alətləri. Bütün funksiyalara səslə istək göndərmək olur ("mənə bu mövzuda Reels ideyaları hazırla").
 
 Deploy: [docs/DEPLOY.md](docs/DEPLOY.md) · Plan və arxitektura: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Təqdimat: [presentation/SoltanovAI-Teqdimat.pdf](presentation/SoltanovAI-Teqdimat.pdf)
 

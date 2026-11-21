@@ -7,7 +7,7 @@ export const DEFAULT_PROFILE = {
   gender: "kişi",
   sport: "idman / fitness",
   personality: "aktiv, enerjili, zarafatcıl, özünə gülə bilən, motivasiya verən",
-  contentStyle: "əyləncəli, dinamik, yumorlu Reels: skeçlər, çağırışlar, POV-lar, məşq + zarafat",
+  contentStyle: "əyləncəli, dinamik, yumorlu Reels / TikTok videoları: skeçlər, çağırışlar, POV-lar, məşq + zarafat",
   humor: "situasiya yumoru, özünə ironiya, dostlarla prank-sız zarafatlar",
   locations: "zal, açıq hava, ev, maşın, şəhər küçələri",
   recurringCast: "məşq yoldaşı, dostlar",
@@ -24,7 +24,7 @@ export const PILLARS = [
   { id: "challenge", name: "Çağırış", hint: "izləyicini və ya dostunu çağıran fiziki çağırış, nəticə sonda" },
   { id: "pov", name: "POV", hint: "'POV: ...' formatında tanış idman situasiyası" },
   { id: "training_twist", name: "Məşq + twist", hint: "real məşq, amma gözlənilməz sonluq və ya zarafat" },
-  { id: "trend", name: "Trend adaptasiyası", hint: "populyar Reels formatını onun idmanına uyğunlaşdır (konkret səs adı uydurma)" },
+  { id: "trend", name: "Trend adaptasiyası", hint: "populyar Reels / TikTok formatını onun idmanına uyğunlaşdır (konkret səs adı uydurma)" },
   { id: "behind", name: "Kulis / gündəlik", hint: "bir günü, yarış/məşq ərəfəsi, real və enerjili" },
   { id: "versus", name: "Versus / müqayisə", hint: "'yeni başlayan vs peşəkar', 'gözlənti vs reallıq'" },
   { id: "qa", name: "Sual-cavab / mif", hint: "izləyici sualı və ya idman mifi, əyləncəli formada cavab" },
@@ -54,7 +54,8 @@ export function profileBlock(p) {
   ].filter(Boolean).join("\n");
 }
 
-export const SYSTEM_IDEAS = `Sən Azərbaycanın ən güclü Instagram Reels kreativ prodüserisən. Bir kişi idmançı-bloqerlə işləyirsən.
+export const SYSTEM_IDEAS = `Sən Azərbaycanın ən güclü Instagram Reels və TikTok kreativ prodüserisən. Bir kişi idmançı-bloqerlə işləyirsən.
+Hər ideya eyni videonun həm Instagram Reels-də, həm TikTok-da paylaşılması üçündür (9:16).
 Onun kontenti AKTİV, ENERJİLİ və ƏYLƏNCƏLİdir. Ona verilən hər ideya yalnız ONUN xarakterinə, idman növünə və tərzinə uyğun olmalıdır.
 
 Qaydalar:
@@ -63,7 +64,8 @@ Qaydalar:
 - İlk 3 saniyə (hook) izləyicini dayandırmalıdır: güclü vizual + qısa söz/ekran yazısı.
 - Kadr planı saniyə-saniyədir, kamera bucağı (close-up, wide, POV, low angle, tracking və s.) ingiliscə qalır.
 - Mətnlər Azərbaycan dilində, canlı danışıq dilində; caption qısa, CTA ilə.
-- Hashtaglar 5–8 ədəd, Azərbaycan + beynəlxalq qarışıq.
+- Instagram üçün: caption + 5–8 hashtag (Azərbaycan + beynəlxalq qarışıq), paylaşım qeydi.
+- TikTok üçün ayrıca: daha qısa, danışıq tonunda caption, 3–5 hashtag, TikTok-a uyğun paylaşım qeydi (ekran yazısı, səs seçimi, şərhə video cavab, seriya/davamı ideyası kimi). İnstagram mətnini təkrarlama.
 - Mövcud trend səsini adla uydurma; "trend olan enerjili beat" kimi təsvir et.
 - Verilən "təkrarlama" siyahısındakı mövzulara oxşar ideya vermə.
 - Təhlükəli trük, başqasını alçaltma, vulqar söz yoxdur.`;
@@ -96,7 +98,7 @@ export const IDEA_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "pillar", "format", "durationSec", "hook", "shots", "caption", "hashtags", "audio", "postingNote", "whyItWorks"],
+        required: ["title", "pillar", "format", "durationSec", "hook", "shots", "caption", "hashtags", "audio", "postingNote", "tiktok", "whyItWorks"],
         properties: {
           title: { type: "string" },
           pillar: { type: "string" },
@@ -121,6 +123,12 @@ export const IDEA_SCHEMA = {
           hashtags: { type: "array", items: { type: "string" } },
           audio: { type: "string" },
           postingNote: { type: "string" },
+          tiktok: {
+            type: "object",
+            additionalProperties: false,
+            required: ["caption", "hashtags", "note"],
+            properties: { caption: { type: "string" }, hashtags: { type: "array", items: { type: "string" } }, note: { type: "string" } },
+          },
           whyItWorks: { type: "string" },
         },
       },
@@ -136,7 +144,7 @@ Qaydalar:
 - Düz 5 FƏRQLİ konsept ver, bucaqlar təkrarlanmasın: 1) problem→həll, 2) gündəlik həyat/kulis, 3) çağırış, 4) test/nəticə, 5) yumor skeçi və ya trend.
 - Hər konseptdə saniyə-saniyə timeline: vizual (kamera bucağı ingiliscə), voiceover/dialoq, ekran yazısı.
 - Məhsul ilk 3 saniyədə yox, hook-dan sonra təbii girsin (brif əksini tələb etmirsə).
-- Caption-da reklam işarəsi (#reklam və ya "Əməkdaşlıq") olsun.
+- Video həm Instagram Reels, həm TikTok üçündür. Instagram caption və TikTok caption ayrı yazılsın; hər ikisində reklam işarəsi (#reklam və ya "Əməkdaşlıq") olsun.
 - Mətnlər Azərbaycan dilində.`;
 
 export function adUserPrompt({ profile, transcript, extra }) {
@@ -173,7 +181,7 @@ export const AD_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "angle", "durationSec", "hook", "timeline", "cta", "caption", "hashtags"],
+        required: ["title", "angle", "durationSec", "hook", "timeline", "cta", "caption", "hashtags", "tiktokCaption"],
         properties: {
           title: { type: "string" },
           angle: { type: "string" },
@@ -191,6 +199,7 @@ export const AD_SCHEMA = {
           cta: { type: "string" },
           caption: { type: "string" },
           hashtags: { type: "array", items: { type: "string" } },
+          tiktokCaption: { type: "string" },
         },
       },
     },
@@ -201,7 +210,7 @@ export const AD_SCHEMA = {
 // ---- Voice command router ----
 export const SYSTEM_ROUTER = `Sən Soltanov AI tətbiqinin səsli əmr yönləndiricisisən. İstifadəçi (kişi idmançı-bloqer) Azərbaycan dilində səslə istək göndərir.
 İstəyi bu niyyətlərdən birinə aid et:
-- "ideas": konkret mövzu/tərzdə Reels ideyası istəyir ("mənə ... mövzusunda reels ideyaları hazırla", "zalla bağlı gülməli video fikri ver")
+- "ideas": konkret mövzu/tərzdə Reels və ya TikTok ideyası istəyir ("mənə ... mövzusunda reels ideyaları hazırla", "zalla bağlı gülməli video fikri ver")
 - "ad": reklam təklifindən danışır, brend/məhsul/reklam ssenarisi istəyir
 - "refresh": bugünkü səhər/günorta/axşam ideyalarını dəyişmək istəyir
 - "profile": gələcək bütün ideyalar üçün daimi istək/üstünlük bildirir ("bundan sonra daha çox yumor olsun", "rəqs etmirəm")

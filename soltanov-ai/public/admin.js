@@ -63,7 +63,7 @@ async function load() {
       const r = await api("POST", isTrial ? "/api/admin/trials" : "/api/admin/licenses", body);
       const secret = r.link || r.key;
       const msg = isTrial
-        ? `Salam! Sizin üçün xüsusi hazırladığım Soltanov AI sistemini 3 gün pulsuz test edə bilərsiniz:\n${secret}\n\nHər gün 09:00, 13:00 və 19:00-da sizə uyğun Reels ideyaları gələcək. Reklam təklifi gələndə "Reklam" bölməsində səslə danışın — 5 hazır ssenari alacaqsınız.`
+        ? `Salam! Sizin üçün xüsusi hazırladığım Soltanov AI sistemini 3 gün pulsuz test edə bilərsiniz:\n${secret}\n\nHər gün 09:00, 13:00 və 19:00-da sizə uyğun Instagram Reels və TikTok ideyaları gələcək. Reklam təklifi gələndə "Reklam" bölməsində səslə danışın — 5 hazır ssenari alacaqsınız.`
         : `Soltanov AI tam versiya lisenziya açarınız:\n${secret}`;
       $("#out").innerHTML = `<div class="kv" style="margin-top:14px"><b>${isTrial ? "Link (yalnız indi göstərilir — saxlayın)" : "Açar (yalnız indi göstərilir — saxlayın)"}</b><div class="copybox linkout">${esc(secret)}</div></div>
         <div class="kv"><b>Müştəriyə göndəriləcək mesaj</b><div class="copybox">${esc(msg)}</div></div>

@@ -1,7 +1,7 @@
 {
   "name": "Soltanov AI",
   "short_name": "Soltanov",
-  "description": "Gündəlik Reels ideyaları və səsdən reklam ssenariləri",
+  "description": "Gündəlik Instagram Reels və TikTok ideyaları, səsdən reklam ssenariləri",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",

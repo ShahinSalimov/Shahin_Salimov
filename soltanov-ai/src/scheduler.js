@@ -20,7 +20,7 @@ export async function sendTelegram(chatId, text) {
 const esc = (s) => String(s).replace(/[<&>]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
 
 export function formatSlotMessage(ideas, link) {
-  const head = `<b>Yeni Reels ideyaları — ${esc(ideas[0]?.slotTime || "")}</b>\n`;
+  const head = `<b>Yeni Reels / TikTok ideyaları — ${esc(ideas[0]?.slotTime || "")}</b>\n`;
   const body = ideas.map((i, n) => `\n${n + 1}. <b>${esc(i.title)}</b>\nHook: ${esc(i.hook?.text || "")}`).join("\n");
   return head + body + (link ? `\n\nƏtraflı: ${link}` : "");
 }

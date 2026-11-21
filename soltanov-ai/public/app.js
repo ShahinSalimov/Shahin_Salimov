@@ -144,7 +144,7 @@ function showLocked(p) {
     <h1>${title}</h1>
     <p class="sub">3 günlük test başa çatdı. Sistemi tam versiya ilə istifadə etməyə davam etmək üçün ${esc(p.ownerName || "sahib")} ilə əlaqə saxlayın.</p>
     <div class="stats">
-      <div><b>${Number(p.stats?.ideas || 0)}</b><span>Reels ideyası alındı</span></div>
+      <div><b>${Number(p.stats?.ideas || 0)}</b><span>Reels / TikTok ideyası alındı</span></div>
       <div><b>${Number(p.stats?.ads || 0)}</b><span>reklam ssenari paketi</span></div>
     </div>
     ${p.contactUrl ? `<a class="btn primary big" style="display:block;text-decoration:none" href="${esc(p.contactUrl)}" target="_blank" rel="noopener">Tam versiyanı əldə et</a>` : ""}
@@ -209,8 +209,8 @@ const loader = (t = "Hazırlanır…") => `<div class="loader"><div class="spin"
 
 async function viewToday() {
   const v = $("#view");
-  v.innerHTML = `<h1>Bugünkü Reels ideyaları</h1><p class="sub" id="slotinfo"></p>
-    <button class="voice-cta" data-voice="ideas">${icons.ad}<div><b>Səslə ideya sifariş et</b><span>“Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla”</span></div></button>
+  v.innerHTML = `<h1>Bugünkü Reels və TikTok ideyaları</h1><p class="sub" id="slotinfo"></p>
+    <button class="voice-cta" data-voice="ideas">${icons.ad}<div><b>Səslə ideya sifariş et</b><span>“Mənə zalda gülməli situasiyalar mövzusunda Reels və TikTok ideyaları hazırla”</span></div></button>
     <div id="proqbox"></div><div id="ideas">${loader("İdeyalar hazırlanır… (ilk dəfə 20–40 saniyə çəkə bilər)")}</div>`;
   const n = state.me.nextSlot;
   $("#slotinfo").textContent = `Gündə 3 dəfə yeni ideyalar: ${state.me.slots.join(" · ")}. Növbəti: ${n.tomorrow ? "sabah " : ""}${n.time}.`;
@@ -252,9 +252,12 @@ function renderTodayIdeas() {
   }));
 }
 
+const tkText = (i) => (i.tiktok ? `${i.tiktok.caption}\n${(i.tiktok.hashtags || []).join(" ")}` : "");
+
 function ideaText(i) {
   const shots = (i.shots || []).map((s) => `${s.t} — ${s.shot} [${s.camera}]${s.onScreenText ? ` | Ekran: ${s.onScreenText}` : ""}`).join("\n");
-  return `${i.title}\n\nHOOK (0-3s): ${i.hook?.text}\nVizual: ${i.hook?.visual}\n\nKADR PLANI:\n${shots}\n\nCAPTION:\n${i.caption}\n${(i.hashtags || []).join(" ")}\n\nSəs: ${i.audio}\nPaylaşım: ${i.postingNote}`;
+  const tk = i.tiktok ? `\n\nTIKTOK CAPTION:\n${tkText(i)}\nTikTok qeydi: ${i.tiktok.note}` : "";
+  return `${i.title}\n\nHOOK (0-3s): ${i.hook?.text}\nVizual: ${i.hook?.visual}\n\nKADR PLANI:\n${shots}\n\nINSTAGRAM CAPTION:\n${i.caption}\n${(i.hashtags || []).join(" ")}\n\nSəs: ${i.audio}\nInstagram paylaşım: ${i.postingNote}${tk}`;
 }
 
 function ideaCard(i) {
@@ -264,13 +267,15 @@ function ideaCard(i) {
       ${i.status !== "new" ? `<span class="tag status-${esc(i.status)}">${STATUS[i.status] || ""}</span>` : ""}</div>
     <h3>${esc(i.title)}</h3>
     <div class="hook"><b>İlk 3 saniyə</b><div class="say">“${esc(i.hook?.text)}”</div><div class="see">${esc(i.hook?.visual)}</div></div>
-    <details><summary>Kadr planı, caption, paylaşım qeydi</summary>
+    <details><summary>Kadr planı, Instagram və TikTok caption</summary>
       <table class="shots"><thead><tr><th>Vaxt</th><th>Kadr</th><th>Kamera</th></tr></thead><tbody>
         ${(i.shots || []).map((s) => `<tr><td>${esc(s.t)}</td><td>${esc(s.shot)}${s.onScreenText ? `<div class="note">Ekran: ${esc(s.onScreenText)}</div>` : ""}</td><td>${esc(s.camera)}</td></tr>`).join("")}
       </tbody></table>
-      <div class="kv"><b>Caption</b><div class="copybox">${esc(i.caption)}\n${esc((i.hashtags || []).join(" "))}<button class="btn small" data-copy-caption>Kopyala</button></div></div>
+      <div class="kv"><b>Instagram caption</b><div class="copybox">${esc(i.caption)}\n${esc((i.hashtags || []).join(" "))}<button class="btn small" data-copy-caption>Kopyala</button></div></div>
+      ${i.tiktok ? `<div class="kv"><b>TikTok caption</b><div class="copybox">${esc(tkText(i))}<button class="btn small" data-copy-tiktok>Kopyala</button></div></div>` : ""}
       <div class="kv"><b>Səs / musiqi</b>${esc(i.audio)}</div>
-      <div class="kv"><b>Paylaşım qeydi</b>${esc(i.postingNote)}</div>
+      <div class="kv"><b>Instagram paylaşım qeydi</b>${esc(i.postingNote)}</div>
+      ${i.tiktok ? `<div class="kv"><b>TikTok paylaşım qeydi</b>${esc(i.tiktok.note)}</div>` : ""}
       <div class="kv"><b>Niyə işləyir</b>${esc(i.whyItWorks)}</div>
     </details>
     <div class="actions">
@@ -293,6 +298,8 @@ function bindIdeaCards(scope) {
     card.querySelector("[data-copy-all]").onclick = () => copy(ideaText(i));
     const cc = card.querySelector("[data-copy-caption]");
     if (cc) cc.onclick = () => copy(`${i.caption}\n${(i.hashtags || []).join(" ")}`);
+    const ct = card.querySelector("[data-copy-tiktok]");
+    if (ct) ct.onclick = () => copy(tkText(i));
     card.querySelectorAll("[data-st]").forEach((b) => (b.onclick = async () => {
       const status = i.status === b.dataset.st ? "new" : b.dataset.st;
       try {
@@ -422,7 +429,7 @@ async function generateAd() {
 }
 
 function scriptText(s) {
-  return `${s.title} (${s.angle}, ${s.durationSec} san)\nHOOK: ${s.hook}\n\n${(s.timeline || []).map((t) => `${t.t}\n  Vizual: ${t.visual}\n  Səs: ${t.voiceover}${t.onScreenText ? `\n  Ekran: ${t.onScreenText}` : ""}`).join("\n")}\n\nCTA: ${s.cta}\n\nCAPTION:\n${s.caption}\n${(s.hashtags || []).join(" ")}`;
+  return `${s.title} (${s.angle}, ${s.durationSec} san)\nHOOK: ${s.hook}\n\n${(s.timeline || []).map((t) => `${t.t}\n  Vizual: ${t.visual}\n  Səs: ${t.voiceover}${t.onScreenText ? `\n  Ekran: ${t.onScreenText}` : ""}`).join("\n")}\n\nCTA: ${s.cta}\n\nINSTAGRAM CAPTION:\n${s.caption}\n${(s.hashtags || []).join(" ")}${s.tiktokCaption ? `\n\nTIKTOK CAPTION:\n${s.tiktokCaption}` : ""}`;
 }
 
 function renderAdResult(ad, proq) {
@@ -447,7 +454,8 @@ function renderAdResult(ad, proq) {
           ${(s.timeline || []).map((t) => `<tr><td>${esc(t.t)}</td><td>${esc(t.visual)}${t.onScreenText ? `<div class="note">Ekran: ${esc(t.onScreenText)}</div>` : ""}</td><td>${esc(t.voiceover)}</td></tr>`).join("")}
           </tbody></table>
           <div class="kv"><b>CTA</b>${esc(s.cta)}</div>
-          <div class="kv"><b>Caption</b><div class="copybox">${esc(s.caption)}\n${esc((s.hashtags || []).join(" "))}</div></div>
+          <div class="kv"><b>Instagram caption</b><div class="copybox">${esc(s.caption)}\n${esc((s.hashtags || []).join(" "))}</div></div>
+          ${s.tiktokCaption ? `<div class="kv"><b>TikTok caption</b><div class="copybox">${esc(s.tiktokCaption)}</div></div>` : ""}
         </details>
         <div class="actions"><button class="btn small" data-copy>Kopyala</button><button class="btn small primary" data-prompt>Teleprompter</button></div>
       </article>`).join("")}`;
@@ -479,7 +487,7 @@ async function loadAdHistory() {
 
 const VOICE_EXAMPLES = {
   today: ["Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla", "Axşam ideyalarını dəyiş", "Dostumla edə biləcəyim 3 çağırış ideyası ver"],
-  ideas: ["Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla", "Qidalanma haqqında əyləncəli 3 ideya ver", "Maşında çəkə biləcəyim POV ideyaları"],
+  ideas: ["Mənə zalda gülməli situasiyalar mövzusunda Reels ideyaları hazırla", "Qidalanma haqqında əyləncəli 3 ideya ver", "Maşında çəkə biləcəyim TikTok POV ideyaları"],
   ad: ["FitBar brendi protein barı üçün 1 Reels istəyir, ödəniş 400 manat", "Krossovka mağazası ilə əməkdaşlıq, yumorlu olsun"],
   proq: ["Bu reklamın qiymətini hesabla", "Teleprompteri aç", "Müqavilə checklistini göstər"],
   archive: ["Mənə məşq + twist tipli 5 ideya hazırla"],
@@ -578,7 +586,7 @@ function openPrompter(text) {
 
 const CHECKLIST = [
   "Brendin tam adı, məhsul və kampaniya məqsədi yazılı təsdiqlənib",
-  "Format və say: neçə Reels, neçə Story, müddət",
+  "Format və say: neçə Reels / TikTok, neçə Story, müddət",
   "Çəkiliş və paylaşım tarixi, ssenari təsdiqi üçün son tarix",
   "Neçə düzəliş (revision) daxildir",
   "Ödəniş məbləği, valyuta, avans faizi və ödəniş tarixi",
@@ -601,10 +609,10 @@ const TOOLS = {
     const o = sheet("Reklam qiymət kalkulyatoru", `
       <p class="note">Hesablama təxminidir. "1000 baxış üçün qiymət" (CPM) dəyərini öz bazar təcrübənizə görə yazın — sistem onu yadda saxlayır.</p>
       <label class="field"><span>İzləyici sayı</span><input type="number" id="pf" value="${saved.followers}"></label>
-      <label class="field"><span>Reels üzrə orta baxış</span><input type="number" id="pv" value="${saved.views}"></label>
+      <label class="field"><span>Reels / TikTok üzrə orta baxış</span><input type="number" id="pv" value="${saved.views}"></label>
       <label class="field"><span>Engagement rate, %</span><input type="number" id="pe" step="0.1" value="${saved.er}"></label>
       <label class="field"><span>1000 baxış üçün qiymət, AZN</span><input type="number" id="pc" value="${saved.cpm}"></label>
-      <label class="field"><span>Format</span><select id="pfm"><option value="1">1 Reels</option><option value="0.4">1 Story</option><option value="1.8">Paket: 1 Reels + 3 Story</option><option value="3">Aylıq paket: 3 Reels</option></select></label>
+      <label class="field"><span>Format</span><select id="pfm"><option value="1">1 Reels (+ TikTok)</option><option value="0.4">1 Story</option><option value="1.8">Paket: 1 Reels + 3 Story</option><option value="3">Aylıq paket: 3 Reels</option></select></label>
       <label class="check"><input type="checkbox" id="px"><span>Eksklüzivlik (+30%)</span></label>
       <label class="check"><input type="checkbox" id="pu"><span>Brendə videonu reklamda işlətmək hüququ (+50%)</span></label>
       <label class="check"><input type="checkbox" id="pr"><span>Təcili, 48 saat ərzində (+25%)</span></label>

@@ -87,7 +87,7 @@ export function offlineIdeas({ profile, pillars, seed = Date.now(), exclude = ()
     out.push({
       title: picked.title,
       pillar: pillar.name,
-      format: pillar.id === "pov" ? "POV" : pillar.id === "versus" ? "Split screen" : "Reels 9:16",
+      format: pillar.id === "pov" ? "POV" : pillar.id === "versus" ? "Split screen" : "Reels / TikTok 9:16",
       durationSec: 20,
       hook: { text: picked.hookText, visual: picked.hookVisual },
       shots: [
@@ -100,6 +100,11 @@ export function offlineIdeas({ profile, pillars, seed = Date.now(), exclude = ()
       hashtags: ["#reels", "#idman", "#fitness", "#azerbaijan", "#baku", "#gym", "#motivasiya"],
       audio: "Enerjili, trend olan beat (sürətli tempo)",
       postingNote: "Paylaşımdan sonra ilk 30 dəqiqədə şərhlərə cavab ver; sual verən şərhi pin et.",
+      tiktok: {
+        caption: `${picked.hookText}. Səndə necədir?`,
+        hashtags: ["#fyp", "#azerbaijan", "#idman", "#gym", "#keşfet"],
+        note: "Hook-u ekran yazısı kimi ilk saniyədə ver; ən maraqlı şərhə video ilə cavab çək (davamı).",
+      },
       whyItWorks: "Tanış situasiya + sürətli tempo + şərhə çağırış izləmə müddətini artırır.",
       offline: true,
     });
@@ -138,6 +143,7 @@ export function offlineAdScripts({ transcript }) {
         cta: "Bio-dakı linkə keç",
         caption: `${h} #reklam`,
         hashtags: ["#reklam", "#əməkdaşlıq", "#idman", "#reels"],
+        tiktokCaption: `${h} #reklam #fyp`,
       };
     }),
     proqHints: [],

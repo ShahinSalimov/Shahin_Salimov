@@ -60,6 +60,7 @@ test("full trial lifecycle: admin link -> enter -> ideas -> ad scripts -> lock",
     const ad = await call("POST", "/api/ads", { transcript: "Salam, FitBar brendi protein barı üçün 1 Reels istəyir, ödəniş 300 manat" });
     assert.equal(ad.status, 200);
     assert.equal(ad.json.ad.scripts.length, 5);
+    assert.ok(ad.json.ad.scripts.every((x) => x.tiktokCaption), "every ad script has a TikTok caption");
     assert.ok(ad.json.proq.some((p) => p.id === "pricing"));
 
     // Simulate time passing: force expiry on the server side.

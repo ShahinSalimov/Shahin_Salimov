@@ -126,6 +126,7 @@ test("offline generator is persona-aware and respects exclusions", () => {
   for (const i of ideas) {
     assert.ok(i.hook.text && i.shots.length >= 3 && i.caption);
     assert.equal(i.shots[0].t, "0-3s");
+    assert.ok(i.tiktok?.caption && i.tiktok.hashtags.length && i.tiktok.note, "each idea has TikTok caption, hashtags and note");
   }
   const again = offlineIdeas({ profile: {}, pillars: [PILLARS[0]], seed: 7, exclude: () => true });
   assert.equal(again.length, 0);

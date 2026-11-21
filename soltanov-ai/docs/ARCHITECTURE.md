@@ -57,7 +57,8 @@ Trial server lisenziya açarını **qəbul etmir**, full server trial linkini q�
 - Slotlar: `IDEA_SLOTS=09:00,13:00,19:00`, saat qurşağı `Asia/Baku`.
 - `scheduler.js` hər dəqiqə aktiv hesabları yoxlayır, vaxtı çatmış slotu generasiya edir, Telegram bildirişi göndərir (qoşulubsa).
 - Server yatmış olsa belə (autoscale), istifadəçi tətbiqi açanda çatışmayan slot dərhal yaradılır (lazy catch-up).
-- Hər ideya: başlıq, kontent sütunu, format, **ilk 3 saniyəlik hook** (söz + vizual), saniyə-saniyə kadr planı (kamera bucağı, ekran yazısı), caption, hashtaglar, səs/musiqi tövsiyəsi, paylaşım qeydi (vaxt, CTA, pin şərh), "niyə işləyir".
+- Hər ideya: başlıq, kontent sütunu, format, **ilk 3 saniyəlik hook** (söz + vizual), saniyə-saniyə kadr planı (kamera bucağı, ekran yazısı), səs/musiqi tövsiyəsi, "niyə işləyir".
+- Platformalar: **Instagram Reels** (caption, 5–8 hashtag, paylaşım qeydi) və **TikTok** (ayrıca qısa caption, 3–5 hashtag, TikTok paylaşım qeydi). Reklam ssenarilərində də TikTok caption ayrıca yazılır.
 - Kontent sütunları növbə ilə dəyişir (məşq, qidalanma, motivasiya, kulis, trend, sual-cavab, çağırış, şəxsi hekayə) — monotonluğun qarşısı.
 - Statuslar: yeni → saxlanılıb → çəkilib → paylaşılıb / keçildi. Bu, həm təqvim, həm də AI üçün siqnaldır (keçilən ideyaların tərzi azaldılır).
 
