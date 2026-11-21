@@ -28,18 +28,25 @@
   .foot { position: absolute; left: 76px; right: 76px; bottom: 54px; display: flex; justify-content: space-between; color: var(--muted); font-size: 19px; font-weight: 600; }
 
   /* price */
-  .packs { display: grid; gap: 20px; margin-top: 10px; }
-  .p { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 32px 36px; display: grid; grid-template-columns: 1fr auto; gap: 8px 30px; align-items: center; position: relative; }
+  .packs { display: grid; gap: 18px; margin-top: 10px; }
+  .p { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 24px 34px; display: grid; grid-template-columns: 1fr auto; gap: 8px 30px; align-items: center; position: relative; }
   .p.best { border: 2px solid var(--volt); background: linear-gradient(135deg, rgba(198,255,61,.12), rgba(198,255,61,.02)); }
   .p .name { font-size: 36px; font-weight: 900; letter-spacing: -.02em; }
   .p .price { font-size: 52px; font-weight: 900; letter-spacing: -.03em; color: var(--volt); text-align: right; white-space: nowrap; }
   .p .price small { font-size: 26px; font-weight: 800; }
-  .p ul { grid-column: 1 / -1; list-style: none; padding: 0; display: grid; gap: 8px; margin-top: 6px; }
-  .p li { font-size: 22px; color: #d7dce4; padding-left: 30px; position: relative; line-height: 1.35; }
+  .p ul { grid-column: 1 / -1; list-style: none; padding: 0; display: grid; gap: 6px; margin-top: 4px; }
+  .p li { font-size: 21px; color: #d7dce4; padding-left: 30px; position: relative; line-height: 1.35; }
   .p li::before { content: "✓"; position: absolute; left: 0; color: var(--volt); font-weight: 900; }
   .ribbon { position: absolute; top: -17px; left: 36px; background: var(--volt); color: var(--ink); font-weight: 900; font-size: 17px; letter-spacing: .08em; text-transform: uppercase; padding: 7px 16px; border-radius: 999px; }
-  .note { margin-top: 26px; color: var(--muted); font-size: 21px; line-height: 1.45; }
+  .note { margin-top: 18px; color: var(--muted); font-size: 21px; line-height: 1.45; }
   .note b { color: var(--text); }
+  .monthly { margin-top: 22px; border: 3px solid #ff2d55; border-radius: 26px; padding: 24px 32px; background: rgba(255,45,85,.07);
+    box-shadow: 0 0 10px rgba(255,45,85,.9), 0 0 28px rgba(255,45,85,.6), 0 0 60px rgba(255,45,85,.35), inset 0 0 18px rgba(255,45,85,.35);
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 24px; align-items: center; }
+  .m-top { font-size: 19px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #ff5c7a; text-shadow: 0 0 10px rgba(255,45,85,.7); }
+  .m-sum { grid-row: span 2; font-size: 50px; font-weight: 900; letter-spacing: -.03em; color: #fff; text-shadow: 0 0 14px rgba(255,45,85,.9), 0 0 30px rgba(255,45,85,.5); white-space: nowrap; }
+  .m-sum small { font-size: 22px; font-weight: 800; color: #ffb3c1; }
+  .m-txt { font-size: 21px; line-height: 1.4; color: #e9edf3; }
   .excl { display: inline-flex; align-items: center; gap: 12px; margin-top: 22px; padding: 12px 22px; border-radius: 999px; border: 1px solid rgba(198,255,61,.45); background: rgba(198,255,61,.08); color: var(--volt); font-weight: 800; font-size: 22px; }
   .excl::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--volt); }
 </style>
@@ -72,23 +79,28 @@
 <section class="poster" id="price">
   <div class="head"><img src="logo.png"><div><div class="brand">Soltanov AI</div><div class="for">Qiymət təklifi</div></div></div>
   <div class="excl">Sistem sırf sizə məxsus hazırlanıb, başqasında yoxdur</div>
-  <h1 style="margin:36px 0 40px">Paketlər</h1>
+  <h1 style="margin:26px 0 30px">Paketlər</h1>
   <div class="packs">
     <div class="p">
-      <div class="name">Əsas</div><div class="price">1200 <small>AZN</small></div>
+      <div class="name">Əsas</div><div class="price">900 <small>AZN</small></div>
       <ul><li>Tam versiya, limitsiz istifadə</li><li>Quraşdırma və telefona qoşulma</li></ul>
     </div>
     <div class="p best">
       <div class="ribbon">Tövsiyə</div>
-      <div class="name">Optimal</div><div class="price">1900 <small>AZN</small></div>
+      <div class="name">Optimal</div><div class="price">1200 <small>AZN</small></div>
       <ul><li>Əsas paketin hamısı</li><li>1 ay pulsuz düzəliş və tənzimləmə</li><li>İstifadə təlimatı</li></ul>
     </div>
     <div class="p">
-      <div class="name">Premium</div><div class="price">2800 <small>AZN</small></div>
+      <div class="name">Premium</div><div class="price">1500 <small>AZN</small></div>
       <ul><li>Optimal paketin hamısı</li><li>3 ay dəstək</li><li>İstəyinizə görə əlavə funksiyalar</li></ul>
     </div>
   </div>
-  <p class="note">Bir dəfəlik ödəniş. Server və AI xərci (ayda təxminən <b>50–70 AZN</b>) birbaşa sizin kartınızdan ödənilir.</p>
+  <p class="note">Qiymətlər bir dəfəlik ödənişdir.</p>
+  <div class="monthly">
+    <div class="m-top">Aylıq xərc — sizin öhdənizdə</div>
+    <div class="m-sum">50–70 <small>AZN / ay</small></div>
+    <div class="m-txt">Server və AI xidməti. Hər ay birbaşa sizin kartınızdan avtomatik ödənilir.</div>
+  </div>
 </section>
 
 </body>
