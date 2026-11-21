@@ -23,8 +23,9 @@ interface AppState {
 
 const Ctx = createContext<AppState | null>(null);
 const ROUTES: Route[] = ['explore', 'create', 'pricing', 'profile'];
+/** Accepts both `#create` (canonical) and legacy `#/create`. */
 const readHash = (): Route => {
-  const h = window.location.hash.replace('#/', '') as Route;
+  const h = window.location.hash.replace(/^#\/?/, '') as Route;
   return ROUTES.includes(h) ? h : 'explore';
 };
 
@@ -51,7 +52,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('hashchange', on);
   }, []);
 
-  const navigate = useCallback((r: Route) => { window.location.hash = `/${r}`; window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
+  const navigate = useCallback((r: Route) => { window.location.hash = r; window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
   const spendCredits = useCallback((n: number) => {
     if (credits < n) return false;
     setCredits((c) => c - n);

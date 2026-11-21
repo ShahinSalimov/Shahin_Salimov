@@ -19,7 +19,7 @@ export function Header() {
   const { t } = useI18n();
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-ink-700/60 bg-ink-900/75 backdrop-blur-xl">
+      <header className="sticky top-[env(safe-area-inset-top,0px)] z-40 border-b border-ink-700/60 bg-ink-900/75 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           <Logo onClick={() => navigate('explore')} />
           <nav className="hidden md:flex items-center gap-1 rounded-full bg-ink-800/70 p-1 ring-1 ring-ink-700" aria-label={t('nav.main')}>
