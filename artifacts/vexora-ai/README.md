@@ -27,7 +27,8 @@ pnpm --filter @workspace/vexora-ai run build
 
 Dəstəklənən dillər: `en` (default), `az`, `tr`, `ru`, `de`, `es`, `fr`.
 
-- Dil seçimi: başlıqdakı dil menyusu → brauzerdə yadda saxlanır. Link ilə açmaq üçün: `/?lang=ru`.
+- Dilin təyini (prioritet sırası): `?lang=` URL parametri → istifadəçinin menyudan seçdiyi dil (yadda saxlanır) → brauzer dili (`de-AT` → `de`) → English.
+- Dəstəklənməyən brauzer dili (məs. `ja`, `it`) English-ə düşür.
 - Yeni mətn əlavə etmək: əvvəl `locales/en.ts`-ə açar yaz, sonra qalan dillərə. Hər hansı dildə açar çatışmırsa, `typecheck` xəta verir.
 - Yeni dil əlavə etmək: `config.ts`-ə dil kodunu, `locales/`-a fayl, `locales/index.ts`-ə import əlavə et.
 - Rus dili üçün şriftlər avtomatik Unbounded + Manrope-a keçir (Syne və Plus Jakarta Sans əsas kiril hərflərini dəstəkləmir).

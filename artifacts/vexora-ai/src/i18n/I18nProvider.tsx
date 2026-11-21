@@ -12,7 +12,16 @@ function lookup(dict: Dict, key: string): string | undefined {
 }
 const interpolate = (s: string, vars?: Vars) => (vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s);
 
-/** Initial locale: ?lang= URL param → saved choice → English. */
+/** First supported language from the browser's preference list ("de-AT" → "de"), if any. */
+export function detectBrowserLocale(langs: readonly string[] = navigator.languages ?? [navigator.language]): Locale | null {
+  for (const tag of langs) {
+    const base = tag?.toLowerCase().split('-')[0];
+    if (isLocale(base)) return base;
+  }
+  return null;
+}
+
+/** Initial locale: ?lang= URL param → user's saved choice → browser language → English. */
 function initialLocale(): Locale {
   try {
     const q = new URLSearchParams(window.location.search).get('lang');
@@ -20,7 +29,7 @@ function initialLocale(): Locale {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (isLocale(saved)) return saved;
   } catch { /* storage unavailable */ }
-  return DEFAULT_LOCALE;
+  return detectBrowserLocale() ?? DEFAULT_LOCALE;
 }
 
 interface I18n {
