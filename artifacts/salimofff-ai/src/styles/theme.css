@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/* Salimofff Aİ design tokens — red / black / yellow only */
+@theme {
+  --color-ink-950: #070405;
+  --color-ink-900: #0b0708;
+  --color-ink-850: #120b0c;
+  --color-ink-800: #1a1112;
+  --color-ink-700: #261819;
+  --color-ink-600: #3a2526;
+  --color-ink-400: #7a6062;
+
+  --color-blaze-300: #ff7a85;
+  --color-blaze-400: #ff4757;
+  --color-blaze-500: #ff2a3c;
+  --color-blaze-600: #e0102a;
+  --color-blaze-700: #a80a1f;
+
+  --color-volt-200: #fff0b3;
+  --color-volt-300: #ffe066;
+  --color-volt-400: #ffcf33;
+  --color-volt-500: #ffc21a;
+  --color-volt-600: #e0a300;
+
+  --color-cream: #fff6e5;
+  --color-muted: #c9b4a8;
+
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-card: 1.25rem;
+
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-rise: rise 0.5s cubic-bezier(.2,.8,.2,1) both;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1.5deg); }
+  }
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px) scale(.98); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+@layer base {
+  html { color-scheme: dark; }
+  body {
+    @apply bg-ink-900 text-cream font-sans antialiased;
+    background-image:
+      radial-gradient(60rem 30rem at 85% -10%, rgb(255 42 60 / .14), transparent 60%),
+      radial-gradient(40rem 24rem at -10% 20%, rgb(255 194 26 / .07), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::selection { background: var(--color-volt-500); color: var(--color-ink-900); }
+  :focus-visible { outline: 2px solid var(--color-volt-400); outline-offset: 2px; }
+}
+
+@utility text-gradient {
+  background: linear-gradient(100deg, var(--color-volt-400), var(--color-blaze-500) 55%, var(--color-blaze-300));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility skeleton {
+  background: linear-gradient(90deg, var(--color-ink-800) 25%, var(--color-ink-700) 50%, var(--color-ink-800) 75%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

@@ -1,0 +1,140 @@
+import { Dice5, Film, ImageIcon, Lock, Sparkles } from 'lucide-react';
+import { MODELS, STYLE_PRESETS, getModel } from '@/data/models';
+import { Segmented } from '@/components/ui/Segmented';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { cn } from '@/lib/cn';
+import { randomSeed } from '@/lib/random';
+import type { AspectRatio, GenerationParams, MediaKind } from '@/types';
+
+const ASPECTS: AspectRatio[] = ['1:1', '4:5', '3:4', '9:16', '16:9'];
+
+interface Props {
+  params: GenerationParams;
+  onChange: (p: Partial<GenerationParams>) => void;
+  onSubmit: () => void;
+  cost: number;
+  credits: number;
+}
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <span className="mb-2 block text-xs font-semibold tracking-wide text-volt-400">{children}</span>
+);
+
+export function ParamPanel({ params, onChange, onSubmit, cost, credits }: Props) {
+  const models = MODELS.filter((m) => m.kind === params.kind);
+  const model = getModel(params.modelId);
+  const setKind = (kind: MediaKind) => {
+    const first = MODELS.find((m) => m.kind === kind)!;
+    onChange({ kind, modelId: first.id, aspect: kind === 'video' ? '9:16' : params.aspect, durationSec: Math.min(params.durationSec, first.maxDuration ?? 5) });
+  };
+  const insufficient = cost > credits;
+
+  return (
+    <form
+      onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
+      className="flex flex-col gap-6 rounded-3xl bg-ink-850 p-5 ring-1 ring-ink-700 lg:sticky lg:top-20"
+    >
+      <Segmented label="Media növü" value={params.kind} onChange={setKind} className="self-start"
+        options={[{ value: 'image', label: <span className="flex items-center gap-1.5"><ImageIcon size={14} /> Şəkil</span> },
+          { value: 'video', label: <span className="flex items-center gap-1.5"><Film size={14} /> Video</span> }]} />
+
+      <div>
+        <Label>Model</Label>
+        <div className="grid gap-2">
+          {models.map((m) => (
+            <button type="button" key={m.id} onClick={() => onChange({ modelId: m.id })} aria-pressed={params.modelId === m.id}
+              className={cn('flex items-center justify-between rounded-2xl p-3 text-left ring-1 transition cursor-pointer',
+                params.modelId === m.id ? 'bg-blaze-500/10 ring-blaze-500' : 'bg-ink-800 ring-ink-700 hover:ring-ink-600')}>
+              <span>
+                <span className="flex items-center gap-2 font-semibold">{m.name} {m.badge && <Badge tone={m.badge === 'pro' ? 'yellow' : 'red'}>{m.badge}</Badge>}</span>
+                <span className="text-xs text-muted">{m.tagline}</span>
+              </span>
+              <span className="shrink-0 font-mono text-xs text-volt-300">{m.creditCost}{m.kind === 'video' ? '/s' : ''} kr</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <label className="block">
+        <Label>Prompt</Label>
+        <textarea
+          value={params.prompt}
+          onChange={(e) => onChange({ prompt: e.target.value })}
+          rows={5}
+          maxLength={1500}
+          placeholder="Close-up of a red sports car in the rain, neon reflections, cinematic lighting…"
+          className="w-full resize-none rounded-2xl bg-ink-900 p-4 font-mono text-sm text-cream placeholder:text-ink-400 ring-1 ring-ink-700 focus:ring-volt-500 outline-none"
+        />
+        <span className="mt-1 block text-right font-mono text-[11px] text-ink-400">{params.prompt.length}/1500</span>
+      </label>
+
+      <label className="block">
+        <Label>Negative prompt</Label>
+        <input value={params.negativePrompt} onChange={(e) => onChange({ negativePrompt: e.target.value })} placeholder="blurry, watermark, extra fingers"
+          className="h-10 w-full rounded-xl bg-ink-900 px-3 font-mono text-sm ring-1 ring-ink-700 focus:ring-volt-500 outline-none placeholder:text-ink-400" />
+      </label>
+
+      <div>
+        <Label>Stil</Label>
+        <div className="flex flex-wrap gap-2">
+          {STYLE_PRESETS.map((s) => (
+            <button type="button" key={s.id} onClick={() => onChange({ styleId: s.id })} aria-pressed={params.styleId === s.id}
+              className={cn('rounded-full px-3 py-1 text-xs font-semibold ring-1 cursor-pointer',
+                params.styleId === s.id ? 'bg-volt-500 text-ink-900 ring-volt-500' : 'bg-ink-800 text-muted ring-ink-700 hover:text-cream')}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label>Ölçü (aspect ratio)</Label>
+        <div className="grid grid-cols-5 gap-2">
+          {ASPECTS.map((a) => {
+            const [w, h] = a.split(':').map(Number);
+            return (
+              <button type="button" key={a} onClick={() => onChange({ aspect: a })} aria-pressed={params.aspect === a}
+                className={cn('flex flex-col items-center gap-1.5 rounded-xl py-2 text-[11px] font-mono ring-1 cursor-pointer',
+                  params.aspect === a ? 'bg-blaze-500/10 ring-blaze-500 text-cream' : 'bg-ink-800 ring-ink-700 text-muted')}>
+                <span className="rounded-[3px] border-2 border-current" style={{ width: 22 * Math.min(1, w / h), height: 22 * Math.min(1, h / w) }} />
+                {a}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {params.kind === 'image' ? (
+        <div>
+          <Label>Say: {params.count}</Label>
+          <input type="range" min={1} max={4} value={params.count} onChange={(e) => onChange({ count: Number(e.target.value) })} className="w-full accent-[var(--color-blaze-500)]" aria-label="Nəticə sayı" />
+        </div>
+      ) : (
+        <div>
+          <Label>Müddət: {params.durationSec}s</Label>
+          <input type="range" min={2} max={model.maxDuration ?? 5} value={params.durationSec} onChange={(e) => onChange({ durationSec: Number(e.target.value) })} className="w-full accent-[var(--color-blaze-500)]" aria-label="Video müddəti" />
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <Label>Seed</Label>
+          <input
+            inputMode="numeric"
+            value={params.seed ?? ''}
+            onChange={(e) => onChange({ seed: e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null })}
+            placeholder="Təsadüfi"
+            className="h-10 w-full rounded-xl bg-ink-900 px-3 font-mono text-sm ring-1 ring-ink-700 focus:ring-volt-500 outline-none placeholder:text-ink-400"
+          />
+        </div>
+        <Button type="button" variant="outline" size="md" className="mt-6" onClick={() => onChange({ seed: randomSeed() })} aria-label="Təsadüfi seed"><Dice5 size={16} /></Button>
+        {params.seed !== null && <Button type="button" variant="ghost" size="md" className="mt-6" onClick={() => onChange({ seed: null })} aria-label="Seed-i sıfırla"><Lock size={16} /></Button>}
+      </div>
+
+      <Button type="submit" size="lg" variant={insufficient ? 'outline' : 'primary'} disabled={!params.prompt.trim()} className="w-full">
+        <Sparkles size={18} /> Yarat · <span className="font-mono">{cost} kr</span>
+      </Button>
+    </form>
+  );
+}
