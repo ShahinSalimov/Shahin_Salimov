@@ -1,0 +1,39 @@
+# Render Blueprint - Soltanov AI FULL edition (license key, no expiry)
+# Render -> New -> Blueprint -> select this repo. SESSION_SECRET and ADMIN_TOKEN are generated,
+# Render asks for the keys marked sync: false.
+services:
+  - type: web
+    name: soltanov-ai-full
+    runtime: node
+    rootDir: soltanov-ai
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: soltanov-full-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: EDITION
+        value: full
+      - key: DATA_DIR
+        value: /var/data
+      - key: TIMEZONE
+        value: Asia/Baku
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OWNER_NAME
+        sync: false
+      - key: OWNER_CONTACT_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false

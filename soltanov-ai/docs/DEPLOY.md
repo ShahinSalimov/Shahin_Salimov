@@ -23,3 +23,12 @@ Qeyd: sayğac link ilk dəfə açılanda başlayır, bir linki maksimum 2 cihaz 
 ## Tam versiya (satışdan sonra)
 
 Eyni addımlar, yalnız `EDITION=full`. `/admin` → **Açar yarat** → açarı müştəriyə verin.
+
+## Tam versiya — xərclər birbaşa müştərinin kartından
+
+1. Render-də yeni **Workspace** yaradın (məs. "Soltanov") → **Billing** bölməsinə Şükranın kartını əlavə edin.
+2. Həmin workspace-də **New → Blueprint** → bu repo → **Blueprint Path**: `render-full.yaml`.
+3. `ANTHROPIC_API_KEY`: Şükranın öz Anthropic hesabından (onun kartı, **Auto-reload** açıq, **Limits**-də aylıq limit).
+4. `/admin` → **Açar yarat** → lisenziya açarını Şükrana verin.
+
+Nəticə: server və AI xərcləri hər ay avtomatik onun kartından çıxılır, texniki idarə sizdə qalır.
