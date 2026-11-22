@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
-/* Vexora AI design tokens — red / black / yellow only */
+/* Vexora AI design tokens */
 @theme {
-  --color-ink-950: #070405;
-  --color-ink-900: #0b0708;
-  --color-ink-850: #120b0c;
-  --color-ink-800: #1a1112;
-  --color-ink-700: #261819;
-  --color-ink-600: #3a2526;
-  --color-ink-400: #7a6062;
-
-  --color-blaze-300: #ff7a85;
-  --color-blaze-400: #ff4757;
-  --color-blaze-500: #ff2a3c;
-  --color-blaze-600: #e0102a;
-  --color-blaze-700: #a80a1f;
-
-  --color-volt-200: #fff0b3;
-  --color-volt-300: #ffe066;
-  --color-volt-400: #ffcf33;
-  --color-volt-500: #ffc21a;
-  --color-volt-600: #e0a300;
-
-  --color-cream: #fff6e5;
-  --color-muted: #c9b4a8;
+  /* Calm light palette: warm-neutral ground, white surfaces, teal primary, sand accent used sparingly. */
+  --color-bg: #f5f6f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef1ed;
+  --color-line: #e0e5e0;
+  --color-line-strong: #c8d0ca;
+  --color-fg: #1a2421;
+  --color-fg-muted: #56625d;
+  --color-fg-subtle: #85918c;
+  --color-primary: #0f766e;
+  --color-primary-hover: #0c8a80;
+  --color-primary-strong: #0b5d57;
+  --color-primary-soft: #e3f2ef;
+  --color-on-primary: #ffffff;
+  --color-accent: #e5ac52;
+  --color-accent-hover: #ecbb6b;
+  --color-accent-soft: #fbf1df;
+  --color-accent-fg: #85590f;
+  --color-on-accent: #2b1f0a;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeceb;
+  --color-overlay: #14201d;
 
   --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
@@ -56,27 +56,27 @@
 }
 
 @layer base {
-  html { color-scheme: dark; }
+  html { color-scheme: light; }
   body {
-    @apply bg-ink-900 text-cream font-sans antialiased;
-    background-image:
-      radial-gradient(60rem 30rem at 85% -10%, rgb(255 42 60 / .14), transparent 60%),
-      radial-gradient(40rem 24rem at -10% 20%, rgb(255 194 26 / .07), transparent 60%);
+    @apply bg-bg text-fg font-sans antialiased;
+    background-image: radial-gradient(60rem 28rem at 90% -12%, rgb(15 118 110 / .07), transparent 60%);
     background-attachment: fixed;
   }
-  ::selection { background: var(--color-volt-500); color: var(--color-ink-900); }
-  :focus-visible { outline: 2px solid var(--color-volt-400); outline-offset: 2px; }
+  /* Long words (de/ru/fr compounds) must wrap instead of widening the page. */
+  h1, h2, h3 { overflow-wrap: break-word; hyphens: auto; }
+  ::selection { background: var(--color-primary-soft); color: var(--color-primary-strong); }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 }
 
 @utility text-gradient {
-  background: linear-gradient(100deg, var(--color-volt-400), var(--color-blaze-500) 55%, var(--color-blaze-300));
+  background: linear-gradient(100deg, var(--color-primary), #2a8ea0);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 @utility skeleton {
-  background: linear-gradient(90deg, var(--color-ink-800) 25%, var(--color-ink-700) 50%, var(--color-ink-800) 75%);
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-line) 50%, var(--color-surface-2) 75%);
   background-size: 200% 100%;
   animation: var(--animate-shimmer);
 }

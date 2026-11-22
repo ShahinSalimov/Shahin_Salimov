@@ -1,5 +1,5 @@
 import type { AspectRatio, ExploreItem } from '@/types';
-import { MODELS } from './models';
+import { MODELS } from '@workspace/vexora-core';
 import { pick, rng } from '@/lib/random';
 
 /**

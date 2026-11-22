@@ -373,6 +373,9 @@ importers:
       '@workspace/db':
         specifier: workspace:*
         version: link:../../lib/db
+      '@workspace/vexora-core':
+        specifier: workspace:*
+        version: link:../../lib/vexora-core
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -391,6 +394,9 @@ importers:
       pino-http:
         specifier: ^10.5.0
         version: 10.5.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@types/cookie-parser':
         specifier: ^1.4.10
@@ -617,6 +623,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 5.2.0(vite@7.3.7(@types/node@25.9.9)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@workspace/vexora-core':
+        specifier: workspace:*
+        version: link:../../lib/vexora-core
       clsx:
         specifier: 'catalog:'
         version: 2.1.1
@@ -678,6 +687,8 @@ importers:
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
+
+  lib/vexora-core: {}
 
   scripts:
     devDependencies:

@@ -53,3 +53,8 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local secrets (payment keys etc.) — never commit; .env.example is the documented template
+.env
+.env.*
+!.env.example

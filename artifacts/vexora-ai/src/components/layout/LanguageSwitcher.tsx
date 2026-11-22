@@ -24,13 +24,13 @@ export function LanguageSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${t('nav.language')}: ${LOCALES[locale].label}`}
-        className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-semibold text-muted ring-1 ring-ink-700 hover:text-cream hover:ring-ink-600 cursor-pointer"
+        className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-semibold text-fg-muted ring-1 ring-line hover:text-fg hover:ring-line-strong cursor-pointer"
       >
         <Globe size={15} /> <span className="font-mono uppercase">{locale}</span>
       </button>
       {open && (
         <ul role="listbox" aria-label={t('nav.language')}
-          className="absolute right-0 top-10 z-50 w-44 overflow-hidden rounded-2xl bg-ink-850 p-1 ring-1 ring-ink-700 shadow-2xl animate-rise">
+          className="absolute right-0 top-10 z-50 w-44 overflow-hidden rounded-2xl bg-surface p-1 ring-1 ring-line shadow-2xl animate-rise">
           {(Object.keys(LOCALES) as Locale[]).map((l) => (
             <li key={l}>
               <button
@@ -39,10 +39,10 @@ export function LanguageSwitcher() {
                 lang={l}
                 onClick={() => { setLocale(l); setOpen(false); }}
                 className={cn('flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm cursor-pointer',
-                  l === locale ? 'bg-blaze-500/15 text-cream' : 'text-muted hover:bg-ink-700 hover:text-cream')}
+                  l === locale ? 'bg-primary-soft text-fg' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}
               >
-                <span><span className="mr-2 font-mono text-xs uppercase text-ink-400">{l}</span>{LOCALES[l].label}</span>
-                {l === locale && <Check size={14} className="text-volt-400" />}
+                <span><span className="mr-2 font-mono text-xs uppercase text-fg-subtle">{l}</span>{LOCALES[l].label}</span>
+                {l === locale && <Check size={14} className="text-primary" />}
               </button>
             </li>
           ))}

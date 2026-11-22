@@ -24,8 +24,8 @@ export function ExplorePage() {
         </div>
       ) : (
         <div className="mt-16 flex flex-col items-center gap-4 text-center">
-          <SearchX size={40} className="text-blaze-400" />
-          <p className="text-muted">{t('explore.empty')}</p>
+          <SearchX size={40} className="text-primary" />
+          <p className="text-fg-muted">{t('explore.empty')}</p>
           <Button variant="outline" onClick={reset}>{t('explore.reset')}</Button>
         </div>
       )}

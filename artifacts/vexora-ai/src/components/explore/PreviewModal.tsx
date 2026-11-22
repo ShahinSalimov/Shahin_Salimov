@@ -21,29 +21,29 @@ export function PreviewModal({ item, onClose }: { item: ExploreItem | null; onCl
   return (
     <Modal open onClose={onClose} title={item.title} className="max-w-5xl">
       <div className="grid md:grid-cols-[1.3fr_1fr]">
-        <div className="bg-ink-950 p-4 md:p-6 grid place-items-center">
+        <div className="bg-surface-2 p-4 md:p-6 grid place-items-center">
           <GenerativeArt seed={item.seed} aspect={item.aspect} kind={item.kind} animate={item.kind === 'video'} className="max-h-[70vh] w-auto max-w-full rounded-2xl" />
         </div>
         <div className="flex flex-col gap-5 p-6">
           <div className="flex flex-wrap gap-2 pr-10">
-            <Badge tone="red">{item.kind === 'video' ? t('preview.videoLength', { s: item.durationSec ?? 0 }) : t('explore.image')}</Badge>
-            <Badge tone="yellow">{model.name}</Badge>
+            <Badge tone="primary">{item.kind === 'video' ? t('preview.videoLength', { s: item.durationSec ?? 0 }) : t('explore.image')}</Badge>
+            <Badge tone="accent">{model.name}</Badge>
             <Badge>{item.aspect}</Badge>
           </div>
           <div>
             <h2 className="font-display text-2xl font-bold">{item.title}</h2>
-            <p className="text-sm text-muted">@{item.author}</p>
+            <p className="text-sm text-fg-muted">@{item.author}</p>
           </div>
-          <div className="rounded-2xl bg-ink-900 p-4 ring-1 ring-ink-700">
+          <div className="rounded-2xl bg-surface-2 p-4 ring-1 ring-line">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-volt-400">{t('preview.prompt')}</span>
-              <button onClick={copy} className="flex items-center gap-1 text-xs text-muted hover:text-volt-300 cursor-pointer"><Copy size={12} /> {copied ? t('preview.copied') : t('preview.copy')}</button>
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">{t('preview.prompt')}</span>
+              <button onClick={copy} className="flex items-center gap-1 text-xs text-fg-muted hover:text-primary-strong cursor-pointer"><Copy size={12} /> {copied ? t('preview.copied') : t('preview.copy')}</button>
             </div>
-            <p className="font-mono text-sm leading-relaxed text-cream/90">{item.prompt}</p>
+            <p className="font-mono text-sm leading-relaxed text-fg">{item.prompt}</p>
           </div>
           <dl className="grid grid-cols-3 gap-3 text-center">
             {[[t('preview.likes'), fmt.compact(item.likes)], [t('preview.remixes'), fmt.compact(item.remixes)], [t('preview.seed'), String(item.seed % 100000)]].map(([k, v]) => (
-              <div key={k} className="rounded-xl bg-ink-800 p-3"><dt className="text-[11px] text-ink-400">{k}</dt><dd className="font-mono text-sm">{v}</dd></div>
+              <div key={k} className="rounded-xl bg-surface-2 p-3"><dt className="text-[11px] text-fg-subtle">{k}</dt><dd className="font-mono text-sm">{v}</dd></div>
             ))}
           </dl>
           <div className="mt-auto flex gap-2">

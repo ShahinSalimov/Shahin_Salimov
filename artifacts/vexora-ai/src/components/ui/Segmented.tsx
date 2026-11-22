@@ -5,16 +5,17 @@ interface Props<T extends string> { value: T; onChange: (v: T) => void; options:
 
 export function Segmented<T extends string>({ value, onChange, options, className, label }: Props<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('inline-flex rounded-full bg-ink-800 p-1 ring-1 ring-ink-700', className)}>
+    <div role="radiogroup" aria-label={label} className={cn('inline-flex rounded-full bg-surface-2 p-1 ring-1 ring-line', className)}>
       {options.map((o) => (
         <button
+          type="button"
           key={o.value}
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
             'rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors cursor-pointer',
-            value === o.value ? 'bg-volt-500 text-ink-900' : 'text-muted hover:text-cream',
+            value === o.value ? 'bg-surface text-fg shadow-sm ring-1 ring-line' : 'text-fg-muted hover:text-fg',
           )}
         >
           {o.label}

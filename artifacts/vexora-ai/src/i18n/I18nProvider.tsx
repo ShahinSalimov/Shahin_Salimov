@@ -36,7 +36,14 @@ interface I18n {
   locale: Locale;
   setLocale: (l: Locale) => void;
   t: (key: TKey, vars?: Vars) => string;
-  fmt: { usd: (n: number) => string; num: (n: number) => string; compact: (n: number) => string };
+  fmt: {
+    usd: (n: number) => string;
+    /** amount in minor units (cents, qəpik…) */
+    money: (minor: number, currency: string) => string;
+    num: (n: number) => string;
+    compact: (n: number) => string;
+    date: (iso: string) => string;
+  };
 }
 
 const Ctx = createContext<I18n | null>(null);
@@ -53,13 +60,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const dict = DICTS[locale];
     const fallback = DICTS[DEFAULT_LOCALE];
     const intl = LOCALES[locale].intl;
-    const money = (n: number) => new Intl.NumberFormat(intl, { style: 'currency', currency: 'USD', maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
+    const money = (minor: number, currency: string) => {
+      const major = minor / 100;
+      return new Intl.NumberFormat(intl, { style: 'currency', currency, currencyDisplay: 'narrowSymbol', minimumFractionDigits: major % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(major);
+    };
     return {
       locale,
       setLocale,
       t: (key, vars) => interpolate(lookup(dict, key) ?? lookup(fallback, key) ?? key, vars),
       fmt: {
-        usd: money,
+        usd: (n) => money(Math.round(n * 100), 'USD'),
+        money,
+        date: (iso) => new Intl.DateTimeFormat(intl, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso)),
         num: (n) => new Intl.NumberFormat(intl).format(n),
         compact: (n) => new Intl.NumberFormat(intl, { notation: 'compact' }).format(n),
       },

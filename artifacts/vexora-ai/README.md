@@ -1,42 +1,68 @@
 # Vexora AI
 
-AI ilə şəkil və video yaratma platforması: Explore, Generator və endirimli Pricing. 7 dil dəstəyi (default: English).
+AI image & video studio: Explore, Generator, discounted plans in 5 currencies, accounts, an owner-only **Cashbox** (Kassa) and legal pages. UI in 7 languages (default English, auto-detected from the browser).
 
-## İşə salma
+## Layout
+
+| Path | What |
+|---|---|
+| `artifacts/vexora-ai` | Web app (React 19 + Vite + Tailwind v4) |
+| `artifacts/api-server` | API (Express 5): auth, generations, checkout/webhooks, admin |
+| `lib/vexora-core` | Shared rules used by both: price book, currencies, models, credit cost, wire types |
+| `lib/db` | Postgres schema (Drizzle): `vx_users`, `vx_sessions`, `vx_credit_ledger`, `vx_payments`, `vx_generations` |
+
+## Run locally
 
 ```bash
 pnpm install
-pnpm --filter @workspace/vexora-ai run dev        # http://localhost:5173
-pnpm --filter @workspace/vexora-ai run build
+export DATABASE_URL=postgresql://user@localhost:5432/vexora
+pnpm --filter @workspace/db run push                 # create tables
+ADMIN_EMAILS=you@example.com PORT=8080 pnpm --filter @workspace/api-server run dev
+pnpm --filter @workspace/vexora-ai run dev            # http://localhost:5173, proxies /api → :8080
 ```
 
-## Struktur
+Register with an email listed in `ADMIN_EMAILS` → that account sees **Cashbox** in the account menu.
 
-| Qovluq | Məzmun |
-|---|---|
-| `src/styles/theme.css` | Tailwind v4 `@theme` tokenləri (qırmızı / qara / sarı), şriftlər, animasiyalar |
-| `src/i18n/` | Dil sistemi: `config.ts` (dillər), `locales/en.ts` (mənbə lüğət), `locales/*.ts` (tərcümələr), `useI18n()` hook |
-| `src/types/` | Bütün domen tipləri |
-| `src/data/` | Kateqoriyalar, modellər, sintetik kataloq, **qiymət konfiqi** (`pricing.ts`) |
-| `src/services/ai/` | `AIProvider` interfeysi + mock və HTTP adapter. `VITE_AI_API_URL` verilsə HTTP-yə keçir |
-| `src/services/payments/` | `PaymentGateway` interfeysi + mock gateway |
-| `src/store/AppStore.tsx` | Route, kredit, plan, kitabxana, checkout state |
-| `src/components/{explore,generator,pricing,layout,ui,media}` | Modul-modul UI |
+Static demo without a server (data lives in the visitor's browser, first account becomes admin):
+`VITE_BACKEND=demo pnpm --filter @workspace/vexora-ai run build`
 
-## Dillər (i18n)
+## Server environment
 
-Dəstəklənən dillər: `en` (default), `az`, `tr`, `ru`, `de`, `es`, `fr`.
+| Variable | Default | Meaning |
+|---|---|---|
+| `DATABASE_URL` | — (required) | Postgres connection string |
+| `PORT` | — (required) | API port |
+| `ADMIN_EMAILS` | empty | Comma-separated owner emails, promoted to admin on sign-in |
+| `PAYMENT_PROVIDER` | `mock` in dev, `none` in production | `none` = payments closed (free launch); `mock` = simulated checkout; or a real adapter id |
+| `AI_PROVIDER` | `mock` | Model vendor adapter id |
+| `SIGNUP_ENABLED` | `true` | Set `false` to pause registrations |
+| `SIGNUP_CREDITS` | `30` | Free credits for new accounts (real AI costs money — keep low) |
+| `CORS_ORIGIN` | unset | Only if the web app is served from another origin |
 
-- Dilin təyini (prioritet sırası): `?lang=` URL parametri → istifadəçinin menyudan seçdiyi dil (yadda saxlanır) → brauzer dili (`de-AT` → `de`) → English.
-- Dəstəklənməyən brauzer dili (məs. `ja`, `it`) English-ə düşür.
-- Yeni mətn əlavə etmək: əvvəl `locales/en.ts`-ə açar yaz, sonra qalan dillərə. Hər hansı dildə açar çatışmırsa, `typecheck` xəta verir.
-- Yeni dil əlavə etmək: `config.ts`-ə dil kodunu, `locales/`-a fayl, `locales/index.ts`-ə import əlavə et.
-- Rus dili üçün şriftlər avtomatik Unbounded + Manrope-a keçir (Syne və Plus Jakarta Sans əsas kiril hərflərini dəstəkləmir).
-- Kataloqdakı iş adları və prompt-lar istifadəçi kontenti sayılır və ingiliscə qalır.
+`PAYMENT_PROVIDER=mock` is refused in production (it would give credits away).
 
-## Qeydlər
+## How money and credits flow
 
-- Bütün önizləmə vizualları `GenerativeArt` komponenti ilə seed-dən prosedur yolla çəkilir (üçüncü tərəf media yoxdur).
-- `data/pricing.ts` içində `REFERENCE_PRICES` boşdur: rəqib qiymətləri yoxlanandan sonra doldurun — dev rejimdə bizim qiymət daha ucuz deyilsə konsolda xəbərdarlıq çıxır.
-- Real ödəniş üçün `services/payments/` altında yeni adapter yazıb `index.ts`-də dəyişin. Kart məlumatı yalnız gateway-in hosted form-u ilə toplanmalıdır.
-- Real AI üçün vendor açarlarını brauzerə qoymayın: öz backend-iniz `httpProvider`-in gözlədiyi API-ni təqdim etsin.
+1. Client sends **what** to buy and the currency; the server prices it from `lib/vexora-core/src/pricing.ts` (client prices are never trusted).
+2. A `pending` payment is stored, the provider adapter returns its hosted checkout URL; the customer pays there (card data never touches this server).
+3. The provider calls `POST /api/webhooks/<provider>`; the adapter verifies the signature, then `markPaid` grants credits **once** (idempotent).
+4. Credits are an append-only ledger; balance = sum. Generations debit under a row lock; failures/cancels refund automatically.
+5. The provider pays out to the owner's bank account. Cashbox shows charged amounts per currency (before provider fees) and lets the owner refund and adjust credits.
+
+## Connecting a real payment provider (after VÖEN)
+
+Implement `PaymentProvider` in `artifacts/api-server/src/lib/payments/<name>.ts` (`startCheckout`, `parseWebhook`, `refund`), register it in `lib/payments/index.ts`, put its secret keys in server env vars, set `PAYMENT_PROVIDER=<name>`. No web-app change is needed: the checkout already follows `redirect` responses.
+
+## Connecting a real AI model
+
+Implement `AIProvider` in `artifacts/api-server/src/lib/ai/<name>.ts` (`submit`, `poll`, optional `cancel`), register it in `lib/ai/index.ts`, set `AI_PROVIDER=<name>`. Results with a `url` are shown as real media; the mock returns seeds rendered as synthetic art.
+
+## Before launch
+
+- Fill `src/config/site.ts` (owner name, support email). Legal texts in `src/legal/*` are drafts — have them reviewed.
+- Review non-USD prices in `lib/vexora-core/src/pricing.ts` (TRY especially) and fill `REFERENCE_PRICES` in `src/data/pricing.ts`.
+- Plan renewals: today a plan purchase grants one period of credits; monthly renewals should come from the provider's subscription webhooks.
+
+## i18n
+
+Languages: `en` (default), `az`, `tr`, `ru`, `de`, `es`, `fr`. Order: `?lang=` → saved choice → browser language → English. Add text to `src/i18n/locales/en.ts` first; a missing key in another locale fails `typecheck`. Cashbox texts are English + Azerbaijani only (`components/admin/adminText.ts`).

@@ -1,48 +1,55 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { BillingCycle, CheckoutItem, GenerationResult, PlanId, Route } from '@/types';
-import { getPlan } from '@/data/pricing';
+import { currencyForLocale, isCurrency, type CheckoutItem, type Currency, type Me, type PublicConfig } from '@workspace/vexora-core';
+import { backend } from '@/services/backend';
+import { useI18n } from '@/i18n';
+import { ROUTES, type Route } from '@/types';
+
+type AuthMode = 'signin' | 'signup';
 
 interface AppState {
   route: Route;
   navigate: (r: Route) => void;
-  credits: number;
-  spendCredits: (n: number) => boolean;
-  addCredits: (n: number) => void;
-  planId: PlanId;
-  cycle: BillingCycle;
-  setPlan: (id: PlanId, cycle: BillingCycle) => void;
+  config: PublicConfig | null;
+  /** undefined while the session is loading, null when signed out */
+  me: Me | null | undefined;
+  refreshMe: () => Promise<void>;
+  setMe: (m: Me | null) => void;
+  signOut: () => Promise<void>;
+  auth: AuthMode | null;
+  openAuth: (mode?: AuthMode) => void;
+  closeAuth: () => void;
+  currency: Currency;
+  setCurrency: (c: Currency) => void;
   checkout: CheckoutItem | null;
   openCheckout: (item: CheckoutItem) => void;
   closeCheckout: () => void;
-  library: GenerationResult[];
-  addToLibrary: (r: GenerationResult[]) => void;
   remixPrompt: string | null;
   remix: (prompt: string) => void;
   consumeRemix: () => string | null;
 }
 
 const Ctx = createContext<AppState | null>(null);
-const ROUTES: Route[] = ['explore', 'create', 'pricing', 'profile'];
+
 /** Accepts both `#create` (canonical) and legacy `#/create`. */
 const readHash = (): Route => {
   const h = window.location.hash.replace(/^#\/?/, '') as Route;
-  return ROUTES.includes(h) ? h : 'explore';
+  return (ROUTES as readonly string[]).includes(h) ? h : 'explore';
 };
 
-function usePersisted<T>(key: string, initial: T) {
-  const [v, setV] = useState<T>(() => {
-    try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as T) : initial; } catch { return initial; }
-  });
-  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage unavailable */ } }, [key, v]);
-  return [v, setV] as const;
+const CURRENCY_KEY = 'vx.currency';
+function initialCurrency(locale: string): Currency {
+  try { const c = localStorage.getItem(CURRENCY_KEY); if (isCurrency(c)) return c; } catch { /* ignore */ }
+  const region = (navigator.language ?? '').split('-')[1];
+  return currencyForLocale(locale, region);
 }
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
+  const { locale } = useI18n();
   const [route, setRoute] = useState<Route>(readHash);
-  const [credits, setCredits] = usePersisted('vx.credits', getPlan('free').creditsPerMonth);
-  const [planId, setPlanId] = usePersisted<PlanId>('vx.plan', 'free');
-  const [cycle, setCycle] = usePersisted<BillingCycle>('vx.cycle', 'monthly');
-  const [library, setLibrary] = usePersisted<GenerationResult[]>('vx.library', []);
+  const [config, setConfig] = useState<PublicConfig | null>(null);
+  const [me, setMe] = useState<Me | null | undefined>(undefined);
+  const [auth, setAuth] = useState<AuthMode | null>(null);
+  const [currency, setCurrencyState] = useState<Currency>(() => initialCurrency(locale));
   const [checkout, setCheckout] = useState<CheckoutItem | null>(null);
   const [remixPrompt, setRemixPrompt] = useState<string | null>(null);
 
@@ -52,24 +59,35 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('hashchange', on);
   }, []);
 
+  const refreshMe = useCallback(async () => {
+    try { setMe(await backend.me()); } catch { setMe(null); }
+  }, []);
+
+  useEffect(() => {
+    void refreshMe();
+    backend.config().then(setConfig).catch(() => setConfig(null));
+  }, [refreshMe]);
+
   const navigate = useCallback((r: Route) => { window.location.hash = r; window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
-  const spendCredits = useCallback((n: number) => {
-    if (credits < n) return false;
-    setCredits((c) => c - n);
-    return true;
-  }, [credits, setCredits]);
+
+  const setCurrency = useCallback((c: Currency) => {
+    setCurrencyState(c);
+    try { localStorage.setItem(CURRENCY_KEY, c); } catch { /* ignore */ }
+  }, []);
 
   const value = useMemo<AppState>(() => ({
-    route, navigate, credits, spendCredits,
-    addCredits: (n) => setCredits((c) => c + n),
-    planId, cycle,
-    setPlan: (id, cy) => { setPlanId(id); setCycle(cy); },
-    checkout, openCheckout: setCheckout, closeCheckout: () => setCheckout(null),
-    library, addToLibrary: (r) => setLibrary((l) => [...r, ...l].slice(0, 60)),
+    route, navigate, config, me, refreshMe, setMe,
+    signOut: async () => { await backend.logout().catch(() => undefined); setMe(null); navigate('explore'); },
+    auth, openAuth: (mode = 'signin') => setAuth(mode), closeAuth: () => setAuth(null),
+    currency, setCurrency,
+    checkout,
+    // Buying needs an account: ask to sign in first, then the user picks the plan again.
+    openCheckout: (item) => (me ? setCheckout(item) : setAuth('signup')),
+    closeCheckout: () => setCheckout(null),
     remixPrompt,
     remix: (p) => { setRemixPrompt(p); navigate('create'); },
     consumeRemix: () => { const p = remixPrompt; setRemixPrompt(null); return p; },
-  }), [route, navigate, credits, spendCredits, setCredits, planId, cycle, setPlanId, setCycle, checkout, library, setLibrary, remixPrompt]);
+  }), [route, navigate, config, me, refreshMe, auth, currency, setCurrency, checkout, remixPrompt]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -79,3 +97,6 @@ export function useApp() {
   if (!v) throw new Error('useApp must be used inside AppStoreProvider');
   return v;
 }
+
+/** Credits shown in the UI (0 when signed out). */
+export const useCredits = () => useApp().me?.balance ?? 0;

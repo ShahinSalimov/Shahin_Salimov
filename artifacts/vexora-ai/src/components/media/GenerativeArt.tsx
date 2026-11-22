@@ -5,10 +5,10 @@ import { aspectToRatio } from '@/lib/format';
 import { useI18n } from '@/i18n';
 
 const PALETTES = [
-  ['#0b0708', '#ff2a3c', '#ffc21a', '#a80a1f'],
-  ['#120b0c', '#ffcf33', '#ff4757', '#3a2526'],
-  ['#070405', '#e0102a', '#fff0b3', '#ff7a85'],
-  ['#1a1112', '#ffc21a', '#e0a300', '#ff2a3c'],
+  ['#1e4744', '#3fa796', '#f4d3a1', '#e7957b'],
+  ['#223a5e', '#6c9bd2', '#f3e3c3', '#9cc5b8'],
+  ['#3d3350', '#b39bc8', '#f6dcc8', '#7fb7a6'],
+  ['#2f4a3a', '#8dbf8b', '#f1e4c2', '#e3a86b'],
 ] as const;
 
 interface Props { seed: number; aspect: AspectRatio; kind?: MediaKind; animate?: boolean; className?: string }
