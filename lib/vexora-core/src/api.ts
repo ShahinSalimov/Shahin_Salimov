@@ -47,6 +47,8 @@ export interface GenerationDTO {
   params: GenerationParams;
   status: JobStatus;
   progress: number;
+  /** long videos are made of joined parts: which part is rendering now */
+  parts?: { total: number; current: number };
   cost: number;
   results: GenerationResult[];
   error: string | null;
@@ -121,6 +123,9 @@ export interface AdminUser {
 }
 
 export interface Page<T> { items: T[]; total: number }
+
+/** POST /api/uploads → reference image stored on the server */
+export interface UploadResult { key: string; url: string }
 
 export type ApiErrorCode =
   | 'invalid_input' | 'invalid_email' | 'weak_password' | 'email_taken' | 'invalid_credentials'
