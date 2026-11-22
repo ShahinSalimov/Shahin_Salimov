@@ -13,6 +13,7 @@ export const USER_SCOPES = [
   "https://api.ebay.com/oauth/api_scope/sell.inventory",
   "https://api.ebay.com/oauth/api_scope/sell.account",
   "https://api.ebay.com/oauth/api_scope/sell.fulfillment",
+  "https://api.ebay.com/oauth/api_scope/sell.finances",
 ];
 const APP_SCOPE = "https://api.ebay.com/oauth/api_scope";
 
@@ -54,7 +55,7 @@ export type EbayOrder = {
     zip: string;
     countryCode: string;
   };
-  lineItems: { lineItemId: string; sku: string; title: string; quantity: number; price: number }[];
+  lineItems: { lineItemId: string; sku: string; title: string; quantity: number; price: number; itemId: string }[];
 };
 
 export type Policies = {
@@ -151,7 +152,7 @@ export class EbayClient {
     return !!r && r.expires_at > Date.now();
   }
 
-  private async userToken(): Promise<string> {
+  async userToken(): Promise<string> {
     const cur = this.readToken("ebay_user_access");
     if (cur && cur.expires_at > Date.now() + 120_000) return cur.value;
     const refresh = this.readToken("ebay_refresh");
@@ -167,6 +168,14 @@ export class EbayClient {
     const t = await this.tokenRequest({ grant_type: "client_credentials", scope: APP_SCOPE });
     this.saveToken("ebay_app_access", t.access_token, t.expires_in);
     return t.access_token;
+  }
+
+  get config(): Config {
+    return this.cfg;
+  }
+
+  get fetcher(): FetchLike {
+    return this.fetchImpl;
   }
 
   private async api<T>(
@@ -406,7 +415,7 @@ export class EbayClient {
           };
         };
       }[];
-      lineItems?: { lineItemId: string; sku?: string; title: string; quantity: number; lineItemCost?: { value: string } }[];
+      lineItems?: { lineItemId: string; legacyItemId?: string; sku?: string; title: string; quantity: number; lineItemCost?: { value: string } }[];
     };
     const res = await this.api<{ orders?: Raw[] }>("GET", "/sell/fulfillment/v1/order", {
       query: { filter: "orderfulfillmentstatus:{NOT_STARTED|IN_PROGRESS}", limit: "100" },
@@ -434,12 +443,33 @@ export class EbayClient {
         lineItems: (o.lineItems ?? []).map((li) => ({
           lineItemId: li.lineItemId,
           sku: li.sku ?? "",
+          itemId: li.legacyItemId ?? "",
           title: li.title,
           quantity: li.quantity,
           price: Number(li.lineItemCost?.value ?? 0),
         })),
       };
     });
+  }
+
+  /** Full or partial refund through the Fulfillment API. */
+  async issueRefund(orderId: string, amount: number, reason: string, comment: string): Promise<string> {
+    if (this.dryRun) {
+      this.dry(`refund ${orderId} $${amount} (${reason})`);
+      return "DRY-REFUND";
+    }
+    const r = await this.api<{ refundId?: string; refundStatus?: string }>(
+      "POST",
+      `/sell/fulfillment/v1/order/${orderId}/issue_refund`,
+      {
+        body: {
+          reasonForRefund: reason,
+          comment: comment.slice(0, 100),
+          orderLevelRefundAmount: { value: amount.toFixed(2), currency: this.cfg.ebay.currency },
+        },
+      },
+    );
+    return r.refundId ?? r.refundStatus ?? "OK";
   }
 
   async addTracking(orderId: string, lineItems: { lineItemId: string; quantity: number }[], carrier: string, tracking: string) {

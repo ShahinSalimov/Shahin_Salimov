@@ -28,11 +28,19 @@ export const DEFAULT_SETTINGS = {
   autoPaySupplier: true, // pay CJ order from CJ wallet balance
   listingQuantity: 5, // quantity shown on eBay (real stock is checked on sync)
   handlingDays: 3,
+  autoApproveCancellations: true, // approve buyer cancel requests if nothing shipped yet
+  autoProvideTracking: true, // answer "item not received" cases with the tracking number
+  autoDraftReplies: true, // AI prepares a reply for every new buyer message
+  autoSendReplies: false, // send AI replies without your review
+  lowBalanceAlert: 50, // Telegram alert when CJ wallet is below this (USD)
   // Schedules (minutes)
   researchEveryMin: 720,
   syncEveryMin: 180,
   ordersEveryMin: 15,
   trackingEveryMin: 60,
+  messagesEveryMin: 15,
+  casesEveryMin: 30,
+  financeEveryMin: 360,
   // eBay business policies and location (filled from dashboard "eBay setup")
   fulfillmentPolicyId: "",
   paymentPolicyId: "",

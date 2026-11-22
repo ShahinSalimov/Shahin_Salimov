@@ -77,6 +77,16 @@ export class DemoSupplier implements Supplier {
     if (o) o.paid = true;
   }
 
+  balance = 250;
+
+  async getBalance() {
+    return this.balance;
+  }
+
+  async cancelOrder(orderId: string) {
+    this.orders.delete(orderId);
+  }
+
   async getOrder(orderId: string) {
     const o = this.orders.get(orderId);
     if (!o) return { status: "UNKNOWN", trackingNumber: null, carrier: null, cancelled: false };

@@ -60,4 +60,8 @@ export interface Supplier {
   createOrder(input: SupplierOrderInput): Promise<{ orderId: string; cost: number | null }>;
   payOrder(orderId: string): Promise<void>;
   getOrder(orderId: string): Promise<SupplierOrderStatus>;
+  /** Wallet balance available for auto-pay, null if unknown. */
+  getBalance(): Promise<number | null>;
+  /** Cancel/delete an order that is not paid/shipped yet. */
+  cancelOrder(orderId: string): Promise<void>;
 }

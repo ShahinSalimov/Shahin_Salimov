@@ -4,14 +4,16 @@ import type { Config } from "../config.ts";
 import { log } from "../db.ts";
 import type { Policies } from "../ebay/client.ts";
 import type { Engine, OrderRow, ProductRow } from "../services/engine.ts";
+import type { Ops } from "../services/ops.ts";
 import type { Scheduler } from "../services/scheduler.ts";
+import { registerPages } from "./pages.ts";
 import { DEFAULT_SETTINGS, saveSettings, type SettingKey } from "../settings.ts";
 import { esc, layout, SETTING_LABELS, statusBadge } from "./views.ts";
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-export function createApp(opts: { cfg: Config; engine: Engine; scheduler: Scheduler }) {
-  const { cfg, engine, scheduler } = opts;
+export function createApp(opts: { cfg: Config; engine: Engine; ops: Ops; scheduler: Scheduler }) {
+  const { cfg, engine, ops, scheduler } = opts;
   const db = engine.db;
   const app = express();
   app.use(express.urlencoded({ extended: false, limit: "200kb" }));
@@ -40,59 +42,8 @@ export function createApp(opts: { cfg: Config; engine: Engine; scheduler: Schedu
 
   const flash = (req: Request) => (typeof req.query.msg === "string" ? req.query.msg : undefined);
   const back = (res: Response, to: string, msg: string) => res.redirect(`${to}${to.includes("?") ? "&" : "?"}msg=${encodeURIComponent(msg)}`);
-  const count = (sql: string, ...p: (string | number)[]) => (db.prepare(sql).get(...p) as { n: number }).n;
 
-  // ================= OVERVIEW =================
-  app.get("/", (req, res) => {
-    const s = engine.settings();
-    const problems = engine.setupProblems(s);
-    const stats: [string, number | string][] = [
-      ["Namizəd", count("SELECT COUNT(*) n FROM products WHERE status='candidate'")],
-      ["Aktiv elan", count("SELECT COUNT(*) n FROM products WHERE status='listed'")],
-      ["Dayandırılıb (stok)", count("SELECT COUNT(*) n FROM products WHERE status='paused'")],
-      ["Xəta", count("SELECT COUNT(*) n FROM products WHERE status='error'")],
-      ["Sifariş (30 gün)", count("SELECT COUNT(*) n FROM orders WHERE created_at >= datetime('now','-30 days')")],
-      ["Diqqət tələb edir", count("SELECT COUNT(*) n FROM orders WHERE status IN ('needs_attention','awaiting_payment')")],
-    ];
-    const revenue = db
-      .prepare("SELECT COALESCE(SUM(total),0) r, COALESCE(SUM(supplier_cost),0) c FROM orders WHERE status != 'cancelled' AND created_at >= datetime('now','-30 days')")
-      .get() as { r: number; c: number };
-    const fees = revenue.r * (s.ebayFeePercent / 100);
-    stats.push(["Gəlir (30 gün)", `$${revenue.r.toFixed(2)}`], ["Təxmini mənfəət", `$${(revenue.r - revenue.c - fees).toFixed(2)}`]);
-
-    const jobs = (Object.entries(scheduler.state) as [string, { lastRun: Date | null; nextRun: Date | null; running: boolean }][])
-      .map(
-        ([name, st]) => `<tr><td>${name}</td><td>${st.running ? '<span class="warn">işləyir</span>' : st.lastRun ? st.lastRun.toLocaleString() : "-"}</td>
-        <td>${st.nextRun ? st.nextRun.toLocaleString() : "-"}</td>
-        <td><form class="inline" method="post" action="/jobs/${name}"><button class="ghost">İndi işlət</button></form></td></tr>`,
-      )
-      .join("");
-    const logs = db.prepare("SELECT * FROM logs ORDER BY id DESC LIMIT 12").all() as { level: string; area: string; message: string; created_at: string }[];
-
-    const modes = [
-      cfg.dryRun ? '<span class="badge warn">DRY_RUN: real əməliyyat yoxdur</span>' : '<span class="badge ok">LIVE</span>',
-      `<span class="badge">Təchizatçı: ${esc(engine.supplier.name)}</span>`,
-      engine.writer.enabled ? '<span class="badge ok">AI: aktiv</span>' : '<span class="badge warn">AI: söndürülüb (template)</span>',
-      s.automationEnabled ? '<span class="badge ok">Avtomatlaşdırma: aktiv</span>' : '<span class="badge bad">Avtomatlaşdırma: dayanıb</span>',
-    ].join(" ");
-
-    res.send(
-      layout("Panel", "/", `
-      <h1>Panel</h1><div class="row" style="margin-bottom:12px">${modes}</div>
-      ${problems.length ? `<div class="card"><h2 class="warn">Quraşdırma tamamlanmayıb</h2><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><a class="btn" href="/ebay">eBay qoşulmaya keç</a></div>` : ""}
-      <div class="grid" style="margin-bottom:16px">${stats.map(([l, n]) => `<div class="stat"><div class="n">${esc(n)}</div><div class="l">${esc(l)}</div></div>`).join("")}</div>
-      <div class="card"><h2>Planlı işlər</h2><div class="wrap"><table><tr><th>İş</th><th>Son işləmə</th><th>Növbəti</th><th></th></tr>${jobs}</table></div></div>
-      <div class="card"><h2>Son hadisələr</h2><div class="wrap"><table>${logs.map((l) => `<tr><td class="muted">${esc(l.created_at)}</td><td class="${l.level === "error" ? "bad" : l.level === "warn" ? "warn" : ""}">${esc(l.area)}</td><td>${esc(l.message)}</td></tr>`).join("")}</table></div></div>
-    `, flash(req)),
-    );
-  });
-
-  app.post("/jobs/:name", (req, res) => {
-    const name = String(req.params.name);
-    if (!["orders", "tracking", "sync", "research"].includes(name)) return void res.status(404).send("unknown job");
-    void scheduler.run(name as "orders");
-    back(res, "/", `"${name}" işə salındı. Nəticə loglarda görünəcək.`);
-  });
+  registerPages(app, { cfg, engine, ops, scheduler, flash, back });
 
   // ================= PRODUCTS =================
   app.get("/products", (req, res) => {
@@ -115,7 +66,7 @@ export function createApp(opts: { cfg: Config; engine: Engine; scheduler: Schedu
             ? `<form class="inline" method="post" action="/products/${p.id}/publish"><button>eBay-ə yüklə</button></form>
                ${p.status !== "rejected" ? `<form class="inline" method="post" action="/products/${p.id}/reject"><button class="ghost">Rədd et</button></form>` : ""}`
             : p.status === "listed" || p.status === "paused"
-              ? `<form class="inline" method="post" action="/products/${p.id}/end"><button class="bad">Elanı bitir</button></form>`
+              ? `<a class="btn" href="/products/${p.id}">İdarə et</a>`
               : "";
         return `<tr><td>${img ? `<img class="thumb" src="${esc(img)}" loading="lazy">` : ""}</td>
           <td><b>${esc(p.ebay_title ?? p.title)}</b><div class="muted">${esc(p.sku)} · ${esc(p.keyword)} · ${esc((p.logistic_name ?? "").replace("|", " / "))}</div>
@@ -126,7 +77,7 @@ export function createApp(opts: { cfg: Config; engine: Engine; scheduler: Schedu
           <td class="${p.profit >= 5 ? "ok" : ""}">$${p.profit.toFixed(2)}</td>
           <td><b>${p.score}</b><div class="muted" style="max-width:220px">${esc(p.score_notes)}</div></td>
           <td>${p.stock}<div class="muted">${esc(p.shipping_days ?? "?")} gün</div></td>
-          <td>${statusBadge(p.status)}</td><td style="white-space:nowrap">${actions}</td></tr>`;
+          <td>${statusBadge(p.status)}${p.price_locked ? '<div class="muted">sabit qiymət</div>' : ""}${p.paused_manual ? '<div class="warn">əllə dayandırılıb</div>' : ""}</td><td style="white-space:nowrap">${actions}</td></tr>`;
       })
       .join("");
     res.send(
@@ -167,46 +118,6 @@ export function createApp(opts: { cfg: Config; engine: Engine; scheduler: Schedu
     } catch (err) {
       back(res, "/products?status=listed", `Xəta: ${errMsg(err)}`);
     }
-  });
-
-  // ================= ORDERS =================
-  app.get("/orders", (req, res) => {
-    const rows = db.prepare("SELECT * FROM orders ORDER BY id DESC LIMIT 300").all() as (OrderRow & { created_at: string })[];
-    const body = rows
-      .map((o) => {
-        const to = JSON.parse(o.ship_to);
-        const items = (JSON.parse(o.line_items) as { quantity: number; title: string; sku: string }[])
-          .map((l) => `${l.quantity}× ${esc(l.title)} <span class="muted">(${esc(l.sku)})</span>`)
-          .join("<br>");
-        const actions = [
-          o.status === "new" || o.status === "needs_attention"
-            ? `<form class="inline" method="post" action="/orders/${o.id}/fulfill"><button>CJ-də sifariş et</button></form>` : "",
-          o.status === "awaiting_payment"
-            ? `<form class="inline" method="post" action="/orders/${o.id}/paid"><button class="ghost">Ödədim</button></form>` : "",
-        ].join(" ");
-        return `<tr><td>${esc(o.ebay_order_id)}<div class="muted">${esc(o.created_at)}</div></td><td>${items}</td>
-          <td>${esc(to.name)}<div class="muted">${esc(to.city)}, ${esc(to.state)} ${esc(to.zip)}</div></td>
-          <td>$${(o.total ?? 0).toFixed(2)}${o.supplier_cost ? `<div class="muted">CJ: $${o.supplier_cost.toFixed(2)}</div>` : ""}</td>
-          <td>${statusBadge(o.status)}${o.note ? `<div class="bad">${esc(o.note)}</div>` : ""}</td>
-          <td>${esc(o.supplier_order_id ?? "-")}</td><td>${o.tracking_number ? `${esc(o.carrier)} ${esc(o.tracking_number)}` : "-"}</td>
-          <td style="white-space:nowrap">${actions}</td></tr>`;
-      })
-      .join("");
-    res.send(
-      layout("Sifarişlər", "/orders", `
-      <h1>Sifarişlər</h1>
-      <div class="card wrap"><table><tr><th>eBay sifariş</th><th>Məhsul</th><th>Alıcı</th><th>Məbləğ</th><th>Status</th><th>CJ sifariş</th><th>Tracking</th><th></th></tr>
-      ${body || '<tr><td colspan="8" class="muted">Hələ sifariş yoxdur.</td></tr>'}</table></div>`, flash(req)),
-    );
-  });
-  app.post("/orders/:id/fulfill", async (req, res) => {
-    db.prepare("UPDATE orders SET status='new', note=NULL WHERE id=? AND status='needs_attention'").run(Number(req.params.id));
-    const ok = await engine.fulfill(Number(req.params.id));
-    back(res, "/orders", ok ? "CJ sifarişi yaradıldı" : cfg.dryRun ? "DRY_RUN rejimidir, real sifariş yaradılmadı" : "Alınmadı, qeydə bax");
-  });
-  app.post("/orders/:id/paid", (req, res) => {
-    engine.markPaid(Number(req.params.id));
-    back(res, "/orders", "Qeyd edildi. Tracking avtomatik yoxlanacaq.");
   });
 
   // ================= EBAY SETUP =================

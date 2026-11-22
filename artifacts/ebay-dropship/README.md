@@ -13,9 +13,13 @@ eBay.com (US) + CJdropshipping üçün avtomatik dropshipping sistemi. Öz komp�
 | 5. Sifariş | eBay-də ödənilmiş sifarişi görür, CJ-də müştərinin ünvanına sifariş yaradır, CJ balansından ödəyir | Sistem (15 dəqiqədən bir) |
 | 6. Tracking | CJ tracking nömrəsi verəndə eBay-ə yükləyir, sifariş "shipped" olur | Sistem (saatda bir) |
 | 7. Bildiriş | Yeni sifariş, problem, stok bitməsi barədə Telegram mesajı | Sistem |
-| Müştəri mesajları | Panelin "AI cavab" bölməsində mesajı yapışdırırsan, AI cavab hazırlayır, sən eBay-də göndərirsən | Sən + AI |
-| Return, dispute, ləğv | Sistem xəbər verir, qərarı sən verirsən | Sən |
-| CJ balansını artırmaq | CJ wallet-ə pul yükləmək | Sən |
+| 8. Alıcı mesajları | eBay mesajlarını paneldə göstərir, AI hər birinə cavab hazırlayır | Sistem, sən "Göndər" basırsan |
+| 9. Ləğv sorğusu | Məhsul hələ göndərilməyibsə: CJ sifarişini ləğv edir, eBay-də ləğvi təsdiqləyir | Sistem (15–30 dəq) |
+| 10. "Item not received" | Tracking nömrəsini eBay-ə avtomatik göndərir | Sistem |
+| 11. Return | Paneldə göstərir. Qərarı bir kliklə verirsən: "return qəbul et" və ya "pulu qaytar, məhsul alıcıda qalsın" | Sən (panel) |
+| 12. Maliyyə | eBay-in real komissiyası, hər sifarişin xalis mənfəəti, payout-lar, CJ balansı | Sistem |
+| 13. Elan idarəsi | Title/qiymət dəyişmək, dayandırmaq, aktivləşdirmək, bitirmək | Sən (panel) |
+| CJ wallet-ə pul yükləmək | Kartla ödəniş yalnız CJ saytında mümkündür. Balans aşağı düşəndə sistem xəbər verir | Sən (CJ saytı) |
 
 ---
 
@@ -91,14 +95,28 @@ Sonra `.env` faylında `DRY_RUN=false` et və proqramı yenidən başlat.
 
 ---
 
-## 4. Gündəlik iş (səndə qalan 10–15 dəqiqə)
+## 4. Gündəlik iş: hamısı paneldən (10–15 dəqiqə)
 
-1. Telegram bildirişlərinə bax.
-2. Panel → "Diqqət tələb edir" sayı 0 deyilsə, **Sifarişlər** səhifəsinə keç:
-   - `needs_attention`: səbəb qeyddə yazılıb (ünvan natamamdır, SKU tanınmır, CJ xətası). Düzəlt, sonra "CJ-də sifariş et" düyməsini bas.
-   - `awaiting_payment`: CJ-də ödənişi et, sonra "Ödədim" düyməsini bas.
-3. eBay Messages-də suallara bax. Lazım olsa, "AI cavab" bölməsindən istifadə et.
-4. Həftədə bir dəfə **Elanlar** səhifəsinə bax. Satmayan elanları bitir, açar sözləri yenilə.
+Gündəlik iş üçün eBay və CJ saytlarına girmək lazım deyil. Panelin yuxarısındakı **"Səndən gözlənilənlər"** bölməsi nə etməli olduğunu göstərir. Menyudakı qırmızı rəqəmlər gözləyən işlərin sayıdır.
+
+| Bölmə | Nə görürsən | Nə edirsən |
+|---|---|---|
+| **Panel** | Bu günün sifarişləri, göndərişlər, mesajlar, 30 günlük satış və mənfəət, CJ balansı, son hadisələr | Baxırsan. Səhifə hər 60 saniyədə özü yenilənir |
+| **Sifarişlər** | Hər sifariş: status, mənfəət, tracking | "Aç" ilə sifarişin səhifəsinə keçirsən |
+| **Sifariş səhifəsi** | Addım-addım tarixçə (eBay → CJ → ödəniş → göndərildi), pul hesabı, ünvan, CJ statusu, alıcı ilə yazışma | "CJ-də ödə", "CJ-də sifariş et", alıcıya mesaj, pulu qaytar |
+| **Mesajlar** | Alıcı mesajları və AI-ın hazırladığı cavab | Cavabı yoxla, lazım olsa dəyiş, "Göndər" bas |
+| **Problemlər** | Return, ləğv, "item not received" halları və sistemin nə etdiyi | Return-də qərar ver |
+| **Elanlar** | Aktiv elanlar | "İdarə et": title/qiymət, dayandır, aktivləşdir, bitir |
+| **Namizədlər** | Sistemin tapdığı, hələ yüklənməmiş məhsullar | "eBay-ə yüklə" və ya "Rədd et" |
+| **Maliyyə** | 7/30/90/365 günlük satış, eBay komissiyası, CJ xərci, xalis mənfəət, ən çox satanlar, payout-lar | Baxırsan |
+| **Hadisələr** | Sistemin etdiyi hər şey, Azərbaycan dilində | Baxırsan |
+
+Panelin yuxarısındakı **"Avtomatlaşdırmanı dayandır"** düyməsi bütün avtomatik işləri bir kliklə dayandırır (məsələn, tətildə). eBay-dəki elanlar yerində qalır.
+
+**Saytlara girmək lazım olan nadir hallar:**
+- CJ wallet-ə pul yükləmək (CJ saytı, kartla ödəniş).
+- eBay "case"-i eBay-in özünə yönləndiriləndə (escalated case). Sistem bunu hadisələrdə göstərir.
+- Hesab səviyyəsində dəyişikliklər: policy, payout bank hesabı, eBay limitinin artırılması.
 
 ---
 
@@ -115,6 +133,11 @@ Sonra `.env` faylında `DRY_RUN=false` et və proqramı yenidən başlat.
 | Maksimum çatdırılma, gün | 12 | Gec çatdırılma seller performance-ı pisləşdirir |
 | Anbar ölkələri | US,CN | US anbarı daha sürətli çatdırır, ona üstünlük verilir |
 | Avtomatik sifariş / avto-ödəniş | Bəli | Tam avtomatik rejim |
+| Ləğv sorğularını avtomatik təsdiqlə | Bəli | Məhsul göndərilməyibsə |
+| "Item not received" halına avtomatik tracking ver | Bəli | |
+| Yeni mesajlara AI cavab layihəsi | Bəli | Sən baxıb göndərirsən |
+| AI cavabını avtomatik göndər | Xeyr | Açsan, cavablar sənin baxışın olmadan gedir. İlk həftələrdə tövsiyə etmirəm |
+| CJ balans xəbərdarlığı, $ | 50 | Balans bundan aşağı düşəndə Telegram mesajı gəlir |
 
 ---
 
@@ -124,8 +147,11 @@ Sonra `.env` faylında `DRY_RUN=false` et və proqramı yenidən başlat.
 - **Hər elan bir variantdır.** Məhsulun ən ucuz və stokda olan variantı seçilir. Çoxvariantlı elanlar (rəng/ölçü seçimi) hələ yoxdur.
 - **Bazar araşdırması** eBay Browse API-nin aktiv elan məlumatına əsaslanır. "Sold" tarixçəsi (Terapeak) açıq API ilə verilmir.
 - **Carrier kodları**: tracking yüklənərkən CJ-nin logistika adı eBay carrier koduna çevrilir (USPS, UPS, YunExpress və s.). Tanınmayan xətt "Other" kimi göndərilir. eBay bunu qəbul etməsə, Loglarda görünəcək.
-- **Müştəri mesajları** avtomatik göndərilmir. eBay mesajlarını oxumaq üçün ayrıca, köhnə Trading API lazımdır. AI yalnız cavab layihəsi hazırlayır.
-- **Ləğv olunan sifariş**: CJ sifarişi artıq yaradılıbsa, sistem xəbər verir, amma CJ-də ləğvi sən edirsən.
+- **Mesajlar, return/ləğv/INR və maliyyə modulları real hesabla yoxlanılmayıb.** eBay-in Trading API, Post-Order API və Finances API-ləri əsasında yazılıb, amma proqram hazırlanan mühitdən developer.ebay.com saytına giriş bağlı idi. Fayllar: `src/ebay/trading.ts`, `src/ebay/postorder.ts`, `src/ebay/finances.ts`. Xəta olsa, **Loglar** səhifəsində eBay-in cavabı ilə görünəcək. Mətni mənə göndərsən, düzəldərəm.
+- **Ödənilmiş CJ sifarişinin ləğvi**: CJ API ödənilməmiş sifarişi silə bilir. Ödənilmiş sifarişi isə adətən yalnız CJ dəstəyi ləğv edir. Belə halda sistem sənə xəbər verir.
+- **eBay mesajları**: sistem alıcı suallarını (Ask Seller Question) və sifariş üzrə mesajları oxuyur. eBay-in sistem bildirişləri (məsələn, "your item sold") buraya düşmür.
+- **Return-də "pulu qaytar"** düyməsi Fulfillment API-nin refund funksiyasından istifadə edir. Açıq return halında eBay refund-u return axını ilə tələb edə bilər. Belə olsa, xəta Loglarda görünəcək.
+- **eBay hesabını qoşduqdan sonra** maliyyə üçün yeni icazə (sell.finances) lazımdır. Hesabı əvvəl qoşmusansa, "Qoşulma" səhifəsində yenidən qoş.
 - **eBay qaydası**: yalnız dropshipping təchizatçısından (CJ kimi) göndər. Amazon/Walmart kimi pərakəndə saytdan alıb göndərmək qadağandır.
 
 ---
@@ -134,7 +160,7 @@ Sonra `.env` faylında `DRY_RUN=false` et və proqramı yenidən başlat.
 
 - Node.js 24 (TypeScript birbaşa işləyir, build lazım deyil), Express 5, SQLite (`node:sqlite`), Claude API (`@anthropic-ai/sdk`).
 - Məlumat bazası: `data/dropship.db`. Bu faylın ehtiyat surətini vaxtaşırı çıxar.
-- Testlər: `npm test` (14 test: qiymət, filtr, bal, CJ client, tam avtomatik axın).
+- Testlər: `npm test` (21 test: qiymət, filtr, bal, CJ client, tam avtomatik axın, mesajlar, ləğv/return/INR, maliyyə, elan redaktəsi, bütün panel səhifələri).
 
 ```
 src/
@@ -146,9 +172,14 @@ src/
   filters.ts            brend/VeRO və qadağan məhsul filtri
   suppliers/cj.ts       CJdropshipping API
   suppliers/demo.ts     test təchizatçısı
-  ebay/client.ts        eBay OAuth, Inventory, Fulfillment, Browse, Taxonomy
+  ebay/client.ts        eBay OAuth, Inventory, Fulfillment (sifariş, tracking, refund), Browse, Taxonomy
+  ebay/trading.ts       alıcı mesajları (Trading API)
+  ebay/postorder.ts     return, ləğv, item not received (Post-Order API)
+  ebay/finances.ts      komissiyalar və payout-lar (Finances API)
   ai/listing.ts         Claude: elan mətni və müştəri cavabı
-  services/engine.ts    bütün avtomatik işlər
-  services/scheduler.ts cədvəl
-  web/                  idarə paneli
+  services/engine.ts    araşdırma, elan, sync, sifariş, tracking
+  services/ops.ts       mesajlar, problemlər, maliyyə, CJ balansı, elan redaktəsi
+  services/scheduler.ts cədvəl (7 avtomatik iş)
+  web/server.ts         namizədlər, qoşulma, ayarlar, loglar
+  web/pages.ts          panel, sifarişlər, mesajlar, problemlər, maliyyə, hadisələr, elan idarəsi
 ```

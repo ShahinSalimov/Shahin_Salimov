@@ -77,11 +77,11 @@ export class CjSupplier implements Supplier {
     return res.data.accessToken;
   }
 
-  private async call<T>(method: "GET" | "POST", path: string, params?: Record<string, unknown>): Promise<T> {
+  private async call<T>(method: "GET" | "POST" | "DELETE", path: string, params?: Record<string, unknown>): Promise<T> {
     const token = await this.token();
     let url = `${this.baseUrl}${path}`;
     const init: RequestInit = { method, headers: { "CJ-Access-Token": token, "Content-Type": "application/json" } };
-    if (method === "GET" && params) {
+    if ((method === "GET" || method === "DELETE") && params) {
       const qs = new URLSearchParams();
       for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") qs.set(k, String(v));
       url += `?${qs}`;
@@ -186,6 +186,16 @@ export class CjSupplier implements Supplier {
 
   async payOrder(orderId: string) {
     await this.call("POST", "/shopping/pay/payBalance", { orderId });
+  }
+
+  async getBalance(): Promise<number | null> {
+    const d = await this.call<Record<string, unknown>>("GET", "/shopping/pay/getBalance");
+    const n = parseCjPrice(d?.amount ?? d?.balance);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  async cancelOrder(orderId: string): Promise<void> {
+    await this.call("DELETE", "/shopping/order/deleteOrder", { orderId });
   }
 
   async getOrder(orderId: string): Promise<SupplierOrderStatus> {

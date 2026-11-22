@@ -4,6 +4,7 @@ import { log, openDb } from "./db.ts";
 import { EbayClient } from "./ebay/client.ts";
 import { telegramNotifier } from "./notify.ts";
 import { Engine } from "./services/engine.ts";
+import { Ops } from "./services/ops.ts";
 import { Scheduler } from "./services/scheduler.ts";
 import { CjSupplier } from "./suppliers/cj.ts";
 import { DemoSupplier } from "./suppliers/demo.ts";
@@ -21,10 +22,11 @@ const supplier: Supplier = cfg.demoSupplier ? new DemoSupplier() : new CjSupplie
 const ebay = new EbayClient({ cfg, db });
 const writer = new ListingWriter({ apiKey: cfg.anthropic.apiKey, model: cfg.anthropic.model });
 const engine = new Engine({ db, supplier, ebay, writer, notify: telegramNotifier(cfg) });
-const scheduler = new Scheduler(engine);
+const ops = new Ops(engine);
+const scheduler = new Scheduler(engine, ops);
 
 const host = process.env.HOST?.trim() || "127.0.0.1";
-const app = createApp({ cfg, engine, scheduler });
+const app = createApp({ cfg, engine, ops, scheduler });
 const server = app.listen(cfg.port, host, () => {
   log(db, "info", "app", `started on http://${host === "0.0.0.0" ? "localhost" : host}:${cfg.port} (${cfg.dryRun ? "DRY_RUN" : "LIVE"}, supplier=${supplier.name}, ebay=${cfg.ebay.env})`);
   scheduler.start();

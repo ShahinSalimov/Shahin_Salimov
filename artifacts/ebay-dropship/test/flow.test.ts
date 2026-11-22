@@ -112,7 +112,7 @@ test("full automated flow", async () => {
   const ful = eb.calls.find((c) => c.path.endsWith("/shipping_fulfillment"))!.body as Record<string, any>;
   assert.equal(ful.shippingCarrierCode, "USPS");
   assert.deepEqual(ful.lineItems, [{ lineItemId: "LI1", quantity: 1 }]);
-  assert.ok(notes.some((n) => n.includes("New eBay order")));
+  assert.ok(notes.some((n) => n.includes("Yeni eBay sifarişi")));
 });
 
 test("unknown SKU order goes to needs_attention, nothing ordered", async () => {

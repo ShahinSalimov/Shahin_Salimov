@@ -3,12 +3,12 @@
 
 import type { ListingWriter } from "../ai/listing.ts";
 import type { DB } from "../db.ts";
-import { log } from "../db.ts";
+import { activity, log } from "../db.ts";
 import type { EbayClient } from "../ebay/client.ts";
 import { mapCarrier } from "../ebay/client.ts";
 import { checkProductSafety } from "../filters.ts";
 import type { Notifier } from "../notify.ts";
-import { computePrice } from "../pricing.ts";
+import { computePrice, profitAt } from "../pricing.ts";
 import { scoreCandidate } from "../research.ts";
 import { getSettings, type Settings } from "../settings.ts";
 import type { Supplier } from "../suppliers/types.ts";
@@ -42,6 +42,8 @@ export type ProductRow = {
   ebay_offer_id: string | null;
   ebay_listing_id: string | null;
   last_error: string | null;
+  price_locked: number;
+  paused_manual: number;
 };
 
 export type OrderRow = {
@@ -58,6 +60,9 @@ export type OrderRow = {
   tracking_number: string | null;
   carrier: string | null;
   note: string | null;
+  supplier_status: string | null;
+  ebay_fees: number | null;
+  refunded: number | null;
 };
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -112,7 +117,7 @@ export class Engine {
         log(this.db, "error", "research", `"${kw}": ${errMsg(err)}`);
       }
     }
-    log(this.db, "info", "research", `done: ${added} new candidates from ${keywords.length} keywords`);
+    activity(this.db, "research", `Araşdırma bitdi: ${keywords.length} açar söz, ${added} yeni namizəd tapıldı`);
     if (s.autoApproveMinScore > 0) await this.autoApprove();
     return { added };
   }
@@ -324,7 +329,7 @@ export class Engine {
              ebay_offer_id = ?, ebay_listing_id = ?, last_error = NULL, updated_at = datetime('now') WHERE id = ?`,
         )
         .run(draft.title, draft.description, JSON.stringify(draft.aspects), categoryId, offerId, listingId, id);
-      log(this.db, "info", "listing", `listed ${row.sku} "${draft.title}" at $${row.price} (listing ${listingId})`);
+      activity(this.db, "listing", `Elan yükləndi: "${draft.title}", qiymət $${row.price}, mənfəət $${row.profit}`, row.sku);
       return true;
     } catch (err) {
       this.setError(id, errMsg(err));
@@ -344,7 +349,7 @@ export class Engine {
     if (!row?.ebay_offer_id) return;
     await this.ebay.withdrawOffer(row.ebay_offer_id);
     this.db.prepare("UPDATE products SET status = 'ended', updated_at = datetime('now') WHERE id = ?").run(id);
-    log(this.db, "info", "listing", `ended ${row.sku}`);
+    activity(this.db, "listing", `Elan bitirildi: ${row.ebay_title ?? row.title}`, row.sku);
   }
 
   // ======================= STOCK & PRICE SYNC =======================
@@ -353,7 +358,7 @@ export class Engine {
     const s = this.settings();
     const countries = s.shipFromCountries.split(",").map((c) => c.trim().toUpperCase()).filter(Boolean);
     const rows = this.db
-      .prepare("SELECT * FROM products WHERE status IN ('listed', 'paused') AND ebay_offer_id IS NOT NULL")
+      .prepare("SELECT * FROM products WHERE status IN ('listed', 'paused') AND paused_manual = 0 AND ebay_offer_id IS NOT NULL")
       .all() as ProductRow[];
     const updates: { sku: string; offerId: string; price: number; quantity: number }[] = [];
     const alerts: string[] = [];
@@ -373,7 +378,13 @@ export class Engine {
           const q = await this.supplier.quoteShipping(variant.variantId, fromCountry, "US");
           if (q) shipping = q.price;
         }
-        const pricing = computePrice({ cost, shippingCost: shipping }, s);
+        const auto = computePrice({ cost, shippingCost: shipping }, s);
+        const pricing = row.price_locked
+          ? { price: row.price, profit: profitAt(row.price, { cost, shippingCost: shipping }, s) }
+          : auto;
+        if (row.price_locked && pricing.profit < s.minProfit && row.profit >= s.minProfit) {
+          alerts.push(`${row.sku}: sabit qiymət $${row.price} ilə mənfəət $${pricing.profit}-a düşdü (maya artıb)`);
+        }
         const outOfStock = !variant || available < Math.max(3, Math.floor(s.minStock / 4));
         const qty = outOfStock ? 0 : Math.min(s.listingQuantity, available);
         const newStatus = outOfStock ? "paused" : "listed";
@@ -381,8 +392,16 @@ export class Engine {
         const priceChanged = Math.abs(pricing.price - row.price) >= 0.01;
         if (priceChanged || newStatus !== row.status || row.stock !== available) {
           updates.push({ sku: row.sku, offerId: row.ebay_offer_id!, price: pricing.price, quantity: qty });
-          if (newStatus !== row.status) alerts.push(`${row.sku}: ${outOfStock ? "out of stock, paused" : "back in stock"}`);
-          if (priceChanged) alerts.push(`${row.sku}: price $${row.price} -> $${pricing.price} (cost $${row.cost} -> $${cost})`);
+          if (newStatus !== row.status) {
+            const t = outOfStock ? `Stok bitdi, elan dayandırıldı: ${row.ebay_title ?? row.title}` : `Stok gəldi, elan yenidən aktivdir: ${row.ebay_title ?? row.title}`;
+            alerts.push(t);
+            activity(this.db, "stock", t, row.sku);
+          }
+          if (priceChanged) {
+            const t = `Qiymət dəyişdi: ${row.ebay_title ?? row.title} $${row.price} → $${pricing.price} (CJ maya $${row.cost} → $${cost})`;
+            alerts.push(t);
+            activity(this.db, "price", t, row.sku);
+          }
         }
         this.db
           .prepare(
@@ -397,7 +416,7 @@ export class Engine {
 
     if (updates.length) await this.ebay.updatePriceQuantity(updates);
     log(this.db, "info", "sync", `checked ${rows.length}, updated ${updates.length}`);
-    if (alerts.length) await this.notify(`Stock/price sync:\n${alerts.slice(0, 30).join("\n")}`);
+    if (alerts.length) await this.notify(`Stok/qiymət yeniləndi:\n${alerts.slice(0, 30).join("\n")}`);
     return { checked: rows.length, updated: updates.length };
   }
 
@@ -417,14 +436,15 @@ export class Engine {
           .prepare("INSERT INTO orders (ebay_order_id, buyer, total, currency, ship_to, line_items, status) VALUES (?, ?, ?, ?, ?, ?, 'new')")
           .run(o.orderId, o.buyer, o.total, o.currency, JSON.stringify(o.shipTo), JSON.stringify(o.lineItems));
         imported++;
-        log(this.db, "info", "orders", `new order ${o.orderId} $${o.total} from ${o.buyer}`);
-        await this.notify(`New eBay order ${o.orderId}: $${o.total} - ${o.lineItems.map((l) => `${l.quantity}x ${l.title}`).join(", ")}`);
+        const what = o.lineItems.map((l) => `${l.quantity}× ${l.title}`).join(", ");
+        activity(this.db, "order", `Yeni sifariş: $${o.total}, alıcı ${o.buyer} (${o.shipTo.city}, ${o.shipTo.state}): ${what}`, o.orderId);
+        await this.notify(`Yeni eBay sifarişi ${o.orderId}: $${o.total}\n${what}`);
       } else if (o.cancelled && existing.status !== "cancelled") {
         this.db.prepare("UPDATE orders SET status = 'cancelled', updated_at = datetime('now') WHERE id = ?").run(existing.id);
         const msg = existing.supplier_order_id
-          ? `Order ${o.orderId} was CANCELLED by buyer, but supplier order ${existing.supplier_order_id} exists. Cancel it in CJ!`
-          : `Order ${o.orderId} was cancelled.`;
-        log(this.db, "warn", "orders", msg);
+          ? `Sifariş ${o.orderId} eBay-də ləğv olundu, amma CJ sifarişi ${existing.supplier_order_id} artıq var. Sifariş səhifəsindən yoxla.`
+          : `Sifariş ${o.orderId} ləğv olundu.`;
+        activity(this.db, "cancel", msg, o.orderId);
         await this.notify(msg);
         continue;
       }
@@ -476,9 +496,16 @@ export class Engine {
       this.db
         .prepare("UPDATE orders SET status = ?, supplier_order_id = ?, supplier_cost = ?, note = ?, updated_at = datetime('now') WHERE id = ?")
         .run(status, res.orderId, res.cost, note, row.id);
-      log(this.db, "info", "orders", `${row.ebay_order_id} -> supplier order ${res.orderId} (${status})`);
+      activity(
+        this.db,
+        "supplier",
+        status === "supplier_ordered"
+          ? `CJ-də sifariş yaradıldı və ödənildi: ${res.orderId}${res.cost ? ` ($${res.cost})` : ""}`
+          : `CJ-də sifariş yaradıldı, ödəniş gözləyir: ${res.orderId}${note ? ` (${note})` : ""}`,
+        row.ebay_order_id,
+      );
       if (status === "awaiting_payment") {
-        await this.notify(`Order ${row.ebay_order_id}: supplier order ${res.orderId} created, PAYMENT NEEDED in CJ. ${note ?? ""}`);
+        await this.notify(`Sifariş ${row.ebay_order_id}: CJ sifarişi ${res.orderId} ödəniş gözləyir. Paneldə "CJ-də ödə" düyməsini bas. ${note ?? ""}`);
       }
       return true;
     } catch (err) {
@@ -491,10 +518,27 @@ export class Engine {
       .prepare("UPDATE orders SET status = 'needs_attention', note = ?, updated_at = datetime('now') WHERE id = ?")
       .run(reason.slice(0, 1000), row.id);
     log(this.db, "error", "orders", `${row.ebay_order_id}: ${reason}`);
-    await this.notify(`ATTENTION order ${row.ebay_order_id}: ${reason}`);
+    this.db.prepare("INSERT INTO events (kind, text, ref) VALUES ('attention', ?, ?)").run(`Diqqət: ${reason}`, row.ebay_order_id);
+    await this.notify(`DİQQƏT, sifariş ${row.ebay_order_id}: ${reason}`);
     return false;
   }
 
+  /** Pay an awaiting supplier order from the CJ wallet. */
+  async payNow(orderId: number): Promise<string | null> {
+    const row = this.db.prepare("SELECT * FROM orders WHERE id = ?").get(orderId) as OrderRow | undefined;
+    if (!row?.supplier_order_id || row.status !== "awaiting_payment") return "Bu sifariş ödəniş gözləmir";
+    if (this.ebay.dryRun) return "DRY_RUN rejimidir, real ödəniş edilmədi";
+    try {
+      await this.supplier.payOrder(row.supplier_order_id);
+    } catch (err) {
+      return `Ödəniş alınmadı: ${errMsg(err)}`;
+    }
+    this.markPaid(orderId);
+    activity(this.db, "supplier", `CJ sifarişi ödənildi: ${row.supplier_order_id}`, row.ebay_order_id);
+    return null;
+  }
+
+  /** You paid outside the system. */
   markPaid(orderId: number): void {
     this.db
       .prepare("UPDATE orders SET status = 'supplier_ordered', note = NULL, updated_at = datetime('now') WHERE id = ? AND status = 'awaiting_payment'")
@@ -511,6 +555,10 @@ export class Engine {
     for (const row of rows) {
       try {
         const st = await this.supplier.getOrder(row.supplier_order_id!);
+        if (st.status && st.status !== row.supplier_status) {
+          this.db.prepare("UPDATE orders SET supplier_status = ? WHERE id = ?").run(st.status, row.id);
+          if (row.supplier_status) activity(this.db, "supplier", `CJ statusu: ${row.supplier_status} → ${st.status}`, row.ebay_order_id);
+        }
         if (st.cancelled) {
           await this.attention(row, `supplier cancelled order ${row.supplier_order_id} (${st.status})`);
           continue;
@@ -528,7 +576,7 @@ export class Engine {
           .prepare("UPDATE orders SET status = 'shipped', tracking_number = ?, carrier = ?, updated_at = datetime('now') WHERE id = ?")
           .run(st.trackingNumber, carrier, row.id);
         shipped++;
-        log(this.db, "info", "tracking", `${row.ebay_order_id}: ${carrier} ${st.trackingNumber} uploaded`);
+        activity(this.db, "shipped", `Göndərildi: ${carrier} ${st.trackingNumber}. Tracking eBay-ə yükləndi`, row.ebay_order_id);
       } catch (err) {
         log(this.db, "warn", "tracking", `${row.ebay_order_id}: ${errMsg(err)}`);
       }

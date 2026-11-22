@@ -7,16 +7,55 @@ export const esc = (v: unknown): string =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-const NAV: [string, string][] = [
+const NAV: [string, string, string?][] = [
   ["/", "Panel"],
-  ["/products?status=candidate", "Namizədlər"],
+  ["/orders", "Sifarişlər", "orders"],
+  ["/messages", "Mesajlar", "messages"],
+  ["/cases", "Problemlər", "cases"],
   ["/products?status=listed", "Elanlar"],
-  ["/orders", "Sifarişlər"],
-  ["/ebay", "eBay qoşulma"],
+  ["/products?status=candidate", "Namizədlər", "candidates"],
+  ["/finance", "Maliyyə"],
+  ["/activity", "Hadisələr"],
   ["/settings", "Ayarlar"],
-  ["/assistant", "AI cavab"],
+  ["/ebay", "Qoşulma"],
   ["/logs", "Loglar"],
 ];
+
+export type NavCounts = Partial<Record<"orders" | "messages" | "cases" | "candidates", number>>;
+let navCounts: () => NavCounts = () => ({});
+/** Red badges in the menu: things waiting for you. */
+export function setNavCounts(fn: () => NavCounts): void {
+  navCounts = fn;
+}
+
+export const EVENT_LABELS: Record<string, [string, string]> = {
+  order: ["Sifariş", "ok"],
+  supplier: ["CJ", "muted"],
+  shipped: ["Göndərildi", "ok"],
+  message: ["Mesaj", "accent"],
+  return: ["Return", "warn"],
+  cancel: ["Ləğv", "warn"],
+  inquiry: ["INR", "warn"],
+  refund: ["Geri ödəmə", "warn"],
+  payout: ["Payout", "ok"],
+  listing: ["Elan", "muted"],
+  stock: ["Stok", "muted"],
+  price: ["Qiymət", "muted"],
+  research: ["Araşdırma", "muted"],
+  balance: ["Balans", "bad"],
+  attention: ["Diqqət", "bad"],
+};
+
+export function eventsTable(rows: { kind: string; text: string; ref: string | null; created_at: string }[], linkRefs = true): string {
+  if (!rows.length) return '<p class="muted">Hələ hadisə yoxdur.</p>';
+  return `<div class="wrap"><table>${rows
+    .map((e) => {
+      const [label, cls] = EVENT_LABELS[e.kind] ?? [e.kind, "muted"];
+      const ref = e.ref && linkRefs && /^\d{2}-\d{5}-\d{5}$|^\d+-\d+$/.test(e.ref) ? ` <a href="/orders/by/${esc(e.ref)}">${esc(e.ref)}</a>` : "";
+      return `<tr><td class="muted" style="white-space:nowrap">${esc(e.created_at)}</td><td><span class="badge ${cls}">${esc(label)}</span></td><td>${esc(e.text)}${ref}</td></tr>`;
+    })
+    .join("")}</table></div>`;
+}
 
 const CSS = `
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16181d;--muted:#667085;--line:#e4e7ec;--accent:#2457d6;--ok:#12805c;--warn:#b54708;--bad:#c01048}
@@ -38,20 +77,33 @@ a.badge{text-decoration:none;color:var(--ink)}a.badge.ok{color:var(--ok);border-
 form.inline{display:inline}
 input,select,textarea{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);width:100%}
 label{display:block;margin-bottom:10px}label span{display:block;color:var(--muted);font-size:12px;margin-bottom:3px}
-.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--line)}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--line);white-space:nowrap}
+.badge.accent{color:var(--accent)}.count{background:var(--bad);color:#fff;border-radius:99px;font-size:11px;padding:0 6px;margin-left:4px}
+.todo{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.todo:last-child{border:0}
+.msg{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}.msg.out{background:var(--bg)}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:16px}@media (max-width:900px){.two{grid-template-columns:1fr}}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0}dt{color:var(--muted)}dd{margin:0}
 .ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.muted{color:var(--muted)}
 img.thumb{width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--bg)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 pre{white-space:pre-wrap;word-break:break-word;margin:0}
 `;
 
-export function layout(title: string, path: string, body: string, flash?: string): string {
-  const nav = NAV.map(([href, label]) => {
-    const on = href === path || (!href.includes("?") && href === path.split("?")[0]);
-    return `<a href="${href}" class="${on ? "on" : ""}">${label}</a>`;
+export function layout(title: string, path: string, body: string, flash?: string, refresh = 0): string {
+  let counts: NavCounts = {};
+  try {
+    counts = navCounts();
+  } catch {
+    counts = {};
+  }
+  const nav = NAV.map(([href, label, key]) => {
+    const base = path.split("?")[0]!;
+    const on = href === path || (!href.includes("?") && (href === base || (href !== "/" && base.startsWith(href + "/"))));
+    const n = key ? counts[key as keyof NavCounts] ?? 0 : 0;
+    return `<a href="${href}" class="${on ? "on" : ""}">${label}${n ? `<span class="count">${n}</span>` : ""}</a>`;
   }).join("");
   return `<!doctype html><html lang="az"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)} · eBay Dropship</title><style>${CSS}</style></head>
+<title>${esc(title)} · eBay Dropship</title>${refresh ? `<meta http-equiv="refresh" content="${refresh}">` : ""}<style>${CSS}</style></head>
 <body><header><b>eBay Dropship</b>${nav}</header><main>
 ${flash ? `<div class="card ok">${esc(flash)}</div>` : ""}${body}</main></body></html>`;
 }
@@ -87,6 +139,14 @@ export const SETTING_LABELS: Record<string, [string, string]> = {
   autoPaySupplier: ["CJ balansından avto-ödəniş", "CJ wallet-də pul olmalıdır"],
   listingQuantity: ["eBay-də göstərilən say", ""],
   handlingDays: ["Handling time, gün", "Fulfillment policy ilə eyni olsun"],
+  autoApproveCancellations: ["Ləğv sorğularını avtomatik təsdiqlə", "Məhsul hələ göndərilməyibsə, sistem CJ sifarişini ləğv edib eBay-də təsdiqləyir"],
+  autoProvideTracking: ["'Item not received' halına avtomatik tracking ver", ""],
+  autoDraftReplies: ["Yeni mesajlara AI cavab layihəsi", "Hər yeni alıcı mesajı üçün cavab hazırlanır, sən bir kliklə göndərirsən"],
+  autoSendReplies: ["AI cavabını avtomatik göndər", "Diqqət: cavablar sənin baxışın olmadan göndərilir"],
+  lowBalanceAlert: ["CJ balans xəbərdarlığı, $", "Balans bundan aşağı düşəndə Telegram mesajı"],
+  messagesEveryMin: ["Mesaj yoxlama intervalı, dəq", ""],
+  casesEveryMin: ["Return/cancel yoxlama intervalı, dəq", ""],
+  financeEveryMin: ["Maliyyə yoxlama intervalı, dəq", ""],
   researchEveryMin: ["Araşdırma intervalı, dəq", ""],
   syncEveryMin: ["Stok/qiymət sync intervalı, dəq", ""],
   ordersEveryMin: ["Sifariş yoxlama intervalı, dəq", ""],
