@@ -1,5 +1,6 @@
 import { ListingWriter } from "./ai/listing.ts";
-import { loadConfig } from "./config.ts";
+import { startDailyBackup } from "./backup.ts";
+import { loadConfig, startupErrors } from "./config.ts";
 import { log, openDb } from "./db.ts";
 import { EbayClient } from "./ebay/client.ts";
 import { telegramNotifier } from "./notify.ts";
@@ -12,6 +13,11 @@ import type { Supplier } from "./suppliers/types.ts";
 import { createApp } from "./web/server.ts";
 
 const cfg = loadConfig();
+const problems = startupErrors(cfg);
+if (problems.length) {
+  for (const p of problems) console.error(`XƏTA: ${p}`);
+  process.exit(1);
+}
 const db = openDb(cfg.dbPath);
 
 if (!cfg.demoSupplier && !cfg.cj.apiKey) {
@@ -25,15 +31,17 @@ const engine = new Engine({ db, supplier, ebay, writer, notify: telegramNotifier
 const ops = new Ops(engine);
 const scheduler = new Scheduler(engine, ops);
 
-const host = process.env.HOST?.trim() || "127.0.0.1";
+const host = cfg.host;
 const app = createApp({ cfg, engine, ops, scheduler });
 const server = app.listen(cfg.port, host, () => {
   log(db, "info", "app", `started on http://${host === "0.0.0.0" ? "localhost" : host}:${cfg.port} (${cfg.dryRun ? "DRY_RUN" : "LIVE"}, supplier=${supplier.name}, ebay=${cfg.ebay.env})`);
   scheduler.start();
 });
+const stopBackup = startDailyBackup(db, cfg.backupDir, cfg.backupKeep);
 
 function shutdown() {
   scheduler.stop();
+  stopBackup();
   server.close(() => {
     db.close();
     process.exit(0);

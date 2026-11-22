@@ -18,6 +18,9 @@ export function createApp(opts: { cfg: Config; engine: Engine; ops: Ops; schedul
   const app = express();
   app.use(express.urlencoded({ extended: false, limit: "200kb" }));
 
+  // Health check for Docker / hosting platforms: no auth, no data.
+  app.get("/health", (_req, res) => void res.json({ ok: true }));
+
   // ---- auth (optional basic auth) + same-origin check for POST ----
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path === "/ebay/callback" && !cfg.dashboardPassword) return next();
@@ -293,6 +296,5 @@ export function createApp(opts: { cfg: Config; engine: Engine; ops: Ops; schedul
     );
   });
 
-  app.get("/health", (_req, res) => void res.json({ ok: true }));
   return app;
 }

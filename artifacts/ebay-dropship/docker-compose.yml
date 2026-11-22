@@ -1,0 +1,13 @@
+services:
+  dropship:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      DB_PATH: /data/dropship.db
+      BACKUP_DIR: /data/backups
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data

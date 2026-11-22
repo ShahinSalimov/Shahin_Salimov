@@ -17,6 +17,10 @@ export function loadConfig() {
   const ebayEnv: EbayEnv = env("EBAY_ENV", "production") === "sandbox" ? "sandbox" : "production";
   return {
     port: Number(env("PORT", "3000")),
+    // 127.0.0.1 = only this computer. 0.0.0.0 = reachable from the network (server/Docker).
+    host: env("HOST", "127.0.0.1"),
+    backupDir: env("BACKUP_DIR", "data/backups"),
+    backupKeep: Number(env("BACKUP_KEEP", "14")),
     dbPath: env("DB_PATH", "data/dropship.db"),
     dashboardPassword: env("DASHBOARD_PASSWORD"),
     // DRY_RUN=true: nothing is written to eBay or CJ. Everything else runs.
@@ -49,3 +53,17 @@ export function loadConfig() {
 }
 
 export type Config = ReturnType<typeof loadConfig>;
+
+const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
+
+/** Problems that must stop the app from starting (Azerbaijani, shown in the console). */
+export function startupErrors(cfg: Config): string[] {
+  const errors: string[] = [];
+  if (!LOCAL_HOSTS.has(cfg.host) && cfg.dashboardPassword.length < 10) {
+    errors.push(
+      `HOST=${cfg.host} ilə panel internetdən açıq olur. DASHBOARD_PASSWORD ən azı 10 simvol olmalıdır.`,
+    );
+  }
+  if (!Number.isInteger(cfg.port) || cfg.port <= 0) errors.push(`PORT yanlışdır: ${cfg.port}`);
+  return errors;
+}

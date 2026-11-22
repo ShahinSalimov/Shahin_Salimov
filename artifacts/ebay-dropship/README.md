@@ -156,15 +156,53 @@ Panelin yuxarısındakı **"Avtomatlaşdırmanı dayandır"** düyməsi bütün 
 
 ---
 
-## 7. Texniki məlumat
+## 7. 24/7 serverdə işlətmək (tövsiyə olunur)
+
+Kompüterdə işləyəndə kompüter sönən kimi sifarişlər gecikir. Serverdə sistem dayanmadan işləyir.
+
+**Variant A: VPS + Docker (ən sabit).** Hetzner, DigitalOcean və ya Contabo-da ən kiçik Linux server (Ubuntu, 1–2 GB RAM) kifayətdir. Qiymətlər tez-tez dəyişir, təxminən ayda $5 civarındadır, dəqiqini saytdan yoxla.
+1. Serverə Docker quraşdır: `curl -fsSL https://get.docker.com | sh`
+2. Bu qovluğu serverə köçür (məs. `scp -r ebay-dropship root@SERVER_IP:/opt/`).
+3. `.env` faylında: `DASHBOARD_PASSWORD` dəyərinə ən azı 10 simvolluq güclü parol yaz. `HOST` və `DB_PATH` docker-compose özü təyin edir.
+4. `cd /opt/ebay-dropship && docker compose up -d --build`
+5. Panel: `http://SERVER_IP:3000`. İstifadəçi adı istənilən söz ola bilər, parol `DASHBOARD_PASSWORD`-dakı dəyərdir.
+
+Yeniləmə üçün yeni faylları köçür, sonra `docker compose up -d --build` işlət. Məlumat bazası `data/` qovluğunda qalır, silinmir.
+
+**Təhlükəsizlik:**
+- `HOST=0.0.0.0` olanda parol boşdursa və ya 10 simvoldan qısadırsa, proqram açılmır. Bu, qəsdən belə qurulub.
+- Parol HTTP üzərindən gedir. Domen bağlayıb HTTPS qoymaq daha təhlükəsizdir (məs. Caddy ilə). İstəsən, bunu birlikdə quraq.
+
+**Ehtiyat surətləri:** sistem gündə bir dəfə `data/backups/` qovluğunda bazanın surətini çıxarır (son 14 gün saxlanılır) və 30 gündən köhnə texniki logları silir. Bərpa etmək üçün proqramı dayandır, surəti `data/dropship.db` adı ilə əvəz et və yenidən başlat.
+
+---
+
+## 8. Payoneer və eBay payout
+
+eBay satış pulunu (komissiya çıxılandan sonra) bank hesabına köçürür (payout). Azərbaycandan satanlar adətən Payoneer istifadə edirlər.
+
+1. Payoneer hesabı aktiv və təsdiqlənmiş olmalıdır.
+2. **Ad eyni olmalıdır.** eBay hesabındakı ad və Payoneer hesabındakı ad eyni şəxsə məxsus olmalıdır. Uyğunsuzluq payout-un dayanmasına və hesabın yoxlamaya düşməsinə səbəb olur.
+3. eBay-də: Seller Hub → Payments → Payout settings. Ölkənə görə iki variantdan biri görünəcək:
+   - birbaşa "Payoneer" seçimi,
+   - bank hesabı forması. Bu halda Payoneer → Receive → **Receiving accounts** bölməsindən USD hesab rekvizitlərini (bank adı, routing number, account number) götür və eBay-ə yaz.
+
+   Azərbaycan üçün hansının göründüyünü dəqiq bilmirəm, ekranda görünəni yoxla.
+4. Payout-lar sistemin **Maliyyə** səhifəsində görünür. Payoneer balansı paneldə yoxdur, çünki Payoneer-in fərdi satıcılar üçün açıq API-si yoxdur.
+5. CJ wallet-i Payoneer kartı ilə və ya Payoneer-dən çıxarılan pulla doldura bilərsən. Bu, CJ saytında edilir.
+
+---
+
+## 9. Texniki məlumat
 
 - Node.js 24 (TypeScript birbaşa işləyir, build lazım deyil), Express 5, SQLite (`node:sqlite`), Claude API (`@anthropic-ai/sdk`).
 - Məlumat bazası: `data/dropship.db`. Bu faylın ehtiyat surətini vaxtaşırı çıxar.
-- Testlər: `npm test` (21 test: qiymət, filtr, bal, CJ client, tam avtomatik axın, mesajlar, ləğv/return/INR, maliyyə, elan redaktəsi, bütün panel səhifələri).
+- Testlər: `npm test` (24 test: qiymət, filtr, bal, CJ client, tam avtomatik axın, mesajlar, ləğv/return/INR, maliyyə, elan redaktəsi, bütün panel səhifələri, server təhlükəsizliyi, backup).
 
 ```
 src/
   index.ts              giriş nöqtəsi
+  backup.ts             gündəlik ehtiyat surəti, köhnə logların silinməsi
   config.ts             .env oxunması
   settings.ts           paneldən dəyişilən ayarlar
   pricing.ts            qiymət hesablaması
