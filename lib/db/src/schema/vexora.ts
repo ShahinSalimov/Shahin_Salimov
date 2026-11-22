@@ -1,4 +1,4 @@
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 /** Vexora AI data model. Credits are never stored as a mutable balance: balance = SUM(credit_ledger.delta). */
 
@@ -34,8 +34,13 @@ export const creditLedgerTable = pgTable('vx_credit_ledger', {
 
 export const paymentsTable = pgTable('vx_payments', {
   id: uuid('id').primaryKey().defaultRandom(),
+  /** short public order number sent to the gateway (order_id) */
+  orderId: text('order_id').notNull(),
   userId: uuid('user_id').notNull().references(() => usersTable.id),
+  /** gateway id: sandbox | epoint | payriff */
   provider: text('provider').notNull(),
+  /** false for sandbox/test payments, which never count as revenue */
+  livemode: boolean('livemode').notNull().default(false),
   /** id of the checkout/transaction at the provider; unique so webhooks are idempotent */
   providerRef: text('provider_ref'),
   item: jsonb('item').notNull(),
@@ -47,6 +52,7 @@ export const paymentsTable = pgTable('vx_payments', {
   paidAt: timestamp('paid_at', { withTimezone: true }),
   refundedAt: timestamp('refunded_at', { withTimezone: true }),
 }, (t) => [
+  uniqueIndex('vx_payments_order_uq').on(t.orderId),
   uniqueIndex('vx_payments_provider_ref_uq').on(t.provider, t.providerRef),
   index('vx_payments_status_idx').on(t.status),
   index('vx_payments_user_idx').on(t.userId),

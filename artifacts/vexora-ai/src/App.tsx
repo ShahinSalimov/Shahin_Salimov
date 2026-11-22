@@ -10,6 +10,8 @@ import { CheckoutModal } from '@/components/pricing/CheckoutModal';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AdminPage } from '@/components/admin/AdminPage';
 import { LegalPage } from '@/components/legal/LegalPage';
+import { PaymentSandboxPage } from '@/components/payment/PaymentSandboxPage';
+import { PaymentResultPage } from '@/components/payment/PaymentResultPage';
 
 function Routes() {
   const { route } = useApp();
@@ -18,7 +20,10 @@ function Routes() {
     case 'pricing': return <PricingPage />;
     case 'profile': return <ProfilePage />;
     case 'admin': return <AdminPage />;
-    case 'terms': case 'privacy': case 'refunds': case 'contact': return <LegalPage doc={route} />;
+    case 'terms': case 'privacy': case 'refunds': case 'delivery': case 'contact': return <LegalPage key={route} doc={route} />;
+    case 'payment-sandbox': return <PaymentSandboxPage />;
+    case 'payment-success': return <PaymentResultPage key="ok" expected="success" />;
+    case 'payment-failed': return <PaymentResultPage key="fail" expected="failed" />;
     default: return <ExplorePage />;
   }
 }

@@ -1,5 +1,6 @@
 import type {
-  AdminSummary, AdminUser, CheckoutItem, CheckoutStart, Currency, GenerationDTO, GenerationParams, Me, Page, PaymentDTO, PaymentStatus, PublicConfig,
+  AdminSummary, AdminUser, CheckoutItem, Currency, GenerationDTO, GenerationParams, Me, Page, PaymentCreateResult, PaymentDTO, PaymentStatus,
+  PublicConfig, SandboxOrder,
 } from '@workspace/vexora-core';
 
 export interface PaymentsQuery { status?: PaymentStatus; currency?: Currency; q?: string; limit?: number; offset?: number }
@@ -18,9 +19,13 @@ export interface Backend {
   cancelGeneration(id: string): Promise<GenerationDTO>;
   listGenerations(): Promise<Page<GenerationDTO>>;
 
-  checkout(item: CheckoutItem, currency: Currency): Promise<CheckoutStart>;
-  completeMockPayment(paymentId: string): Promise<PaymentDTO>;
+  /** POST /api/payment/create → send the browser to checkoutUrl */
+  createPayment(item: CheckoutItem, currency: Currency): Promise<PaymentCreateResult>;
+  paymentStatus(orderId: string): Promise<PaymentDTO>;
   myPayments(): Promise<Page<PaymentDTO>>;
+  /** sandbox gateway page */
+  sandboxOrder(orderId: string): Promise<SandboxOrder>;
+  completeSandbox(orderId: string, outcome: 'success' | 'failed'): Promise<{ redirectUrl: string }>;
 
   admin: {
     summary(): Promise<AdminSummary>;

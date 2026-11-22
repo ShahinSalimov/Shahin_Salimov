@@ -17,6 +17,7 @@ export const de: LegalContent = {
     intro: 'Diese Erklärung beschreibt, welche Daten {brand} erhebt und warum.',
     sections: [
       { h: 'Was wir erheben', p: ['Kontodaten (E-Mail, Name und dein Passwort als sicherer Hash), deine Prompts und erzeugten Ergebnisse, Zahlungsdaten (Betrag, Währung, Status) sowie grundlegende technische Protokolle wie IP-Adresse und Browser. Kartendaten verarbeitet der Zahlungsanbieter, nicht wir.'] },
+      { h: 'Zahlungssicherheit', p: ['Kartendaten werden nur auf der sicheren Seite der Bank oder eines lizenzierten Zahlungsanbieters eingegeben und nach dem Sicherheitsstandard der Kartenorganisationen (PCI DSS) verarbeitet. {brand} sieht, erhält und speichert weder Kartennummer noch Ablaufdatum oder CVV. Wir speichern nur Bestellnummer, Betrag, Währung und Zahlungsstatus.'] },
       { h: 'Wozu wir sie nutzen', p: ['Um dein Konto und deine Generierungen bereitzustellen, Zahlungen und Erstattungen abzuwickeln, Missbrauch zu verhindern und den Dienst zu verbessern.'] },
       { h: 'Cookies und Speicher', p: ['Wir verwenden ein einziges notwendiges Cookie, damit du angemeldet bleibst. Dein Browser merkt sich außerdem Sprache und Währung. Werbe-Cookies verwenden wir nicht.'] },
       { h: 'Weitergabe', p: ['Nur an Dienste, die den Betrieb von {brand} ermöglichen: Hosting, den Zahlungsanbieter und die KI-Modellanbieter, die deine Prompts verarbeiten. Wir verkaufen keine personenbezogenen Daten.'] },
@@ -27,6 +28,7 @@ export const de: LegalContent = {
   refunds: {
     intro: 'Diese Richtlinie erklärt, wann du Geld oder Credits zurückbekommst.',
     sections: [
+      { h: 'Digitale Leistung', p: ['Da Credits sofort nach der Zahlung bereitgestellt werden, wird ein Kauf, dessen Credits bereits genutzt wurden, nicht erstattet, sofern das Gesetz nichts anderes vorschreibt.'] },
       { h: 'Fehlgeschlagene oder abgebrochene Generierungen', p: ['Schlägt eine Generierung fehl oder brichst du sie vor dem Ende ab, gehen die Credits automatisch auf dein Guthaben zurück.'] },
       { h: 'Credit-Pakete', p: ['Du kannst innerhalb von 14 Tagen nach dem Kauf eine Erstattung verlangen, wenn du noch keine Credits aus dem Paket genutzt hast.'] },
       { h: 'Pläne', p: ['Du kannst einen Plan jederzeit kündigen; er bleibt bis zum Ende des bezahlten Zeitraums aktiv. Teilweise genutzte Zeiträume werden nicht erstattet, sofern das Gesetz es nicht verlangt.'] },
@@ -34,11 +36,20 @@ export const de: LegalContent = {
       { h: 'Auswirkung auf Credits', p: ['Wird eine Zahlung erstattet, werden die damit gutgeschriebenen Credits von deinem Guthaben abgezogen.'] },
     ],
   },
+  delivery: {
+    intro: '{brand} ist ein digitaler Dienst. Es wird nichts physisch versendet: Gekaufte Credits und Pläne werden deinem Konto online gutgeschrieben.',
+    sections: [
+      { h: 'Wann du sie erhältst', p: ['Credits und Pläne werden automatisch gutgeschrieben, meist innerhalb einer Minute, nachdem die Bank die Zahlung bestätigt hat. Das neue Guthaben siehst du oben auf der Seite und in deinem Profil.'] },
+      { h: 'So funktioniert es', p: ['Nach der Zahlung auf der sicheren Zahlungsseite benachrichtigt der Zahlungsanbieter unseren Server. Der Server prüft die Nachricht und den Betrag und schreibt dann die Credits gut. Du wirst zu einer Bestätigungsseite mit deiner Bestellnummer weitergeleitet.'] },
+      { h: 'Wenn keine Credits erscheinen', p: ['Wurde deine Karte belastet, aber nach 30 Minuten sind keine Credits sichtbar, schreib mit deiner Bestellnummer an {email}. Wir schreiben die Credits gut oder erstatten die Zahlung.'] },
+      { h: 'Nutzung des Dienstes', p: ['Credits werden beim Erstellen von Bildern und Videos verbraucht. Ergebnisse erscheinen im Studio und in deinem Profil und können heruntergeladen werden.'] },
+      { h: 'Verfügbarkeit', p: ['Der Dienst ist rund um die Uhr verfügbar, außer bei Wartungsarbeiten. Die Generierungsdauer hängt vom Modell und der Auslastung ab.'] },
+    ],
+  },
   contact: {
     intro: 'Fragen zu deinem Konto, einer Zahlung oder diesen Richtlinien? Schreib uns.',
     sections: [
-      { h: 'E-Mail', p: ['{email}', 'Wir antworten in der Regel innerhalb von 2 Werktagen.'] },
-      { h: 'Betreiber', p: ['{owner}, {country}'] },
+      { h: 'Antwortzeit', p: ['Wir antworten in der Regel innerhalb von 2 Werktagen.'] },
     ],
   },
 };

@@ -6,9 +6,16 @@ import type { BillingCycle, CheckoutItem, PlanId } from './pricing';
 
 export type Role = 'user' | 'admin';
 
+export type PaymentMode = 'sandbox' | 'live';
+
 export interface PublicConfig {
   paymentsEnabled: boolean;
-  paymentProvider: string;
+  /** sandbox = simulated gateway, no real cards; live = real gateway */
+  paymentMode: PaymentMode;
+  /** active gateway id: sandbox | epoint | payriff */
+  paymentGateway: string;
+  /** currency the gateway actually charges in (local AZ gateways: AZN); null = any listed currency */
+  chargeCurrency: Currency | null;
   signupEnabled: boolean;
   signupCredits: number;
   currencies: Currency[];
@@ -50,6 +57,9 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
 export interface PaymentDTO {
   id: string;
+  /** public order number sent to the gateway */
+  orderId: string;
+  livemode: boolean;
   userId: string;
   userEmail?: string;
   provider: string;
@@ -63,10 +73,22 @@ export interface PaymentDTO {
   refundedAt: string | null;
 }
 
-/** How the client should finish a checkout. */
-export type CheckoutStart =
-  | { mode: 'mock'; payment: PaymentDTO }
-  | { mode: 'redirect'; payment: PaymentDTO; redirectUrl: string };
+/** Result of POST /api/payment/create: send the browser to checkoutUrl (gateway or sandbox page). */
+export interface PaymentCreateResult {
+  orderId: string;
+  checkoutUrl: string;
+  payment: PaymentDTO;
+}
+
+/** What the sandbox "gateway" page shows. */
+export interface SandboxOrder {
+  orderId: string;
+  amountMinor: number;
+  currency: Currency;
+  description: string;
+  merchant: string;
+  status: PaymentStatus;
+}
 
 export interface CurrencyTotals {
   currency: Currency;
@@ -78,6 +100,8 @@ export interface CurrencyTotals {
 }
 
 export interface AdminSummary {
+  /** totals cover only payments made in this mode (sandbox tests never count as revenue in live) */
+  mode: PaymentMode;
   totals: CurrencyTotals[];
   users: number;
   payingUsers: number;

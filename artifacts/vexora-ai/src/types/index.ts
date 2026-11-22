@@ -36,6 +36,10 @@ export interface ExploreFilters {
   sort: SortMode;
 }
 
-export const ROUTES = ['explore', 'create', 'pricing', 'profile', 'admin', 'terms', 'privacy', 'refunds', 'contact'] as const;
+export const ROUTES = [
+  'explore', 'create', 'pricing', 'profile', 'admin',
+  'terms', 'privacy', 'refunds', 'delivery', 'contact',
+  'payment-success', 'payment-failed', 'payment-sandbox',
+] as const;
 export type Route = (typeof ROUTES)[number];
-export type LegalDoc = Extract<Route, 'terms' | 'privacy' | 'refunds' | 'contact'>;
+export type LegalDoc = Extract<Route, 'terms' | 'privacy' | 'refunds' | 'delivery' | 'contact'>;

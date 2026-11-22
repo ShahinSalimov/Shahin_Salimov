@@ -43,6 +43,7 @@ interface I18n {
     num: (n: number) => string;
     compact: (n: number) => string;
     date: (iso: string) => string;
+    day: (iso: string) => string;
   };
 }
 
@@ -71,7 +72,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       fmt: {
         usd: (n) => money(Math.round(n * 100), 'USD'),
         money,
-        date: (iso) => new Intl.DateTimeFormat(intl, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso)),
+        // Numeric dates: some browsers lack month names for `az` and print "2026 M11 22".
+        date: (iso) => new Intl.DateTimeFormat(intl, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)),
+        day: (iso) => new Intl.DateTimeFormat(intl, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso)),
         num: (n) => new Intl.NumberFormat(intl).format(n),
         compact: (n) => new Intl.NumberFormat(intl, { notation: 'compact' }).format(n),
       },

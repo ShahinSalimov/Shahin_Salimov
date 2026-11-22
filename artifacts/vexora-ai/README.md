@@ -17,7 +17,8 @@ AI image & video studio: Explore, Generator, discounted plans in 5 currencies, a
 pnpm install
 export DATABASE_URL=postgresql://user@localhost:5432/vexora
 pnpm --filter @workspace/db run push                 # create tables
-ADMIN_EMAILS=you@example.com PORT=8080 pnpm --filter @workspace/api-server run dev
+cp artifacts/api-server/.env.example artifacts/api-server/.env   # edit DATABASE_URL, ADMIN_EMAILS
+pnpm --filter @workspace/api-server run dev
 pnpm --filter @workspace/vexora-ai run dev            # http://localhost:5173, proxies /api → :8080
 ```
 
@@ -28,30 +29,64 @@ Static demo without a server (data lives in the visitor's browser, first account
 
 ## Server environment
 
+All keys are documented in `artifacts/api-server/.env.example` (copy to `.env`; `pnpm start` loads it).
+
 | Variable | Default | Meaning |
 |---|---|---|
-| `DATABASE_URL` | — (required) | Postgres connection string |
-| `PORT` | — (required) | API port |
-| `ADMIN_EMAILS` | empty | Comma-separated owner emails, promoted to admin on sign-in |
-| `PAYMENT_PROVIDER` | `mock` in dev, `none` in production | `none` = payments closed (free launch); `mock` = simulated checkout; or a real adapter id |
-| `AI_PROVIDER` | `mock` | Model vendor adapter id |
-| `SIGNUP_ENABLED` | `true` | Set `false` to pause registrations |
-| `SIGNUP_CREDITS` | `30` | Free credits for new accounts (real AI costs money — keep low) |
-| `CORS_ORIGIN` | unset | Only if the web app is served from another origin |
+| `DATABASE_URL`, `PORT` | — (required) | Postgres and API port |
+| `ADMIN_EMAILS` | empty | Owner emails, promoted to admin (Cashbox) on sign-in |
+| `PAYMENTS_ENABLED` | `true` dev / `false` prod | `false` = free launch, pricing shows "Coming soon" |
+| `PAYMENT_MODE` | `sandbox` | `sandbox` = simulated gateway, no real cards · `live` = real gateway |
+| `PAYMENT_GATEWAY` | `epoint` | `epoint` or `payriff` (live only) |
+| `MERCHANT_ID`, `SECRET_KEY` | — | Merchant credentials (Epoint: public/private key; Payriff: secret key) |
+| `CALLBACK_URL` | `<origin>/api/payment/callback` | Public HTTPS URL the gateway posts results to |
+| `SUCCESS_URL`, `ERROR_URL` | `<origin>/payment/success`, `/payment/failed` | Where the customer returns; `order_id` is appended |
+| `SIGNUP_CREDITS` | `30` | Free credits per new account |
 
-`PAYMENT_PROVIDER=mock` is refused in production (it would give credits away).
+Live mode refuses to start if a required key is missing; sandbox mode refuses to start in production.
 
-## How money and credits flow
+## Payments (Epoint / Payriff / bank acquiring)
 
-1. Client sends **what** to buy and the currency; the server prices it from `lib/vexora-core/src/pricing.ts` (client prices are never trusted).
-2. A `pending` payment is stored, the provider adapter returns its hosted checkout URL; the customer pays there (card data never touches this server).
-3. The provider calls `POST /api/webhooks/<provider>`; the adapter verifies the signature, then `markPaid` grants credits **once** (idempotent).
-4. Credits are an append-only ledger; balance = sum. Generations debit under a row lock; failures/cancels refund automatically.
-5. The provider pays out to the owner's bank account. Cashbox shows charged amounts per currency (before provider fees) and lets the owner refund and adjust credits.
+Code: `artifacts/api-server/src/services/payment/`
 
-## Connecting a real payment provider (after VÖEN)
+```
+config.ts          env → settings + start-up validation
+types.ts           PaymentGateway contract (createCheckout, parseCallback, refund?)
+signature.ts       Epoint sha1 signature, sandbox HMAC, amount helpers
+gateways/
+  sandbox.ts       simulated gateway: hosted page = web /payment/sandbox, signed callbacks
+  epoint.ts        Epoint adapter (data + signature form protocol)
+  payriff.ts       Payriff adapter (order API; callback re-checked via GET /orders/{id})
+orders.ts          createOrder (server-side price, AZN) and handleCallback (match, amount check, credit once)
+fulfill.ts         markPaid / markFailed / markRefunded on the credit ledger
+```
 
-Implement `PaymentProvider` in `artifacts/api-server/src/lib/payments/<name>.ts` (`startCheckout`, `parseWebhook`, `refund`), register it in `lib/payments/index.ts`, put its secret keys in server env vars, set `PAYMENT_PROVIDER=<name>`. No web-app change is needed: the checkout already follows `redirect` responses.
+Flow:
+1. Customer picks a plan or pack → **Pay** (web `CheckoutModal`).
+2. `POST /api/payment/create` → the server prices the item in **AZN** (local gateways charge AZN), stores order `VX…`, asks the gateway for a checkout URL → the browser goes there.
+3. Gateway → `POST /api/payment/callback` (signature or server-side lookup) → amount checked → credits granted once.
+4. Customer returns to `/payment/success` or `/payment/failed`; the page polls `GET /api/payment/status/:orderId`, because the redirect can arrive before the callback.
+5. Sandbox: `/payment/sandbox` shows a stand-in bank page; its buttons send a signed callback through the same code path.
+
+**Before going live, verify each adapter against the gateway's current documentation.** The Epoint and Payriff protocols were written from prior knowledge without access to their docs; endpoints, field names and status values are isolated in the adapter files and marked "VERIFY". Make one real low-value payment in live mode before opening sales.
+
+To add a bank's acquiring: implement `PaymentGateway` in `gateways/<bank>.ts`, register it in `services/payment/index.ts` and add its id to `GatewayId` in `config.ts`.
+
+Refunds: gateways without a refund API are refunded in their merchant cabinet; the Cashbox **Refund** button then records it and removes the credits.
+
+Hosting: `/payment/success`, `/payment/failed`, `/payment/sandbox` are real paths — the web host must serve `index.html` for unknown paths (SPA fallback).
+
+## Compliance pages (required by local gateways)
+
+Footer and the Contact page show the business details from `src/config/site.ts`: owner `[Sahibkarın Adı Soyadı / Fərdi Sahibkar]`, VÖEN, phone, email, address, plus Visa/Mastercard acceptance marks (`components/compliance/CardBrands.tsx` — replace with the official artwork from your acquirer).
+
+Pages (7 languages, `src/legal/*`): Terms of Service, Privacy Policy (with a payment-security / PCI DSS section), Refund & Cancellation, Service Delivery (instant credit delivery), Contact.
+
+Checklist before applying to a gateway:
+- [ ] Fill every placeholder in `src/config/site.ts` (needs the VÖEN)
+- [ ] Have the legal texts reviewed (the 14-day pack refund window and the 18+ age rule are draft choices)
+- [ ] Site live on your own domain over HTTPS, legal pages reachable from the footer
+- [ ] Official Visa/Mastercard marks from the acquirer
 
 ## Connecting a real AI model
 
@@ -59,7 +94,6 @@ Implement `AIProvider` in `artifacts/api-server/src/lib/ai/<name>.ts` (`submit`,
 
 ## Before launch
 
-- Fill `src/config/site.ts` (owner name, support email). Legal texts in `src/legal/*` are drafts — have them reviewed.
 - Review non-USD prices in `lib/vexora-core/src/pricing.ts` (TRY especially) and fill `REFERENCE_PRICES` in `src/data/pricing.ts`.
 - Plan renewals: today a plan purchase grants one period of credits; monthly renewals should come from the provider's subscription webhooks.
 

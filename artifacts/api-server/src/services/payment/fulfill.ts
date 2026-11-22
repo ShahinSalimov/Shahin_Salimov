@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { db, paymentsTable, usersTable, type PaymentRow } from '@workspace/db';
 import type { CheckoutItem } from '@workspace/vexora-core';
-import { addEntry, withUserLock } from '../ledger';
+import { addEntry, withUserLock } from '../../lib/ledger';
 
 /**
  * Idempotent: only a pending payment becomes paid, so a webhook delivered twice grants credits once.

@@ -17,6 +17,7 @@ export const fr: LegalContent = {
     intro: 'Cette politique explique quelles données {brand} collecte et pourquoi.',
     sections: [
       { h: 'Ce que nous collectons', p: ['Les données du compte (e-mail, nom et mot de passe stocké sous forme de hash sécurisé), vos prompts et résultats, les enregistrements de paiement (montant, devise, statut) et des journaux techniques de base comme l’adresse IP et le navigateur. Les données de carte sont traitées par le prestataire de paiement, pas par nous.'] },
+      { h: 'Sécurité des paiements', p: ['Les données de carte sont saisies uniquement sur la page sécurisée de la banque ou d’un prestataire de paiement agréé, qui les traite selon la norme de sécurité des réseaux de cartes (PCI DSS). {brand} ne voit, ne reçoit ni ne conserve votre numéro de carte, sa date d’expiration ou son CVV. Nous conservons uniquement le numéro de commande, le montant, la devise et le statut du paiement.'] },
       { h: 'Pourquoi nous les utilisons', p: ['Pour faire fonctionner votre compte et vos générations, traiter paiements et remboursements, prévenir les abus et améliorer le service.'] },
       { h: 'Cookies et stockage', p: ['Nous utilisons un seul cookie essentiel pour vous garder connecté. Votre navigateur mémorise aussi votre langue et votre devise. Nous n’utilisons pas de cookies publicitaires.'] },
       { h: 'Avec qui nous les partageons', p: ['Uniquement avec les services qui font fonctionner {brand} : l’hébergement, le prestataire de paiement et les fournisseurs de modèles d’IA qui traitent vos prompts. Nous ne vendons pas de données personnelles.'] },
@@ -27,6 +28,7 @@ export const fr: LegalContent = {
   refunds: {
     intro: 'Cette politique explique quand vous pouvez récupérer votre argent ou vos crédits.',
     sections: [
+      { h: 'Service numérique', p: ['Les crédits étant fournis immédiatement après le paiement, un achat dont les crédits ont déjà été utilisés n’est pas remboursé, sauf si la loi l’exige.'] },
       { h: 'Générations échouées ou annulées', p: ['Si une génération échoue ou si vous l’annulez avant la fin, ses crédits reviennent automatiquement sur votre solde.'] },
       { h: 'Packs de crédits', p: ['Vous pouvez demander un remboursement dans les 14 jours suivant l’achat si vous n’avez utilisé aucun crédit du pack.'] },
       { h: 'Offres', p: ['Vous pouvez résilier une offre à tout moment ; elle reste active jusqu’à la fin de la période payée. Les périodes partiellement utilisées ne sont pas remboursées, sauf si la loi l’exige.'] },
@@ -34,11 +36,20 @@ export const fr: LegalContent = {
       { h: 'Effet sur les crédits', p: ['Lorsqu’un paiement est remboursé, les crédits qu’il avait ajoutés sont retirés de votre solde.'] },
     ],
   },
+  delivery: {
+    intro: '{brand} est un service numérique. Rien n’est expédié physiquement : les crédits et offres achetés sont ajoutés à votre compte en ligne.',
+    sections: [
+      { h: 'Quand vous les recevez', p: ['Les crédits et offres sont ajoutés automatiquement, généralement en moins d’une minute après la confirmation du paiement par la banque. Le nouveau solde apparaît en haut de la page et dans votre profil.'] },
+      { h: 'Comment ça marche', p: ['Après le paiement sur la page sécurisée, le prestataire de paiement prévient notre serveur. Le serveur vérifie la notification et le montant, puis ajoute les crédits. Vous êtes redirigé vers une page de confirmation avec votre numéro de commande.'] },
+      { h: 'Si les crédits n’apparaissent pas', p: ['Si votre carte a été débitée mais que les crédits n’apparaissent pas sous 30 minutes, écrivez à {email} avec votre numéro de commande. Nous ajouterons les crédits ou rembourserons le paiement.'] },
+      { h: 'Utilisation du service', p: ['Les crédits sont consommés lorsque vous générez des images ou des vidéos. Les résultats apparaissent dans le studio et votre profil et peuvent être téléchargés.'] },
+      { h: 'Disponibilité', p: ['Le service fonctionne 24 h/24, hors maintenance. La durée de génération dépend du modèle et de la charge.'] },
+    ],
+  },
   contact: {
     intro: 'Une question sur votre compte, un paiement ou ces politiques ? Écrivez-nous.',
     sections: [
-      { h: 'E-mail', p: ['{email}', 'Nous répondons généralement sous 2 jours ouvrés.'] },
-      { h: 'Exploitant', p: ['{owner}, {country}'] },
+      { h: 'Délai de réponse', p: ['Nous répondons généralement sous 2 jours ouvrés.'] },
     ],
   },
 };

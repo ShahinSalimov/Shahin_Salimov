@@ -25,8 +25,9 @@
   --color-danger-soft: #fdeceb;
   --color-overlay: #14201d;
 
-  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Both families cover Latin-ext (az/tr/de/es/fr) and Cyrillic (ru), so every language uses the same type. */
+  --font-display: "Geologica", "Onest", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Onest", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --radius-card: 1.25rem;
@@ -47,12 +48,6 @@
     from { opacity: 0; transform: translateY(14px) scale(.98); }
     to { opacity: 1; transform: none; }
   }
-}
-
-/* Syne / Plus Jakarta Sans lack basic Cyrillic → swap to Unbounded / Manrope for Russian */
-:root:lang(ru) {
-  --font-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

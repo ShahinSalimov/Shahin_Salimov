@@ -50,7 +50,9 @@ export function AdminPage() {
           <p className="mt-1 text-fg-muted">{a('subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
-          {backend.kind === 'demo' ? <Badge tone="accent">{a('demo')}</Badge> : config && <Badge tone="neutral">{a('provider', { p: config.paymentProvider })}</Badge>}
+          {backend.kind === 'demo' && <Badge tone="accent">{a('demo')}</Badge>}
+          {config?.paymentsEnabled && <Badge tone={config.paymentMode === 'live' ? 'primary' : 'accent'}>{a(config.paymentMode === 'live' ? 'modeLive' : 'modeSandbox')}</Badge>}
+          {config?.paymentsEnabled && <Badge tone="neutral">{a('provider', { p: config.paymentGateway })}</Badge>}
           <Button size="sm" variant="outline" onClick={() => setReload((n) => n + 1)}><RefreshCw size={14} /> {a('refresh')}</Button>
         </div>
       </header>
@@ -161,7 +163,7 @@ function PaymentsTable({ onChanged, reload }: { onChanged: () => void; reload: n
             {data?.items.map((p) => (
               <tr key={p.id} className="border-t border-line">
                 <td className="whitespace-nowrap px-4 py-3 text-fg-muted">{fmt.date(p.createdAt)}</td>
-                <td className="max-w-[220px] truncate px-4 py-3">{p.userEmail}</td>
+                <td className="max-w-[220px] px-4 py-3"><p className="truncate">{p.userEmail}</p><p className="font-mono text-xs text-fg-subtle">{p.orderId}{!p.livemode && ` · ${a('test')}`}</p></td>
                 <td className="px-4 py-3">{itemLabel(p.item)}</td>
                 <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmt.money(p.amountMinor, p.currency)}</td>
                 <td className="px-4 py-3"><Badge tone={p.status === 'paid' ? 'primary' : p.status === 'refunded' ? 'accent' : 'neutral'}>{t(`status.${p.status}` as TKey)}</Badge></td>
@@ -182,6 +184,7 @@ function PaymentsTable({ onChanged, reload }: { onChanged: () => void; reload: n
           <div className="p-6">
             <h2 className="pe-8 font-display text-xl font-bold">{a('refund')}</h2>
             <p className="mt-2 text-sm text-fg-muted">{a('refundConfirm', { amount: fmt.money(confirm.amountMinor, confirm.currency), email: confirm.userEmail ?? '', credits: fmt.num(confirm.credits) })}</p>
+            {confirm.livemode && <p className="mt-2 rounded-xl bg-accent-soft px-3 py-2 text-xs text-accent-fg">{a('manualRefund', { p: confirm.provider })}</p>}
             {err && <p role="alert" className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{t(err)}</p>}
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setConfirm(null)}>{a('cancel')}</Button>

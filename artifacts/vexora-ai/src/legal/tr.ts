@@ -17,6 +17,7 @@ export const tr: LegalContent = {
     intro: 'Bu politika {brand}’in hangi verileri neden topladığını açıklar.',
     sections: [
       { h: 'Ne topluyoruz', p: ['Hesap verileri (e-posta, ad ve güvenli hash olarak saklanan şifre), prompt’ların ve üretilen çıktılar, ödeme kayıtları (tutar, para birimi, durum) ve IP adresi, tarayıcı gibi temel teknik kayıtlar. Kart bilgileri bizim tarafımızdan değil, ödeme sağlayıcısı tarafından işlenir.'] },
+      { h: 'Ödeme güvenliği', p: ['Kart bilgileri yalnızca bankanın veya lisanslı ödeme sağlayıcısının güvenli sayfasına girilir ve kart kuruluşlarının güvenlik standardına (PCI DSS) uygun olarak işlenir. {brand} kart numaranı, son kullanma tarihini ve CVV kodunu görmez, almaz ve saklamaz. Yalnızca sipariş numarası, tutar, para birimi ve ödeme durumunu saklarız.'] },
       { h: 'Neden kullanıyoruz', p: ['Hesabını ve üretimlerini çalıştırmak, ödemeleri ve iadeleri işlemek, kötüye kullanımı önlemek ve hizmeti geliştirmek için.'] },
       { h: 'Çerezler ve depolama', p: ['Oturumunu açık tutmak için yalnızca bir zorunlu çerez kullanırız. Tarayıcın dil ve para birimi tercihini de hatırlar. Reklam çerezi kullanmayız.'] },
       { h: 'Kimlerle paylaşıyoruz', p: ['Yalnızca {brand}’in çalışmasına yardım eden hizmetlerle: barındırma, ödeme sağlayıcısı ve prompt’larını işleyen yapay zekâ model sağlayıcıları. Kişisel veri satmayız.'] },
@@ -27,6 +28,7 @@ export const tr: LegalContent = {
   refunds: {
     intro: 'Bu politika paranı veya kredilerini ne zaman geri alabileceğini açıklar.',
     sections: [
+      { h: 'Dijital hizmet', p: ['Krediler ödemeden hemen sonra teslim edildiğinden, kredileri kullanılmış bir satın alma, yasa aksini gerektirmedikçe iade edilmez.'] },
       { h: 'Başarısız veya iptal edilen üretimler', p: ['Bir üretim başarısız olursa veya bitmeden iptal edersen, kredileri otomatik olarak bakiyene döner.'] },
       { h: 'Kredi paketleri', p: ['Paketten hiç kredi kullanmadıysan satın alımdan sonraki 14 gün içinde iade isteyebilirsin.'] },
       { h: 'Planlar', p: ['Planını istediğin zaman iptal edebilirsin; ödenen dönemin sonuna kadar aktif kalır. Kısmen kullanılan dönemler, yasa gerektirmedikçe iade edilmez.'] },
@@ -34,11 +36,20 @@ export const tr: LegalContent = {
       { h: 'Krediler üzerindeki etkisi', p: ['Bir ödeme iade edildiğinde, eklediği krediler bakiyenden düşülür.'] },
     ],
   },
+  delivery: {
+    intro: '{brand} dijital bir hizmettir. Fiziksel gönderim yapılmaz: satın aldığın krediler ve planlar hesabına çevrimiçi olarak eklenir.',
+    sections: [
+      { h: 'Ne zaman alırsın', p: ['Ödeme banka tarafından onaylandıktan sonra krediler ve planlar otomatik olarak, genellikle bir dakika içinde hesabına yüklenir. Yeni bakiyeni sayfanın üst kısmında ve profilinde görürsün.'] },
+      { h: 'Nasıl çalışır', p: ['Güvenli ödeme sayfasında ödeme yaptıktan sonra ödeme sağlayıcısı sunucumuza bildirim gönderir. Sunucu bildirimi ve tutarı kontrol eder, ardından kredileri ekler. Sipariş numaranın gösterildiği onay sayfasına yönlendirilirsin.'] },
+      { h: 'Krediler görünmezse', p: ['Kartından ödeme alındıysa ama krediler 30 dakika içinde görünmediyse sipariş numaranla {email} adresine yaz. Kredileri ekleriz veya ödemeyi iade ederiz.'] },
+      { h: 'Hizmetin kullanımı', p: ['Krediler görsel ve video oluşturduğunda harcanır. Sonuçlar stüdyoda ve profilinde görünür ve indirilebilir.'] },
+      { h: 'Erişilebilirlik', p: ['Hizmet bakım dönemleri dışında 7/24 çalışır. Üretim süresi modele ve yoğunluğa bağlıdır.'] },
+    ],
+  },
   contact: {
     intro: 'Hesabın, bir ödeme veya bu politikalar hakkında sorun mu var? Bize yaz.',
     sections: [
-      { h: 'E-posta', p: ['{email}', 'Genellikle 2 iş günü içinde yanıt veririz.'] },
-      { h: 'Hizmet sağlayıcı', p: ['{owner}, {country}'] },
+      { h: 'Yanıt süresi', p: ['Genellikle 2 iş günü içinde yanıt veririz.'] },
     ],
   },
 };

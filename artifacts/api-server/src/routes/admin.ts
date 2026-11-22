@@ -1,5 +1,5 @@
 import { Router, type IRouter } from 'express';
-import { and, count, desc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod/v4';
 import { creditLedgerTable, db, generationsTable, paymentsTable, usersTable } from '@workspace/db';
 import { CURRENCIES, type AdminSummary, type AdminUser, type Currency } from '@workspace/vexora-core';
@@ -7,8 +7,8 @@ import { requireAdmin } from '../lib/auth';
 import { toPayment } from '../lib/dto';
 import { HttpError } from '../lib/http';
 import { addEntry, withUserLock } from '../lib/ledger';
-import { providerById } from '../lib/payments';
-import { markRefunded } from '../lib/payments/fulfill';
+import { gatewayById, paymentConfig } from '../services/payment';
+import { markRefunded } from '../services/payment/fulfill';
 import { parse } from '../lib/validate';
 
 /** Owner-only "Kassa": revenue per currency, payments, refunds and user credits. */
@@ -25,12 +25,15 @@ const PaymentsQuery = z.object({
 });
 
 router.get('/admin/summary', async (_req, res) => {
+  // In live mode sandbox test payments never count as revenue (and vice versa).
+  const live = paymentConfig.mode === 'live';
   const rows = await db.select({
     currency: paymentsTable.currency,
     status: paymentsTable.status,
     sum: sql<string>`coalesce(sum(${paymentsTable.amountMinor}), 0)`,
     n: count(),
-  }).from(paymentsTable).where(inArray(paymentsTable.status, ['paid', 'refunded'])).groupBy(paymentsTable.currency, paymentsTable.status);
+  }).from(paymentsTable).where(and(inArray(paymentsTable.status, ['paid', 'refunded']), eq(paymentsTable.livemode, live)))
+    .groupBy(paymentsTable.currency, paymentsTable.status);
 
   const totals = CURRENCIES.map((currency: Currency) => {
     const paid = rows.find((r) => r.currency === currency && r.status === 'paid');
@@ -42,14 +45,15 @@ router.get('/admin/summary', async (_req, res) => {
 
   const [[users], [paying], [gens], [spent], [pending]] = await Promise.all([
     db.select({ n: count() }).from(usersTable),
-    db.select({ n: sql<number>`count(distinct ${paymentsTable.userId})::int` }).from(paymentsTable).where(eq(paymentsTable.status, 'paid')),
+    db.select({ n: sql<number>`count(distinct ${paymentsTable.userId})::int` }).from(paymentsTable).where(and(eq(paymentsTable.status, 'paid'), eq(paymentsTable.livemode, live))),
     db.select({ n: count() }).from(generationsTable),
     db.select({ n: sql<string>`coalesce(-sum(${creditLedgerTable.delta}), 0)` }).from(creditLedgerTable)
       .where(inArray(creditLedgerTable.reason, ['generation', 'generation_refund'])),
-    db.select({ n: count() }).from(paymentsTable).where(eq(paymentsTable.status, 'pending')),
+    db.select({ n: count() }).from(paymentsTable).where(and(eq(paymentsTable.status, 'pending'), eq(paymentsTable.livemode, live))),
   ]);
 
   const body: AdminSummary = {
+    mode: paymentConfig.mode,
     totals, users: users.n, payingUsers: paying.n, generations: gens.n, creditsSpent: Number(spent.n), pendingPayments: pending.n,
   };
   res.json(body);
@@ -60,7 +64,7 @@ router.get('/admin/payments', async (req, res) => {
   const filters: SQL[] = [];
   if (q.status) filters.push(eq(paymentsTable.status, q.status));
   if (q.currency) filters.push(eq(paymentsTable.currency, q.currency));
-  if (q.q) filters.push(ilike(usersTable.email, `%${q.q.replace(/[%_\\]/g, '\\$&')}%`));
+  if (q.q) filters.push(or(ilike(usersTable.email, `%${q.q.replace(/[%_\\]/g, '\\$&')}%`), eq(paymentsTable.orderId, q.q.toUpperCase()))!);
   const where = filters.length ? and(...filters) : undefined;
   const [rows, [total]] = await Promise.all([
     db.select({ p: paymentsTable, email: usersTable.email }).from(paymentsTable).innerJoin(usersTable, eq(usersTable.id, paymentsTable.userId))
@@ -75,7 +79,8 @@ router.post('/admin/payments/:id/refund', async (req, res) => {
   const [p] = await db.select().from(paymentsTable).where(eq(paymentsTable.id, id));
   if (!p) throw new HttpError(404, 'not_found');
   if (p.status !== 'paid') throw new HttpError(409, 'conflict');
-  await providerById(p.provider)?.refund?.(p);
+  // Gateways without a refund API are refunded in their merchant cabinet; this records it.
+  await gatewayById(p.provider)?.refund?.(p);
   const r = await markRefunded(p, `admin:${req.user!.email}`);
   if (!r) throw new HttpError(409, 'conflict');
   res.json(toPayment(r));

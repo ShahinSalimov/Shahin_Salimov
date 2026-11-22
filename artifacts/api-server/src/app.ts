@@ -42,6 +42,8 @@ app.use(
     },
   }),
 );
+// Some gateways (e.g. Epoint) post callbacks as form fields.
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 app.use(cookieParser());
 
 // CSRF guard: state-changing calls must be JSON (forms from other sites cannot send that with cookies).
@@ -49,7 +51,8 @@ app.use("/api", (req, _res, next) => {
   const mutating = !["GET", "HEAD", "OPTIONS"].includes(req.method);
   // Header check (not req.is): req.is() is null for empty bodies, which would block body-less POSTs.
   const isJson = (req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json");
-  if (mutating && !req.path.startsWith("/webhooks/") && !isJson) {
+  // Gateway callbacks are server-to-server (form posts) and are authenticated by signature instead.
+  if (mutating && req.path !== "/payment/callback" && !isJson) {
     return next(new HttpError(415, "invalid_input"));
   }
   next();

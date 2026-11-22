@@ -34,9 +34,11 @@ export function createHttpBackend(baseUrl: string): Backend {
     getGeneration: (id) => call(`/generations/${id}`),
     cancelGeneration: (id) => post(`/generations/${id}/cancel`),
     listGenerations: () => call('/generations'),
-    checkout: (item, currency) => post('/checkout', { item, currency }),
-    completeMockPayment: (id) => post(`/payments/${id}/mock-complete`),
+    createPayment: (item, currency) => post('/payment/create', { item, currency }),
+    paymentStatus: (orderId) => call(`/payment/status/${encodeURIComponent(orderId)}`),
     myPayments: () => call('/payments'),
+    sandboxOrder: (orderId) => call(`/payment/sandbox/${encodeURIComponent(orderId)}`),
+    completeSandbox: (orderId, outcome) => post(`/payment/sandbox/${encodeURIComponent(orderId)}/complete`, { outcome }),
     admin: {
       summary: () => call('/admin/summary'),
       payments: (q) => call('/admin/payments', { query: { ...q } }),

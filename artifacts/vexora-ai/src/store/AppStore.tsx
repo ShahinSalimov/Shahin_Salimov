@@ -30,10 +30,19 @@ interface AppState {
 
 const Ctx = createContext<AppState | null>(null);
 
-/** Accepts both `#create` (canonical) and legacy `#/create`. */
-const readHash = (): Route => {
+/** Gateways send customers back to real paths (SUCCESS_URL / ERROR_URL), e.g. /payment/success?order_id=… */
+const PATH_ROUTES: [RegExp, Route][] = [
+  [/\/payment\/success\/?$/, 'payment-success'],
+  [/\/payment\/failed\/?$/, 'payment-failed'],
+  [/\/payment\/sandbox\/?$/, 'payment-sandbox'],
+];
+const PATH_ROUTE_RE = /\/payment\/(success|failed|sandbox)\/?$/;
+
+/** Hash wins (`#create`, legacy `#/create`); otherwise a payment path; otherwise Explore. */
+const readRoute = (): Route => {
   const h = window.location.hash.replace(/^#\/?/, '') as Route;
-  return (ROUTES as readonly string[]).includes(h) ? h : 'explore';
+  if ((ROUTES as readonly string[]).includes(h)) return h;
+  return PATH_ROUTES.find(([re]) => re.test(window.location.pathname))?.[1] ?? 'explore';
 };
 
 const CURRENCY_KEY = 'vx.currency';
@@ -45,7 +54,7 @@ function initialCurrency(locale: string): Currency {
 
 export function AppStoreProvider({ children }: { children: ReactNode }) {
   const { locale } = useI18n();
-  const [route, setRoute] = useState<Route>(readHash);
+  const [route, setRoute] = useState<Route>(readRoute);
   const [config, setConfig] = useState<PublicConfig | null>(null);
   const [me, setMe] = useState<Me | null | undefined>(undefined);
   const [auth, setAuth] = useState<AuthMode | null>(null);
@@ -54,9 +63,10 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [remixPrompt, setRemixPrompt] = useState<string | null>(null);
 
   useEffect(() => {
-    const on = () => { setRoute(readHash()); setCheckout(null); };
+    const on = () => { setRoute(readRoute()); setCheckout(null); };
     window.addEventListener('hashchange', on);
-    return () => window.removeEventListener('hashchange', on);
+    window.addEventListener('popstate', on);
+    return () => { window.removeEventListener('hashchange', on); window.removeEventListener('popstate', on); };
   }, []);
 
   const refreshMe = useCallback(async () => {
@@ -68,7 +78,18 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     backend.config().then(setConfig).catch(() => setConfig(null));
   }, [refreshMe]);
 
-  const navigate = useCallback((r: Route) => { window.location.hash = r; window.scrollTo({ top: 0, behavior: 'smooth' }); }, []);
+  const navigate = useCallback((r: Route) => {
+    const { pathname, search } = window.location;
+    if (PATH_ROUTE_RE.test(pathname)) {
+      // Leaving /payment/... : go back to the app root without a reload.
+      window.history.pushState(null, '', `${pathname.replace(PATH_ROUTE_RE, '/')}#${r}`);
+      setRoute(r); setCheckout(null);
+    } else {
+      if (search.includes('order_id')) window.history.replaceState(null, '', pathname + window.location.hash);
+      window.location.hash = r;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const setCurrency = useCallback((c: Currency) => {
     setCurrencyState(c);

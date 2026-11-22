@@ -1,5 +1,8 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { paymentConfig, validatePaymentConfig } from "./services/payment";
+
+validatePaymentConfig();
 
 const rawPort = process.env["PORT"];
 
@@ -21,5 +24,5 @@ app.listen(port, (err) => {
     process.exit(1);
   }
 
-  logger.info({ port }, "Server listening");
+  logger.info({ port, payments: paymentConfig.enabled ? `${paymentConfig.mode}:${paymentConfig.gateway}` : "off" }, "Server listening");
 });

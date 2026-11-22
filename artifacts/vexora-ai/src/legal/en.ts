@@ -17,6 +17,7 @@ export const en: LegalContent = {
     intro: 'This policy explains what data {brand} collects and why.',
     sections: [
       { h: 'What we collect', p: ['Account data (email, name, and your password stored as a secure hash), your prompts and generated outputs, payment records (amount, currency, status) and basic technical logs such as IP address and browser. Card details are handled by the payment provider, not by us.'] },
+      { h: 'Payment security', p: ['Card details are entered only on the secure page of the bank or a licensed payment provider, which processes them under the card schemes’ security standard (PCI DSS). {brand} never sees, receives or stores your card number, expiry date or CVV. We keep only the order number, amount, currency and payment status.'] },
       { h: 'Why we use it', p: ['To run your account and generations, process payments and refunds, prevent abuse and improve the service.'] },
       { h: 'Cookies and storage', p: ['We use one essential cookie to keep you signed in. Your browser also remembers your language and currency. We do not use advertising cookies.'] },
       { h: 'Who we share it with', p: ['Only with services that help run {brand}: hosting, the payment provider and the AI model providers that process your prompts. We do not sell personal data.'] },
@@ -27,6 +28,7 @@ export const en: LegalContent = {
   refunds: {
     intro: 'This policy explains when you can get your money or credits back.',
     sections: [
+      { h: 'Digital service', p: ['Because credits are delivered immediately after payment, a purchase whose credits have already been used is not refunded, unless the law requires otherwise.'] },
       { h: 'Failed or cancelled generations', p: ['If a generation fails, or you cancel it before it finishes, its credits return to your balance automatically.'] },
       { h: 'Credit packs', p: ['You can ask for a refund within 14 days of purchase if you have not used any credits from the pack.'] },
       { h: 'Plans', p: ['You can cancel a plan at any time; it stays active until the end of the paid period. Partly used periods are not refunded unless the law requires it.'] },
@@ -34,11 +36,20 @@ export const en: LegalContent = {
       { h: 'Effect on credits', p: ['When a payment is refunded, the credits it added are removed from your balance.'] },
     ],
   },
+  delivery: {
+    intro: '{brand} is a digital service. Nothing is shipped physically: the credits and plans you buy are added to your account online.',
+    sections: [
+      { h: 'When you receive it', p: ['Credits and plans are added to your account automatically, usually within a minute after the bank confirms the payment. You will see the new balance at the top of the page and in your profile.'] },
+      { h: 'How it works', p: ['After you pay on the secure payment page, the payment provider notifies our server. The server checks the notification and the amount, then adds the credits. You are sent to a confirmation page with your order number.'] },
+      { h: 'If credits do not appear', p: ['If your card was charged but the credits did not appear within 30 minutes, write to {email} with your order number. We will add the credits or refund the payment.'] },
+      { h: 'Using the service', p: ['Credits are spent when you generate images or videos. Results appear in the studio and in your profile, and can be downloaded.'] },
+      { h: 'Availability', p: ['The service runs around the clock, except during maintenance. Generation time depends on the model and the current load.'] },
+    ],
+  },
   contact: {
     intro: 'Questions about your account, a payment or these policies? Write to us.',
     sections: [
-      { h: 'Email', p: ['{email}', 'We aim to reply within 2 business days.'] },
-      { h: 'Operator', p: ['{owner}, {country}'] },
+      { h: 'Response time', p: ['We aim to reply within 2 business days.'] },
     ],
   },
 };

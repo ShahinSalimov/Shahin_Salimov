@@ -4,21 +4,23 @@ import { LEGAL } from '@/legal';
 import { SITE } from '@/config/site';
 import { useI18n, type TKey } from '@/i18n';
 import type { LegalDoc } from '@/types';
+import { Requisites } from '@/components/compliance/Requisites';
 
-const fill = (s: string) => s.replace(/\{(brand|owner|email|country)\}/g, (_, k: keyof typeof SITE) => String(SITE[k]));
+const fill = (s: string) => s.replace(/\{(brand|owner|email|country|voen|phone|address)\}/g, (_, k: keyof typeof SITE) => String(SITE[k]));
 
 export function LegalPage({ doc }: { doc: LegalDoc }) {
-  const { t, locale } = useI18n();
+  const { t, locale, fmt } = useI18n();
   const content = LEGAL[locale][doc];
   const [copied, setCopied] = useState(false);
   const copy = async () => { try { await navigator.clipboard.writeText(SITE.email); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* select manually */ } };
-  const updated = new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date(SITE.legalUpdated));
+  const updated = fmt.day(SITE.legalUpdated);
 
   return (
     <article className="mx-auto max-w-2xl py-12">
       <p className="text-sm text-fg-subtle">{t('legal.updated', { date: updated })}</p>
       <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-balance sm:text-4xl">{t(`legal.${doc}` as TKey)}</h1>
       <p className="mt-4 text-lg leading-relaxed text-fg-muted">{fill(content.intro)}</p>
+      {doc === 'contact' && <div className="mt-8"><Requisites /></div>}
       <div className="mt-10 space-y-8">
         {content.sections.map((s) => (
           <section key={s.h}>

@@ -17,6 +17,7 @@ export const az: LegalContent = {
     intro: 'Bu siyasət {brand}-in hansı məlumatları topladığını və niyə topladığını izah edir.',
     sections: [
       { h: 'Nə toplayırıq', p: ['Hesab məlumatları (e-poçt, ad və təhlükəsiz hash şəklində saxlanılan şifrə), prompt-ların və yaradılan nəticələr, ödəniş qeydləri (məbləğ, valyuta, status) və IP ünvanı, brauzer kimi əsas texniki loglar. Kart məlumatlarını biz yox, ödəniş provayderi emal edir.'] },
+      { h: 'Ödəniş təhlükəsizliyi', p: ['Kart məlumatları yalnız bankın və ya lisenziyalı ödəniş provayderinin təhlükəsiz səhifəsində daxil edilir və kart sistemlərinin təhlükəsizlik standartına (PCI DSS) uyğun emal olunur. {brand} kart nömrəsini, bitmə tarixini və CVV kodunu görmür, qəbul etmir və saxlamır. Biz yalnız sifariş nömrəsini, məbləği, valyutanı və ödəniş statusunu saxlayırıq.'] },
       { h: 'Nə üçün istifadə edirik', p: ['Hesabını və generasiyaları işlətmək, ödəniş və geri qaytarmaları emal etmək, sui-istifadənin qarşısını almaq və xidməti yaxşılaşdırmaq üçün.'] },
       { h: 'Cookie və yaddaş', p: ['Hesabda qalman üçün yalnız bir zəruri cookie istifadə edirik. Brauzerin həmçinin dil və valyuta seçimini yadda saxlayır. Reklam cookie-ləri istifadə etmirik.'] },
       { h: 'Kimlə paylaşırıq', p: ['Yalnız {brand}-in işləməsinə kömək edən xidmətlərlə: hostinq, ödəniş provayderi və prompt-larını emal edən AI model provayderləri. Şəxsi məlumatları satmırıq.'] },
@@ -27,6 +28,7 @@ export const az: LegalContent = {
   refunds: {
     intro: 'Bu qaydalar pulunu və ya kreditlərini nə vaxt geri ala biləcəyini izah edir.',
     sections: [
+      { h: 'Rəqəmsal xidmət', p: ['Kreditlər ödənişdən dərhal sonra təqdim olunduğu üçün kreditləri artıq istifadə edilmiş alışın dəyəri, qanun başqa cür tələb etmirsə, geri qaytarılmır.'] },
       { h: 'Uğursuz və ya ləğv edilmiş generasiyalar', p: ['Generasiya uğursuz olarsa və ya bitməmiş onu ləğv etsən, kreditlər avtomatik balansına qayıdır.'] },
       { h: 'Kredit paketləri', p: ['Paketdən heç bir kredit istifadə etməmisənsə, alışdan sonra 14 gün ərzində geri qaytarma istəyə bilərsən.'] },
       { h: 'Planlar', p: ['Planı istənilən vaxt ləğv edə bilərsən; o, ödənilmiş dövrün sonuna qədər aktiv qalır. Qismən istifadə olunmuş dövrlər üçün qanun tələb etmirsə, pul qaytarılmır.'] },
@@ -34,11 +36,20 @@ export const az: LegalContent = {
       { h: 'Kreditlərə təsiri', p: ['Ödəniş geri qaytarılanda onun əlavə etdiyi kreditlər balansından silinir.'] },
     ],
   },
+  delivery: {
+    intro: '{brand} rəqəmsal xidmətdir. Heç nə fiziki olaraq çatdırılmır: aldığın kreditlər və planlar onlayn olaraq hesabına əlavə olunur.',
+    sections: [
+      { h: 'Nə vaxt əldə edirsən', p: ['Bank ödənişi təsdiqlədikdən sonra kreditlər və planlar avtomatik olaraq, adətən bir dəqiqə ərzində hesabına yüklənir. Yeni balansı saytın yuxarı hissəsində və profilində görəcəksən.'] },
+      { h: 'Necə işləyir', p: ['Təhlükəsiz ödəniş səhifəsində ödəniş etdikdən sonra ödəniş provayderi serverimizə bildiriş göndərir. Server bildirişi və məbləği yoxlayır, sonra kreditləri əlavə edir. Sən sifariş nömrəsi göstərilən təsdiq səhifəsinə yönləndirilirsən.'] },
+      { h: 'Kreditlər görünməsə', p: ['Kartından pul çıxılıb, amma 30 dəqiqə ərzində kreditlər görünməyibsə, sifariş nömrəsi ilə {email} ünvanına yaz. Kreditləri əlavə edəcəyik və ya ödənişi geri qaytaracağıq.'] },
+      { h: 'Xidmətdən istifadə', p: ['Kreditlər şəkil və video yaradanda sərf olunur. Nəticələr studiyada və profilində görünür və yüklənə bilər.'] },
+      { h: 'Əlçatanlıq', p: ['Xidmət texniki işlər istisna olmaqla gecə-gündüz işləyir. Generasiya müddəti modeldən və serverin yüklənməsindən asılıdır.'] },
+    ],
+  },
   contact: {
     intro: 'Hesabın, ödəniş və ya bu qaydalarla bağlı sualın var? Bizə yaz.',
     sections: [
-      { h: 'E-poçt', p: ['{email}', 'Adətən 2 iş günü ərzində cavab veririk.'] },
-      { h: 'Xidməti təqdim edən', p: ['{owner}, {country}'] },
+      { h: 'Cavab müddəti', p: ['Adətən 2 iş günü ərzində cavab veririk.'] },
     ],
   },
 };

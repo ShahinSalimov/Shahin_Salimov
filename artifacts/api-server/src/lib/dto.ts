@@ -6,7 +6,7 @@ export const toMe = (u: UserRow, balance: number): Me => ({
 });
 
 export const toPayment = (p: PaymentRow, userEmail?: string): PaymentDTO => ({
-  id: p.id, userId: p.userId, userEmail, provider: p.provider, item: p.item as CheckoutItem, currency: p.currency as Currency,
+  id: p.id, orderId: p.orderId, livemode: p.livemode, userId: p.userId, userEmail, provider: p.provider, item: p.item as CheckoutItem, currency: p.currency as Currency,
   amountMinor: p.amountMinor, credits: p.credits, status: p.status, createdAt: p.createdAt.toISOString(),
   paidAt: p.paidAt?.toISOString() ?? null, refundedAt: p.refundedAt?.toISOString() ?? null,
 });

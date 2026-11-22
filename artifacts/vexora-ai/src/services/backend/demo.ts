@@ -69,7 +69,10 @@ export function createDemoBackend(): Backend {
   return {
     kind: 'demo',
     async config() {
-      return { paymentsEnabled: true, paymentProvider: 'demo', signupEnabled: true, signupCredits: FREE_PLAN_CREDITS, currencies: [...CURRENCIES] };
+      return {
+        paymentsEnabled: true, paymentMode: 'sandbox', paymentGateway: 'sandbox', chargeCurrency: 'AZN',
+        signupEnabled: true, signupCredits: FREE_PLAN_CREDITS, currencies: [...CURRENCIES],
+      };
     },
     async me() { const s = load(); const u = s.users.find((x) => x.id === s.session); return u ? toMe(s, u) : null; },
     async register({ email, password, name }) {
@@ -134,25 +137,38 @@ export function createDemoBackend(): Backend {
       return { items, total: items.length };
     },
 
-    async checkout(item, currency) {
+    async createPayment(item) {
       await wait(250);
       const s = load(); const u = current(s);
-      const q = quote(item, currency);
+      // Mirrors local AZ gateways: always charged in AZN.
+      const q = quote(item, 'AZN');
       if (!q) throw new ApiError('invalid_input', 400);
+      const orderId = `VX${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
       const p: PaymentDTO = {
-        id: uid(), userId: u.id, provider: 'demo', item, currency, amountMinor: q.amountMinor, credits: q.credits,
+        id: uid(), orderId, livemode: false, userId: u.id, provider: 'sandbox', item, currency: 'AZN', amountMinor: q.amountMinor, credits: q.credits,
         status: 'pending', createdAt: new Date().toISOString(), paidAt: null, refundedAt: null,
       };
       s.payments.unshift(p); save(s);
-      return { mode: 'mock', payment: p };
+      return { orderId, checkoutUrl: '#payment-sandbox', payment: p };
     },
-    async completeMockPayment(id) {
-      await wait(900);
+    async paymentStatus(orderId) {
       const s = load(); const u = current(s);
-      const p = s.payments.find((x) => x.id === id && x.userId === u.id);
+      const p = s.payments.find((x) => x.orderId === orderId && (x.userId === u.id || u.role === 'admin'));
       if (!p) throw new ApiError('not_found', 404);
-      markPaid(s, p); save(s);
       return p;
+    },
+    async sandboxOrder(orderId) {
+      const p = await this.paymentStatus(orderId);
+      return { orderId, amountMinor: p.amountMinor, currency: p.currency, description: 'Vexora AI', merchant: 'Vexora AI', status: p.status };
+    },
+    async completeSandbox(orderId, outcome) {
+      await wait(700);
+      const s = load(); const u = current(s);
+      const p = s.payments.find((x) => x.orderId === orderId && x.userId === u.id);
+      if (!p) throw new ApiError('not_found', 404);
+      if (outcome === 'success') markPaid(s, p); else if (p.status === 'pending') p.status = 'failed';
+      save(s);
+      return { redirectUrl: outcome === 'success' ? '#payment-success' : '#payment-failed' };
     },
     async myPayments() {
       const s = load(); const u = current(s);
@@ -171,7 +187,7 @@ export function createDemoBackend(): Backend {
           return { currency, grossMinor: net + refunded, refundedMinor: refunded, netMinor: net, paidCount: paid.length, refundedCount: ref.length };
         });
         return {
-          totals, users: s.users.length, payingUsers: new Set(s.payments.filter((p) => p.status === 'paid').map((p) => p.userId)).size,
+          mode: 'sandbox' as const, totals, users: s.users.length, payingUsers: new Set(s.payments.filter((p) => p.status === 'paid').map((p) => p.userId)).size,
           generations: s.gens.length, creditsSpent: -s.ledger.filter((e) => e.reason.startsWith('generation')).reduce((a, e) => a + e.delta, 0),
           pendingPayments: s.payments.filter((p) => p.status === 'pending').length,
         };
