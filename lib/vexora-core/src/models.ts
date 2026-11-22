@@ -16,33 +16,43 @@ export interface AIModel {
   maxDuration?: number;
   /** longest clip the vendor makes in one call; longer videos are made of joined parts */
   maxSegment?: number;
-  /** per-second credit price by resolution (overrides creditCost) */
-  costPerSecond?: Partial<Record<Resolution, number>>;
   resolutions?: Resolution[];
   audio?: boolean;
   /** accepts a reference image (product, logo, face) */
   reference?: boolean;
   badge?: 'new' | 'pro' | 'fast';
+  /**
+   * What the AI vendor charges us, in USD: per output (image) or per second (video, by resolution).
+   * Credit prices are derived from this so every generation is profitable (see economics.ts).
+   */
+  vendorCostUsd: number | Partial<Record<Resolution, number>>;
+  /** free credits (sign-up bonus, rewarded ads) may be spent here; otherwise paid credits only */
+  freeCredits: boolean;
 }
 
-/** Internal model catalogue. Map ids to real vendors in the server's AI adapter. */
-export const MODELS: AIModel[] = [
-  { id: 'ember-img-2', name: 'Ember Image 2', kind: 'image', creditCost: 2, badge: 'new' },
-  { id: 'ember-img-fast', name: 'Ember Flash', kind: 'image', creditCost: 1, badge: 'fast' },
-  { id: 'ember-img-pro', name: 'Ember Image Pro', kind: 'image', creditCost: 4, badge: 'pro' },
-  { id: 'pulse-vid-1', name: 'Pulse Motion', kind: 'video', creditCost: 6, maxDuration: 10, badge: 'new' },
-  { id: 'pulse-vid-lite', name: 'Pulse Lite', kind: 'video', creditCost: 3, maxDuration: 6, badge: 'fast' },
-];
-
 /**
- * NOT ENABLED YET (work in progress, waiting for the owner's go-ahead): add to MODELS to show it.
- * ByteDance Seedance 2.5 (via Replicate). Vendor limit: 4–30 s per call; up to 45 s on the site
- * by joining two parts. Credit prices are PLACEHOLDERS — set them from the real per-second API price.
+ * Model catalogue. `creditCost` is the listed price; the price actually charged is never below
+ * what `vendorCostUsd` + the target margin require (economics.ts → effectiveCost).
+ * Ember/Pulse are house names not yet mapped to a vendor: their vendorCostUsd are ESTIMATES —
+ * set the real figure when you connect a vendor.
  */
-export const SEEDANCE_2_5: AIModel = {
-  id: 'seedance-2-5', name: 'Seedance 2.5', kind: 'video', creditCost: 6, minDuration: 4, maxDuration: 45, maxSegment: 30,
-  costPerSecond: { '480p': 4, '720p': 6 }, resolutions: ['480p', '720p'], audio: true, reference: true, badge: 'new',
-};
+export const MODELS: AIModel[] = [
+  { id: 'ember-img-2', name: 'Ember Image 2', kind: 'image', creditCost: 2, badge: 'new', vendorCostUsd: 0.01, freeCredits: true },
+  { id: 'ember-img-fast', name: 'Ember Flash', kind: 'image', creditCost: 1, badge: 'fast', vendorCostUsd: 0.003, freeCredits: true },
+  { id: 'ember-img-pro', name: 'Ember Image Pro', kind: 'image', creditCost: 4, badge: 'pro', vendorCostUsd: 0.04, freeCredits: false },
+  /**
+   * ByteDance Seedance 2.5 via Replicate. Vendor limit 4–30 s per call; up to 45 s on the site by
+   * joining parts. Vendor cost: ≈ $0.103/s at 480p and $0.231/s at 720p (published list prices,
+   * Oct 2026 — check your provider's current price and update here).
+   */
+  {
+    id: 'seedance-2-5', name: 'Seedance 2.5', kind: 'video', creditCost: 1, minDuration: 4, maxDuration: 45, maxSegment: 30,
+    resolutions: ['480p', '720p'], audio: true, reference: true, badge: 'new',
+    vendorCostUsd: { '480p': 0.103, '720p': 0.231 }, freeCredits: false,
+  },
+  { id: 'pulse-vid-1', name: 'Pulse Motion', kind: 'video', creditCost: 6, maxDuration: 10, vendorCostUsd: 0.1, freeCredits: false },
+  { id: 'pulse-vid-lite', name: 'Pulse Lite', kind: 'video', creditCost: 3, maxDuration: 6, badge: 'fast', vendorCostUsd: 0.05, freeCredits: false },
+];
 
 export const STYLE_IDS = ['none', 'realistic', 'cinematic', 'studio', 'neon', 'editorial'] as const;
 export type StyleId = (typeof STYLE_IDS)[number];

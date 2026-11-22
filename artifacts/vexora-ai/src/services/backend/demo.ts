@@ -1,5 +1,6 @@
 import {
-  CURRENCIES, FREE_PLAN_CREDITS, estimateCost, normaliseParams, quote,
+  CURRENCIES, ECONOMICS, FREE_PLAN_CREDITS, MODELS, adCreditsPerView, economicsTable, estimateCost, findModel, netCreditUsd, normaliseParams, quote,
+  type AdStatus,
   type AdminUser, type CheckoutItem, type GenerationDTO, type GenerationResult, type Me, type PaymentDTO, type PlanId, type BillingCycle, type Role,
 } from '@workspace/vexora-core';
 import type { Backend } from './types';
@@ -11,9 +12,9 @@ import { ApiError } from './types';
  * browser only. It is NOT secure and must never take real payments.
  */
 interface DemoUser { id: string; email: string; name: string; passHash: string; role: Role; planId: PlanId; billingCycle: BillingCycle | null; createdAt: string }
-interface Entry { userId: string; delta: number; reason: string; refId?: string }
+interface Entry { userId: string; delta: number; reason: string; refId?: string; bucket?: 'paid' | 'free' }
 interface DemoGen extends GenerationDTO { userId: string; finishAt: number }
-interface State { users: DemoUser[]; session: string | null; ledger: Entry[]; payments: PaymentDTO[]; gens: DemoGen[] }
+interface State { users: DemoUser[]; session: string | null; ledger: Entry[]; payments: PaymentDTO[]; gens: DemoGen[]; ads?: { userId: string; at: number }[]; uploads?: Record<string, string> }
 
 const KEY = 'vx.demo.v1';
 let memory: State | null = null;
@@ -33,8 +34,21 @@ async function hash(s: string) {
     return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, '0')).join('');
   } catch { return s.split('').reduce((h, c) => (Math.imul(31, h) + c.charCodeAt(0)) | 0, 7).toString(16); }
 }
-const balance = (s: State, userId: string) => s.ledger.filter((e) => e.userId === userId).reduce((a, e) => a + e.delta, 0);
-const toMe = (s: State, u: DemoUser): Me => ({ id: u.id, email: u.email, name: u.name, role: u.role, planId: u.planId, billingCycle: u.billingCycle, balance: balance(s, u.id) });
+const bucketSum = (s: State, userId: string, b: 'paid' | 'free') => s.ledger.filter((e) => e.userId === userId && (e.bucket ?? 'paid') === b).reduce((a, e) => a + e.delta, 0);
+const balance = (s: State, userId: string) => bucketSum(s, userId, 'paid') + bucketSum(s, userId, 'free');
+const toMe = (s: State, u: DemoUser): Me => ({
+  id: u.id, email: u.email, name: u.name, role: u.role, planId: u.planId, billingCycle: u.billingCycle,
+  balance: balance(s, u.id), paidBalance: bucketSum(s, u.id, 'paid'), freeBalance: bucketSum(s, u.id, 'free'),
+});
+const DAY = 864e5;
+function adStatus(s: State, userId: string): AdStatus {
+  const mine = (s.ads ?? []).filter((a) => a.userId === userId);
+  const earned = mine.length * adCreditsPerView(MODELS);
+  return {
+    enabled: true, dailyCap: 10, viewsToday: mine.filter((a) => a.at > Date.now() - (Date.now() % DAY)).length,
+    creditsPerView: adCreditsPerView(MODELS), nextCreditProgress: earned - Math.floor(earned), minWatchSeconds: 5,
+  };
+}
 const strip = ({ userId: _u, finishAt: _f, ...dto }: DemoGen): GenerationDTO => dto;
 
 function current(s: State): DemoUser {
@@ -60,7 +74,7 @@ function refresh(s: State, g: DemoGen): DemoGen {
 function markPaid(s: State, p: PaymentDTO) {
   if (p.status !== 'pending') return;
   p.status = 'paid'; p.paidAt = new Date().toISOString();
-  s.ledger.push({ userId: p.userId, delta: p.credits, reason: 'purchase', refId: p.id });
+  s.ledger.push({ userId: p.userId, delta: p.credits, reason: 'purchase', refId: p.id, bucket: 'paid' });
   const item = p.item as CheckoutItem;
   if (item.type === 'plan') { const u = s.users.find((x) => x.id === p.userId)!; u.planId = item.planId; u.billingCycle = item.cycle; }
 }
@@ -86,7 +100,7 @@ export function createDemoBackend(): Backend {
         id: uid(), email: e, name: name?.trim() || e.split('@')[0], passHash: await hash(`${e}:${password}`),
         role: s.users.length === 0 ? 'admin' : 'user', planId: 'free', billingCycle: null, createdAt: new Date().toISOString(),
       };
-      s.users.push(u); s.ledger.push({ userId: u.id, delta: FREE_PLAN_CREDITS, reason: 'signup_bonus' }); s.session = u.id;
+      s.users.push(u); s.ledger.push({ userId: u.id, delta: FREE_PLAN_CREDITS, reason: 'signup_bonus', bucket: 'free' }); s.session = u.id;
       save(s);
       return toMe(s, u);
     },
@@ -106,13 +120,15 @@ export function createDemoBackend(): Backend {
       const n = normaliseParams(params);
       if (!n.ok) throw new ApiError(n.error, 400);
       const cost = estimateCost(n.params);
-      if (balance(s, u.id) < cost) throw new ApiError('insufficient_credits', 402);
+      const free = findModel(n.params.modelId)?.freeCredits ? Math.max(0, Math.min(bucketSum(s, u.id, 'free'), cost)) : 0;
+      if (bucketSum(s, u.id, 'paid') < cost - free) throw new ApiError('insufficient_credits', 402);
       const g: DemoGen = {
         id: uid(), userId: u.id, params: n.params, status: 'running', progress: 0, cost, results: [], error: null,
         createdAt: new Date().toISOString(), finishAt: Date.now() + (n.params.kind === 'video' ? 3500 : 2000),
       };
       s.gens.unshift(g); s.gens = s.gens.slice(0, 80);
-      s.ledger.push({ userId: u.id, delta: -cost, reason: 'generation', refId: g.id });
+      if (free) s.ledger.push({ userId: u.id, delta: -free, reason: 'generation', refId: g.id, bucket: 'free' });
+      if (cost - free) s.ledger.push({ userId: u.id, delta: -(cost - free), reason: 'generation', refId: g.id, bucket: 'paid' });
       save(s);
       return strip(g);
     },
@@ -127,7 +143,7 @@ export function createDemoBackend(): Backend {
       const g = s.gens.find((x) => x.id === id && x.userId === u.id);
       if (!g || g.status !== 'running') throw new ApiError('conflict', 409);
       g.status = 'cancelled'; g.error = 'cancelled';
-      s.ledger.push({ userId: u.id, delta: g.cost, reason: 'generation_refund', refId: g.id });
+      for (const e of s.ledger.filter((x) => x.refId === g.id && x.reason === 'generation')) s.ledger.push({ ...e, delta: -e.delta, reason: 'generation_refund' });
       save(s);
       return strip(g);
     },
@@ -176,7 +192,46 @@ export function createDemoBackend(): Backend {
       return { items, total: items.length };
     },
 
+    async upload(dataUrl) {
+      const s = load(); current(s);
+      const key = `${uid().replace(/-/g, '').slice(0, 24)}.png`;
+      s.uploads = { ...(s.uploads ?? {}), [key]: dataUrl }; save(s);
+      return { key, url: dataUrl };
+    },
+    ads: {
+      async status() { const s = load(); return adStatus(s, current(s).id); },
+      async start() {
+        const s = load(); const u = current(s);
+        if (adStatus(s, u.id).viewsToday >= 10) throw new ApiError('rate_limited', 429);
+        return { viewId: uid() };
+      },
+      async complete() {
+        const s = load(); const u = current(s);
+        const before = Math.floor((s.ads ?? []).filter((a) => a.userId === u.id).length * adCreditsPerView(MODELS));
+        s.ads = [...(s.ads ?? []), { userId: u.id, at: Date.now() }];
+        const after = Math.floor(s.ads.filter((a) => a.userId === u.id).length * adCreditsPerView(MODELS));
+        if (after > before) s.ledger.push({ userId: u.id, delta: after - before, reason: 'ad_reward', bucket: 'free' });
+        save(s);
+        return { granted: after - before, status: adStatus(s, u.id) };
+      },
+    },
     admin: {
+      async economics() {
+        const s = load(); admin(s);
+        const views = (s.ads ?? []).length;
+        const revenueUsd = s.payments.filter((p) => p.status === 'paid').reduce((a, p) => a + (p.amountMinor / 100) * (ECONOMICS.chargeFx[p.currency] ?? 0), 0);
+        const aiCostUsd = 0;
+        const fees = revenueUsd * ECONOMICS.gatewayFee; const tax = revenueUsd * ECONOMICS.taxRate; const adRev = views * ECONOMICS.adRevenuePerViewUsd;
+        return {
+          netCreditUsd: netCreditUsd(), targetMargin: ECONOMICS.targetMargin, gatewayFee: ECONOMICS.gatewayFee, taxRate: ECONOMICS.taxRate,
+          adRevenuePerViewUsd: ECONOMICS.adRevenuePerViewUsd, table: economicsTable(MODELS),
+          last30d: {
+            revenueUsd, gatewayFeesUsd: fees, taxUsd: tax, aiCostUsd, adViews: views, adRevenueUsd: adRev,
+            adCreditsGranted: s.ledger.filter((e) => e.reason === 'ad_reward').reduce((a, e) => a + e.delta, 0), fixedCostsUsd: 0,
+            profitUsd: revenueUsd - fees - tax - aiCostUsd + adRev,
+          },
+        };
+      },
       async summary() {
         const s = load(); admin(s);
         const totals = CURRENCIES.map((currency) => {
@@ -202,13 +257,14 @@ export function createDemoBackend(): Backend {
         const offset = q.offset ?? 0;
         return { items: items.slice(offset, offset + (q.limit ?? 25)), total: items.length };
       },
-      async refund(id) {
+      async refund(id, force) {
         const s = load(); admin(s);
         const p = s.payments.find((x) => x.id === id);
         if (!p) throw new ApiError('not_found', 404);
         if (p.status !== 'paid') throw new ApiError('conflict', 409);
+        if (!force && bucketSum(s, p.userId, 'paid') < p.credits) throw new ApiError('credits_used', 409);
         p.status = 'refunded'; p.refundedAt = new Date().toISOString();
-        s.ledger.push({ userId: p.userId, delta: -p.credits, reason: 'payment_refund', refId: p.id });
+        s.ledger.push({ userId: p.userId, delta: -p.credits, reason: 'payment_refund', refId: p.id, bucket: 'paid' });
         if ((p.item as CheckoutItem).type === 'plan') { const u = s.users.find((x) => x.id === p.userId)!; u.planId = 'free'; u.billingCycle = null; }
         save(s);
         return p;
@@ -223,7 +279,7 @@ export function createDemoBackend(): Backend {
       async adjustCredits(userId, delta, note) {
         const s = load(); const a = admin(s);
         if (!s.users.some((u) => u.id === userId)) throw new ApiError('not_found', 404);
-        s.ledger.push({ userId, delta, reason: 'admin_adjust', refId: a.id + (note ? `:${note}` : '') });
+        s.ledger.push({ userId, delta, reason: 'admin_adjust', refId: a.id + (note ? `:${note}` : ''), bucket: 'paid' });
         save(s);
       },
     },

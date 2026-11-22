@@ -3,7 +3,7 @@ import { z } from 'zod/v4';
 import { eq } from 'drizzle-orm';
 import { db, usersTable } from '@workspace/db';
 import { endSession, hashPassword, startSession, syncAdminRole, verifyPassword } from '../lib/auth';
-import { addEntry, balanceOf } from '../lib/ledger';
+import { addEntry, balancesOf } from '../lib/ledger';
 import { toMe } from '../lib/dto';
 import { env } from '../lib/env';
 import { HttpError } from '../lib/http';
@@ -33,12 +33,13 @@ router.post('/auth/register', authLimit, async (req, res) => {
   const user = await db.transaction(async (tx) => {
     const [u] = await tx.insert(usersTable).values({ email, name, passwordHash }).onConflictDoNothing().returning();
     if (!u) throw new HttpError(409, 'email_taken');
-    await addEntry(tx, u.id, env.signupCredits, 'signup_bonus');
+    // Free bucket: usable only on low-cost models, so sign-up bonuses can never be spent on expensive video.
+    await addEntry(tx, u.id, env.signupCredits, 'signup_bonus', undefined, undefined, 'free');
     return u;
   });
   const synced = await syncAdminRole(user);
   await startSession(res, synced.id);
-  res.status(201).json({ user: toMe(synced, await balanceOf(db, synced.id)) });
+  res.status(201).json({ user: toMe(synced, await balancesOf(db, synced.id)) });
 });
 
 router.post('/auth/login', authLimit, async (req, res) => {
@@ -49,7 +50,7 @@ router.post('/auth/login', authLimit, async (req, res) => {
   if (!user || !ok) throw new HttpError(401, 'invalid_credentials');
   const synced = await syncAdminRole(user);
   await startSession(res, synced.id);
-  res.json({ user: toMe(synced, await balanceOf(db, synced.id)) });
+  res.json({ user: toMe(synced, await balancesOf(db, synced.id)) });
 });
 
 router.post('/auth/logout', async (req, res) => {
@@ -59,7 +60,7 @@ router.post('/auth/logout', async (req, res) => {
 
 /** Always 200 so signed-out visitors don't produce console errors. */
 router.get('/auth/me', async (req, res) => {
-  res.json({ user: req.user ? toMe(req.user, await balanceOf(db, req.user.id)) : null });
+  res.json({ user: req.user ? toMe(req.user, await balancesOf(db, req.user.id)) : null });
 });
 
 export default router;

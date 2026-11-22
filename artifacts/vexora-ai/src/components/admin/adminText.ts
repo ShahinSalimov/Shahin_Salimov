@@ -19,6 +19,13 @@ const en = {
   adjust: 'Adjust', adjustTitle: 'Adjust credits for {email}', delta: 'Credits to add (use − to remove)', note: 'Note (optional)', save: 'Save',
   noPayments: 'No payments match these filters.', noUsers: 'No users found.', prev: 'Previous', next: 'Next', range: '{from}–{to} of {total}',
   refresh: 'Refresh',
+  econTitle: 'Profit & loss — last 30 days',
+  econNote: 'Estimates: AI cost uses each model’s vendor price; ad income uses ADS_REVENUE_PER_VIEW_USD. Fixed costs come from FIXED_COSTS_USD_MONTHLY.',
+  revenue: 'Revenue', fees: 'Gateway fees', tax: 'Tax', aiCost: 'AI cost', adIncome: 'Ad income', fixed: 'Fixed costs', profit: 'Profit', loss: 'Loss',
+  adViews: '{n} ad views · {c} free credits given',
+  unitTitle: 'Price per model (worst case: cheapest credit)', model: 'Model', unit: 'Unit', vendor: 'Vendor cost', charged: 'Charged', minRevenue: 'Min. revenue', margin: 'Margin',
+  perImage: 'image', perSecond: 'second', freeOk: 'free credits', marginRule: 'Prices are raised automatically so every model keeps at least {m}% margin after a {g}% gateway fee and {t}% tax.',
+  creditsUsed: 'The customer already used credits from this payment, and the AI cost is already paid. Refunding now loses money.', refundAnyway: 'Refund anyway',
 };
 type AdminText = typeof en;
 const az: AdminText = {
@@ -39,6 +46,13 @@ const az: AdminText = {
   adjust: 'Düzəlt', adjustTitle: '{email} üçün kredit düzəlişi', delta: 'Əlavə ediləcək kredit (silmək üçün − yaz)', note: 'Qeyd (istəyə bağlı)', save: 'Yadda saxla',
   noPayments: 'Bu filtrlərə uyğun ödəniş yoxdur.', noUsers: 'İstifadəçi tapılmadı.', prev: 'Əvvəlki', next: 'Növbəti', range: '{from}–{to} / {total}',
   refresh: 'Yenilə',
+  econTitle: 'Gəlir və xərc — son 30 gün',
+  econNote: 'Təxmini hesab: AI xərci hər modelin provayder qiymətindən, reklam gəliri ADS_REVENUE_PER_VIEW_USD dəyərindən götürülür. Sabit xərclər FIXED_COSTS_USD_MONTHLY-dən.',
+  revenue: 'Gəlir', fees: 'Gateway komissiyası', tax: 'Vergi', aiCost: 'AI xərci', adIncome: 'Reklam gəliri', fixed: 'Sabit xərclər', profit: 'Qazanc', loss: 'Zərər',
+  adViews: '{n} reklam baxışı · {c} pulsuz kredit verilib',
+  unitTitle: 'Model üzrə qiymət (ən pis hal: ən ucuz kredit)', model: 'Model', unit: 'Vahid', vendor: 'Provayder xərci', charged: 'Tutulan', minRevenue: 'Min. gəlir', margin: 'Marja',
+  perImage: 'şəkil', perSecond: 'saniyə', freeOk: 'pulsuz kredit', marginRule: 'Qiymətlər avtomatik qaldırılır ki, hər model {g}% gateway komissiyası və {t}% vergidən sonra ən azı {m}% marja saxlasın.',
+  creditsUsed: 'Müştəri bu ödənişin kreditlərini artıq istifadə edib və AI xərci artıq ödənilib. İndi qaytarmaq zərər deməkdir.', refundAnyway: 'Yenə də qaytar',
 };
 
 export function useAdminText() {

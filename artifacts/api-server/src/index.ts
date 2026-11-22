@@ -1,8 +1,16 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { paymentConfig, validatePaymentConfig } from "./services/payment";
+import { validateAIConfig } from "./lib/ai";
+import { hasFfmpeg } from "./lib/ai/ffmpeg";
+import { startGenerationRunner } from "./services/generation";
+import { ensureMediaDir } from "./services/storage";
 
 validatePaymentConfig();
+validateAIConfig();
+await ensureMediaDir();
+if (!(await hasFfmpeg())) logger.warn("ffmpeg not found: videos longer than one vendor clip (30 s) cannot be joined");
+startGenerationRunner();
 
 const rawPort = process.env["PORT"];
 

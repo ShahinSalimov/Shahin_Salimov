@@ -4,7 +4,7 @@ import { ApiError } from '@/services/backend';
 const KNOWN = new Set([
   'invalid_input', 'invalid_email', 'weak_password', 'email_taken', 'invalid_credentials', 'unauthorized', 'forbidden', 'not_found',
   'insufficient_credits', 'rate_limited', 'payments_disabled', 'signup_disabled', 'invalid_model', 'invalid_prompt', 'conflict',
-  'server_error', 'network_error',
+  'server_error', 'network_error', 'credits_used',
 ]);
 
 /** Maps any thrown value to a translatable message key. */

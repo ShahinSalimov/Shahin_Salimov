@@ -1,5 +1,7 @@
 import { Dice5, Film, ImageIcon, Lock, Sparkles } from 'lucide-react';
 import { MODELS, STYLE_IDS, getModel } from '@/data/models';
+import { unitCredits } from '@workspace/vexora-core';
+import { VideoOptions } from './VideoOptions';
 import { Segmented } from '@/components/ui/Segmented';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -15,6 +17,7 @@ interface Props {
   onChange: (p: Partial<GenerationParams>) => void;
   onSubmit: () => void;
   cost: number;
+  /** credits this model may use: paid + free for free-credit models, paid only otherwise */
   credits: number;
   signedIn: boolean;
   busy: boolean;
@@ -30,9 +33,15 @@ export function ParamPanel({ params, onChange, onSubmit, cost, credits, signedIn
   const model = getModel(params.modelId);
   const setKind = (kind: MediaKind) => {
     const first = MODELS.find((m) => m.kind === kind)!;
-    onChange({ kind, modelId: first.id, aspect: kind === 'video' ? '9:16' : params.aspect, durationSec: Math.min(params.durationSec, first.maxDuration ?? 5) });
+    selectModel(first.id, { kind, aspect: kind === 'video' ? '9:16' : params.aspect });
   };
   const insufficient = signedIn && cost > credits;
+  /** Switching models keeps duration inside the new model's range and drops options it lacks. */
+  function selectModel(id: string, extra: Partial<GenerationParams> = {}) {
+    const m = getModel(id);
+    const dur = Math.min(m.maxDuration ?? 5, Math.max(m.minDuration ?? 2, params.durationSec));
+    onChange({ ...extra, modelId: id, durationSec: dur, resolution: m.resolutions?.[m.resolutions.length - 1], referenceKey: m.reference ? params.referenceKey : null });
+  }
 
   return (
     <form
@@ -47,14 +56,16 @@ export function ParamPanel({ params, onChange, onSubmit, cost, credits, signedIn
         <Label>{t('gen.model')}</Label>
         <div className="grid gap-2">
           {models.map((m) => (
-            <button type="button" key={m.id} onClick={() => onChange({ modelId: m.id })} aria-pressed={params.modelId === m.id}
+            <button type="button" key={m.id} onClick={() => selectModel(m.id)} aria-pressed={params.modelId === m.id}
               className={cn('flex items-center justify-between rounded-2xl p-3 text-left ring-1 transition cursor-pointer',
                 params.modelId === m.id ? 'bg-primary-soft ring-primary' : 'bg-surface-2 ring-line hover:ring-line-strong')}>
               <span>
                 <span className="flex items-center gap-2 font-semibold">{m.name} {m.badge && <Badge tone={m.badge === 'pro' ? 'accent' : 'primary'}>{m.badge}</Badge>}</span>
                 <span className="text-xs text-fg-muted">{t(`models.${m.id}` as TKey)}</span>
               </span>
-              <span className="shrink-0 font-mono text-xs text-primary-strong">{m.creditCost}{m.kind === 'video' ? t('gen.perSec') : ''} {t('gen.cr')}</span>
+              <span className="shrink-0 text-end font-mono text-xs text-primary-strong">
+                {m.kind === 'video' && m.resolutions ? `${unitCredits(m, m.resolutions[0])}–${unitCredits(m)}` : unitCredits(m)}{m.kind === 'video' ? t('gen.perSec') : ''} {t('gen.cr')}
+              </span>
             </button>
           ))}
         </div>
@@ -117,10 +128,7 @@ export function ParamPanel({ params, onChange, onSubmit, cost, credits, signedIn
           <input type="range" min={1} max={4} value={params.count} onChange={(e) => onChange({ count: Number(e.target.value) })} className="w-full accent-[var(--color-primary)]" aria-label={t('gen.countAria')} />
         </div>
       ) : (
-        <div>
-          <Label>{t('gen.duration', { n: params.durationSec })}</Label>
-          <input type="range" min={2} max={model.maxDuration ?? 5} value={params.durationSec} onChange={(e) => onChange({ durationSec: Number(e.target.value) })} className="w-full accent-[var(--color-primary)]" aria-label={t('gen.durationAria')} />
-        </div>
+        <VideoOptions model={model} params={params} onChange={onChange} />
       )}
 
       <div className="flex items-center gap-2">
@@ -138,6 +146,7 @@ export function ParamPanel({ params, onChange, onSubmit, cost, credits, signedIn
         {params.seed !== null && <Button type="button" variant="ghost" size="md" className="mt-6" onClick={() => onChange({ seed: null })} aria-label={t('gen.clearSeed')}><Lock size={16} /></Button>}
       </div>
 
+      <p className="-mb-3 text-center text-xs text-fg-subtle">{t(model.freeCredits ? 'video.freeOk' : 'video.paidOnly')}</p>
       <Button type="submit" size="lg" variant={insufficient ? 'outline' : 'primary'} disabled={!params.prompt.trim() || busy} className="w-full">
         <Sparkles size={18} /> {signedIn ? <>{t('gen.submit')} · <span className="font-mono">{cost} {t('gen.cr')}</span></> : t('auth.toCreate')}
       </Button>

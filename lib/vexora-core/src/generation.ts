@@ -2,6 +2,7 @@ import {
   ASPECTS, CAMERA_MOTIONS, CAMERA_SUFFIX, STYLE_IDS, STYLE_SUFFIX, findModel,
   type AspectRatio, type CameraMotion, type MediaKind, type Resolution, type StyleId,
 } from './models';
+import { unitCredits } from './economics';
 
 export interface GenerationParams {
   modelId: string;
@@ -24,12 +25,11 @@ export interface GenerationParams {
 export const PROMPT_MAX = 1500;
 
 /** Credits a generation costs. Single source of truth for client estimate and server charge. */
+/** Credits a generation costs — never below vendor cost + target margin (economics.ts). */
 export function estimateCost(p: Pick<GenerationParams, 'modelId' | 'count' | 'durationSec' | 'resolution'>): number {
   const m = findModel(p.modelId);
   if (!m) return 0;
-  if (m.kind === 'image') return m.creditCost * p.count;
-  const perSecond = (p.resolution && m.costPerSecond?.[p.resolution]) || m.creditCost;
-  return perSecond * p.durationSec;
+  return unitCredits(m, p.resolution) * (m.kind === 'image' ? p.count : p.durationSec);
 }
 
 /** Splits a long video into near-equal parts no longer than the vendor limit (45 s → 23 + 22). */
@@ -54,7 +54,7 @@ export function normaliseParams(input: Partial<GenerationParams>): { ok: true; p
   const resolution = model.resolutions?.includes(input.resolution as Resolution) ? input.resolution : model.resolutions?.[model.resolutions.length - 1];
   const audio = model.audio ? input.audio !== false : undefined;
   const camera = model.kind === 'video' && (CAMERA_MOTIONS as readonly string[]).includes(String(input.camera)) ? (input.camera as CameraMotion) : 'auto';
-  const referenceKey = model.reference && typeof input.referenceKey === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(input.referenceKey) ? input.referenceKey : null;
+  const referenceKey = model.reference && typeof input.referenceKey === 'string' && /^[A-Za-z0-9_-]{8,64}\.(png|jpg|webp)$/.test(input.referenceKey) ? input.referenceKey : null;
   const seedNum = Number(input.seed);
   const seed = input.seed === null || input.seed === undefined || !Number.isFinite(seedNum) ? null : Math.abs(Math.floor(seedNum)) % 2 ** 31;
   return {

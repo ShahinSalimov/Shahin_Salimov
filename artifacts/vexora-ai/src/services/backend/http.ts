@@ -39,10 +39,17 @@ export function createHttpBackend(baseUrl: string): Backend {
     myPayments: () => call('/payments'),
     sandboxOrder: (orderId) => call(`/payment/sandbox/${encodeURIComponent(orderId)}`),
     completeSandbox: (orderId, outcome) => post(`/payment/sandbox/${encodeURIComponent(orderId)}/complete`, { outcome }),
+    upload: (dataUrl) => post('/uploads', { dataUrl }),
+    ads: {
+      status: () => call('/ads/status'),
+      start: () => post('/ads/start'),
+      complete: (viewId) => post(`/ads/${viewId}/complete`),
+    },
     admin: {
       summary: () => call('/admin/summary'),
+      economics: () => call('/admin/economics'),
       payments: (q) => call('/admin/payments', { query: { ...q } }),
-      refund: (id) => post(`/admin/payments/${id}/refund`),
+      refund: (id, force) => post(`/admin/payments/${id}/refund`, { force: !!force }),
       users: (q) => call('/admin/users', { query: q }),
       adjustCredits: async (id, delta, note) => { await post(`/admin/users/${id}/credits`, { delta, note }); },
     },

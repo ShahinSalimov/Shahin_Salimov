@@ -1,10 +1,13 @@
 import { Check, Flame } from 'lucide-react';
-import { toMinor, type Currency } from '@workspace/vexora-core';
+import { MODELS, toMinor, unitCredits, type Currency } from '@workspace/vexora-core';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
 import { percentOff } from '@/data/pricing';
 import { useI18n, type TKey } from '@/i18n';
 import type { BillingCycle, Plan } from '@/types';
+
+/** credits per second of the flagship video model at its top resolution — used to show what a plan buys */
+const HD_VIDEO_CREDITS_PER_SECOND = (() => { const m = MODELS.find((x) => x.id === 'seedance-2-5'); return m ? unitCredits(m) : 60; })();
 
 interface Props {
   plan: Plan; cycle: BillingCycle; currency: Currency; current: boolean; paymentsEnabled: boolean;
@@ -51,7 +54,10 @@ export function PlanCard({ plan, cycle, currency, current, paymentsEnabled, onSe
           </span>
         </p>
       )}
-      <p className="mt-4 rounded-xl bg-surface-2 px-3 py-2 font-mono text-sm text-primary-strong">{t('pricing.creditsPerMonth', { n: fmt.num(plan.creditsPerMonth) })}</p>
+      <div className="mt-4 rounded-xl bg-surface-2 px-3 py-2">
+        <p className="font-mono text-sm text-primary-strong">{t('pricing.creditsPerMonth', { n: fmt.num(plan.creditsPerMonth) })}</p>
+        {!free && <p className="text-xs text-fg-subtle">{t('pricing.videoSeconds', { n: Math.floor(plan.creditsPerMonth / HD_VIDEO_CREDITS_PER_SECOND) })}</p>}
+      </div>
       <ul className="mt-5 flex-1 space-y-2.5 text-sm">
         {plan.features.map((f) => (
           <li key={f.key} className="flex gap-2"><Check size={16} className="mt-0.5 shrink-0 text-primary" /> {t(`features.${f.key}` as TKey, f.vars)}</li>

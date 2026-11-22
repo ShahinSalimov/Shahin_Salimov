@@ -1,12 +1,15 @@
 import { Router, type IRouter } from 'express';
-import { and, count, desc, eq, ilike, inArray, or, sql, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, ilike, inArray, or, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod/v4';
-import { creditLedgerTable, db, generationsTable, paymentsTable, usersTable } from '@workspace/db';
-import { CURRENCIES, type AdminSummary, type AdminUser, type Currency } from '@workspace/vexora-core';
+import { adViewsTable, creditLedgerTable, db, generationsTable, paymentsTable, usersTable } from '@workspace/db';
+import {
+  CURRENCIES, ECONOMICS, MODELS, economicsTable, findModel, netCreditUsd, toUsd, vendorUnitCost,
+  type AdEconomics, type AdminSummary, type AdminUser, type Currency, type GenerationParams,
+} from '@workspace/vexora-core';
 import { requireAdmin } from '../lib/auth';
 import { toPayment } from '../lib/dto';
 import { HttpError } from '../lib/http';
-import { addEntry, withUserLock } from '../lib/ledger';
+import { addEntry, balancesOf, withUserLock } from '../lib/ledger';
 import { gatewayById, paymentConfig } from '../services/payment';
 import { markRefunded } from '../services/payment/fulfill';
 import { parse } from '../lib/validate';
@@ -59,6 +62,38 @@ router.get('/admin/summary', async (_req, res) => {
   res.json(body);
 });
 
+/** Unit economics: price vs vendor cost per model, and last-30-day AI spend vs ad income. */
+router.get('/admin/economics', async (_req, res) => {
+  const since = new Date(Date.now() - 30 * 864e5);
+  const [paid, gens, [views], [adCredits]] = await Promise.all([
+    db.select({ amount: paymentsTable.amountMinor, currency: paymentsTable.currency }).from(paymentsTable)
+      .where(and(eq(paymentsTable.status, 'paid'), eq(paymentsTable.livemode, paymentConfig.mode === 'live'), gte(paymentsTable.paidAt, since))),
+    db.select({ params: generationsTable.params }).from(generationsTable).where(and(eq(generationsTable.status, 'done'), gte(generationsTable.createdAt, since))),
+    db.select({ n: count() }).from(adViewsTable).where(and(eq(adViewsTable.status, 'completed'), gte(adViewsTable.createdAt, since))),
+    db.select({ n: sql<string>`coalesce(sum(${creditLedgerTable.delta}), 0)` }).from(creditLedgerTable)
+      .where(and(eq(creditLedgerTable.reason, 'ad_reward'), gte(creditLedgerTable.createdAt, since))),
+  ]);
+  const aiCostUsd = gens.reduce((sum, g) => {
+    const p = g.params as GenerationParams;
+    const m = findModel(p.modelId);
+    return m ? sum + vendorUnitCost(m, p.resolution) * (m.kind === 'image' ? p.count : p.durationSec) : sum;
+  }, 0);
+  const revenueUsd = paid.reduce((s, p) => s + (toUsd(p.amount, p.currency as Currency) ?? 0), 0);
+  const gatewayFeesUsd = revenueUsd * ECONOMICS.gatewayFee;
+  const taxUsd = revenueUsd * ECONOMICS.taxRate;
+  const adRevenueUsd = views.n * ECONOMICS.adRevenuePerViewUsd;
+  const fixedCostsUsd = Number(process.env.FIXED_COSTS_USD_MONTHLY ?? 0);
+  const body: AdEconomics = {
+    netCreditUsd: netCreditUsd(), targetMargin: ECONOMICS.targetMargin, gatewayFee: ECONOMICS.gatewayFee, taxRate: ECONOMICS.taxRate,
+    adRevenuePerViewUsd: ECONOMICS.adRevenuePerViewUsd, table: economicsTable(MODELS),
+    last30d: {
+      revenueUsd, gatewayFeesUsd, taxUsd, aiCostUsd, adViews: views.n, adRevenueUsd, adCreditsGranted: Number(adCredits.n), fixedCostsUsd,
+      profitUsd: revenueUsd - gatewayFeesUsd - taxUsd - aiCostUsd - fixedCostsUsd + adRevenueUsd,
+    },
+  };
+  res.json(body);
+});
+
 router.get('/admin/payments', async (req, res) => {
   const q = parse(PaymentsQuery, req.query);
   const filters: SQL[] = [];
@@ -79,6 +114,9 @@ router.post('/admin/payments/:id/refund', async (req, res) => {
   const [p] = await db.select().from(paymentsTable).where(eq(paymentsTable.id, id));
   if (!p) throw new HttpError(404, 'not_found');
   if (p.status !== 'paid') throw new HttpError(409, 'conflict');
+  // Money spent on AI for already-used credits cannot be recovered: refuse unless the owner insists.
+  const force = req.body?.force === true;
+  if (!force && (await balancesOf(db, p.userId)).paid < p.credits) throw new HttpError(409, 'credits_used');
   // Gateways without a refund API are refunded in their merchant cabinet; this records it.
   await gatewayById(p.provider)?.refund?.(p);
   const r = await markRefunded(p, `admin:${req.user!.email}`);

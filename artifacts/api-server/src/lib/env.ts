@@ -7,7 +7,8 @@ export const env = {
   isProd,
   /** Comma-separated emails that are promoted to admin on register/login. */
   adminEmails: (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
-  aiProvider: process.env.AI_PROVIDER ?? 'mock',
+  /** 'mock' forces the simulator for every model; 'auto' uses real vendors whose keys are set */
+  aiProvider: process.env.AI_PROVIDER ?? 'auto',
   signupEnabled: process.env.SIGNUP_ENABLED !== 'false',
   signupCredits: Number(process.env.SIGNUP_CREDITS ?? FREE_PLAN_CREDITS),
   corsOrigin: process.env.CORS_ORIGIN,

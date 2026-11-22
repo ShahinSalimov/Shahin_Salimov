@@ -33,6 +33,8 @@ app.use(
 app.set("trust proxy", 1);
 // Same-origin by default. Set CORS_ORIGIN only if the web app is served from another origin.
 if (env.corsOrigin) app.use(cors({ origin: env.corsOrigin, credentials: true }));
+// Reference-image uploads arrive as base64 JSON (≤ 5 MB file → ~7 MB body); everything else stays small.
+app.use("/api/uploads", express.json({ limit: "8mb" }));
 // Keep the raw body so payment webhooks can verify signatures.
 app.use(
   express.json({

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Coins, Crown, Images } from 'lucide-react';
 import type { CheckoutItem, GenerationDTO, PaymentDTO } from '@workspace/vexora-core';
 import { useApp } from '@/store/AppStore';
+import { EarnCreditsCard } from '@/components/ads/EarnCreditsCard';
 import { getPlan, findPack } from '@/data/pricing';
 import { GenerativeArt } from '@/components/media/GenerativeArt';
 import { Button } from '@/components/ui/Button';
@@ -45,7 +46,7 @@ export function ProfilePage() {
   const plan = getPlan(me.planId);
   const images = (gens ?? []).filter((g) => g.status === 'done').flatMap((g) => g.results);
   const stats = [
-    { icon: Coins, label: t('profile.credits'), value: fmt.num(me.balance) },
+    { icon: Coins, label: t('profile.credits'), value: `${fmt.num(me.balance)}  (${t('creditKind.paid')} ${fmt.num(me.paidBalance)} · ${t('creditKind.free')} ${fmt.num(me.freeBalance)})` },
     { icon: Crown, label: t('profile.plan'), value: `${plan.name}${me.billingCycle ? ` · ${t(me.billingCycle === 'yearly' ? 'profile.yearly' : 'profile.monthly')}` : ''}` },
     { icon: Images, label: t('profile.library'), value: images.length },
   ];
@@ -69,6 +70,8 @@ export function ProfilePage() {
           </div>
         ))}
       </div>
+
+      <div className="mt-6"><EarnCreditsCard /></div>
 
       <h2 className="mt-12 font-display text-2xl font-bold">{t('profile.works')}</h2>
       {gens === null ? <div className="skeleton mt-4 h-40 rounded-3xl" /> : images.length ? (

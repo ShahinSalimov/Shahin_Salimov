@@ -26,7 +26,9 @@ export const creditLedgerTable = pgTable('vx_credit_ledger', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
   delta: integer('delta').notNull(),
-  reason: text('reason', { enum: ['signup_bonus', 'purchase', 'generation', 'generation_refund', 'payment_refund', 'admin_adjust'] }).notNull(),
+  /** paid = bought credits (any model); free = sign-up bonus and rewarded ads (freeCredits models only) */
+  bucket: text('bucket', { enum: ['paid', 'free'] }).notNull().default('paid'),
+  reason: text('reason', { enum: ['signup_bonus', 'purchase', 'generation', 'generation_refund', 'payment_refund', 'admin_adjust', 'ad_reward'] }).notNull(),
   refId: text('ref_id'),
   note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -70,9 +72,32 @@ export const generationsTable = pgTable('vx_generations', {
   error: text('error'),
   /** mock provider: when the simulated job completes */
   finishAt: timestamp('finish_at', { withTimezone: true }),
+  /** provider-side progress for multi-part videos (segments, prediction ids, stored files) */
+  state: jsonb('state'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index('vx_generations_user_idx').on(t.userId, t.createdAt)]);
 
 export type UserRow = typeof usersTable.$inferSelect;
 export type PaymentRow = typeof paymentsTable.$inferSelect;
 export type GenerationRow = typeof generationsTable.$inferSelect;
+
+/** Rewarded-ad views. A view earns credits only when completed, within the daily cap. */
+export const adViewsTable = pgTable('vx_ad_views', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  status: text('status', { enum: ['started', 'completed', 'rejected'] }).notNull().default('started'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (t) => [index('vx_ad_views_user_idx').on(t.userId, t.createdAt)]);
+
+/** Files kept on our storage: uploaded reference images and finished videos. */
+export const mediaTable = pgTable('vx_media', {
+  key: text('key').primaryKey(),
+  userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'set null' }),
+  kind: text('kind', { enum: ['upload', 'output', 'frame'] }).notNull(),
+  mime: text('mime').notNull(),
+  size: integer('size').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type MediaRow = typeof mediaTable.$inferSelect;

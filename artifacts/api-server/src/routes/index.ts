@@ -5,6 +5,8 @@ import authRouter from './auth';
 import generationsRouter from './generations';
 import paymentRouter from './payment';
 import adminRouter from './admin';
+import mediaRouter from './media';
+import adsRouter from './ads';
 
 const router: IRouter = Router();
 
@@ -14,5 +16,7 @@ router.use(authRouter);
 router.use(generationsRouter);
 router.use(paymentRouter);
 router.use(adminRouter);
+router.use(mediaRouter);
+router.use(adsRouter);
 
 export default router;

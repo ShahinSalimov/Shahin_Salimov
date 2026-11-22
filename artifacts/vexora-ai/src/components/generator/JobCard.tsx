@@ -16,7 +16,10 @@ export function JobCard({ job, onCancel }: { job: GenerationDTO; onCancel: (id: 
       <header className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="line-clamp-1 text-sm font-semibold" dir="auto">{params.prompt}</p>
-          <p className="text-xs text-fg-subtle">{getModel(params.modelId).name} · {params.aspect} · {job.cost} {t('gen.cr')}</p>
+          <p className="text-xs text-fg-subtle">
+            {getModel(params.modelId).name} · {params.aspect}{params.kind === 'video' ? ` · ${params.durationSec}s${params.resolution ? ` · ${params.resolution}` : ''}` : ''} · {job.cost} {t('gen.cr')}
+            {busy && job.parts && job.parts.total > 1 && <> · {t('video.part', { i: job.parts.current, n: job.parts.total })}</>}
+          </p>
         </div>
         {busy ? (
           <button onClick={() => onCancel(job.id)} className="flex items-center gap-1 text-xs text-fg-muted hover:text-danger cursor-pointer"><X size={14} /> {t('gen.cancel')}</button>

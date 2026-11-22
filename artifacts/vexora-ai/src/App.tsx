@@ -8,6 +8,7 @@ import { GeneratorPage } from '@/components/generator/GeneratorPage';
 import { PricingPage } from '@/components/pricing/PricingPage';
 import { CheckoutModal } from '@/components/pricing/CheckoutModal';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { SandboxAdHost } from '@/components/ads/SandboxAdHost';
 import { AdminPage } from '@/components/admin/AdminPage';
 import { LegalPage } from '@/components/legal/LegalPage';
 import { PaymentSandboxPage } from '@/components/payment/PaymentSandboxPage';
@@ -37,6 +38,7 @@ export default function App() {
         <Footer />
         <CheckoutModal />
         <AuthModal />
+        <SandboxAdHost />
       </AppStoreProvider>
     </I18nProvider>
   );

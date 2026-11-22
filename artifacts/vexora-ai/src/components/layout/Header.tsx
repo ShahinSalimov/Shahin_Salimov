@@ -45,6 +45,7 @@ export function Header() {
                 onClick={() => navigate('pricing')}
                 className="flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1.5 font-mono text-sm text-primary-strong ring-1 ring-primary/25 hover:ring-primary/50 cursor-pointer"
                 aria-label={t('nav.creditsLeft', { n: me.balance })}
+                title={`${t('creditKind.paid')}: ${me.paidBalance} · ${t('creditKind.free')}: ${me.freeBalance}`}
               >
                 <Coins size={15} /> {fmt.num(me.balance)}
               </button>

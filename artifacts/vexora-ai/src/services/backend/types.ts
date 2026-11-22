@@ -1,6 +1,6 @@
 import type {
   AdminSummary, AdminUser, CheckoutItem, Currency, GenerationDTO, GenerationParams, Me, Page, PaymentCreateResult, PaymentDTO, PaymentStatus,
-  PublicConfig, SandboxOrder,
+  PublicConfig, SandboxOrder, AdStatus, AdEconomics, UploadResult,
 } from '@workspace/vexora-core';
 
 export interface PaymentsQuery { status?: PaymentStatus; currency?: Currency; q?: string; limit?: number; offset?: number }
@@ -27,10 +27,22 @@ export interface Backend {
   sandboxOrder(orderId: string): Promise<SandboxOrder>;
   completeSandbox(orderId: string, outcome: 'success' | 'failed'): Promise<{ redirectUrl: string }>;
 
+  /** reference image as a data URL → stored file */
+  upload(dataUrl: string): Promise<UploadResult>;
+
+  /** rewarded ads → free credits (image models only) */
+  ads: {
+    status(): Promise<AdStatus>;
+    start(): Promise<{ viewId: string }>;
+    complete(viewId: string): Promise<{ granted: number; status: AdStatus }>;
+  };
+
   admin: {
     summary(): Promise<AdminSummary>;
+    economics(): Promise<AdEconomics>;
     payments(q: PaymentsQuery): Promise<Page<PaymentDTO>>;
-    refund(paymentId: string): Promise<PaymentDTO>;
+    /** force = refund even though the customer already used credits */
+    refund(paymentId: string, force?: boolean): Promise<PaymentDTO>;
     users(q: { q?: string; limit?: number; offset?: number }): Promise<Page<AdminUser>>;
     adjustCredits(userId: string, delta: number, note?: string): Promise<void>;
   };

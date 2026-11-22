@@ -5,6 +5,8 @@ import { JobCard } from './JobCard';
 import { useGeneration } from './useGeneration';
 import { useApp } from '@/store/AppStore';
 import { Button } from '@/components/ui/Button';
+import { getModel } from '@/data/models';
+import { EarnCreditsCard } from '@/components/ads/EarnCreditsCard';
 import { useI18n } from '@/i18n';
 import type { GenerationParams } from '@/types';
 
@@ -33,7 +35,7 @@ export function GeneratorPage() {
       </header>
       <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
         <ParamPanel params={params} onChange={(p) => setParams((s) => ({ ...s, ...p }))} onSubmit={submit}
-          cost={estimate(params)} credits={me?.balance ?? 0} signedIn={!!me} busy={submitting} />
+          cost={estimate(params)} credits={me ? (getModel(params.modelId).freeCredits ? me.balance : me.paidBalance) : 0} signedIn={!!me} busy={submitting} />
         <section aria-live="polite" className="min-w-0 space-y-4">
           {error && (
             <div role="alert" className="flex flex-wrap items-center gap-3 rounded-2xl bg-danger-soft p-4 text-sm text-danger ring-1 ring-danger/20">
@@ -41,6 +43,8 @@ export function GeneratorPage() {
               {error === 'errors.insufficient_credits' && <Button size="sm" variant="accent" onClick={() => navigate('pricing')}>{t('gen.buy')}</Button>}
             </div>
           )}
+          {/* Ads are offered for image generation only — never next to video. */}
+          {me && params.kind === 'image' && <EarnCreditsCard compact />}
           {jobs.length ? jobs.map((j) => <JobCard key={j.id} job={j} onCancel={cancel} />) : (
             <div className="grid min-h-[420px] place-items-center rounded-3xl border-2 border-dashed border-line-strong bg-surface/50 p-10 text-center">
               <div>

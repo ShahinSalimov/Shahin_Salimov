@@ -88,6 +88,35 @@ Checklist before applying to a gateway:
 - [ ] Site live on your own domain over HTTPS, legal pages reachable from the footer
 - [ ] Official Visa/Mastercard marks from the acquirer
 
+## Pricing that cannot lose money (`lib/vexora-core/src/economics.ts`)
+
+- Each model has `vendorCostUsd` (per image, or per second by resolution for video).
+- The cheapest a customer can ever pay for one credit (best yearly plan / biggest pack, USD and AZN books) minus the
+  gateway fee (3.8 %) and tax (2 %, estimate — confirm with an accountant) is the credit's worst-case value.
+- Credits charged = max(listed price, vendor cost ÷ (credit value × (1 − 50 % target margin))). Every model keeps ≥ 50 % margin by construction.
+- Free credits (sign-up bonus, rewarded ads) can only be spent on models with `freeCredits: true` (cheap image models). Video always needs paid credits.
+- Refunds are refused when the customer already used the credits (AI cost is already paid); the owner can still force one.
+- The Cashbox shows a 30-day P&L (revenue − gateway − tax − AI cost − fixed costs + ad income) and the margin of every model.
+- Admin-gifted credits are a real cost: AI spend from them appears in the P&L without revenue.
+
+When a vendor price changes, update `vendorCostUsd`; credit prices follow automatically.
+
+## Seedance 2.5 video (Replicate)
+
+`REPLICATE_API_TOKEN` + `PUBLIC_BASE_URL` enable it (otherwise the simulator runs). Up to 45 s: the vendor makes ≤ 30 s
+per call, so longer videos are split into near-equal parts (45 → 23 + 22), each part starting from the previous part's
+last frame, then joined with ffmpeg (must be installed). Options: 480p/720p, sound, camera movement (written into the
+prompt), reference image (product/logo/face). A background runner keeps jobs moving when the customer closes the tab;
+failed or 30-minute-stuck jobs are refunded to the buckets they were paid from. Replicate input field names are isolated
+in `lib/ai/replicate.ts → buildInput()` — verify them on the model's API page before going live.
+
+## Rewarded ads (image credits only)
+
+"Watch an ad → free credits" appears on Pricing, Profile and the image generator — never next to video.
+Web: `VITE_ADS_PROVIDER=gpt` + `VITE_ADS_REWARDED_UNIT` (Google Ad Manager rewarded web ads), otherwise a sandbox test ad.
+Server: daily cap, minimum watch time, rate limits; credits per view = ad revenue × (1 − margin) ÷ worst cost per free credit,
+so ad credits always cost less than the ad pays. Update `ADS_REVENUE_PER_VIEW_USD` from your real AdSense numbers.
+
 ## Connecting a real AI model
 
 Implement `AIProvider` in `artifacts/api-server/src/lib/ai/<name>.ts` (`submit`, `poll`, optional `cancel`), register it in `lib/ai/index.ts`, set `AI_PROVIDER=<name>`. Results with a `url` are shown as real media; the mock returns seeds rendered as synthetic art.

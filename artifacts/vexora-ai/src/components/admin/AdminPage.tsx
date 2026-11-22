@@ -11,6 +11,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Modal } from '@/components/ui/Modal';
 import { useItemLabel } from '@/components/layout/ProfilePage';
 import { useAdminText } from './adminText';
+import { EconomicsPanel } from './EconomicsPanel';
 
 const PAGE = 20;
 const input = 'h-10 rounded-xl bg-surface px-3 text-sm ring-1 ring-line outline-none focus:ring-primary';
@@ -87,6 +88,8 @@ export function AdminPage() {
         </dl>
       )}
 
+      <EconomicsPanel reload={reload} />
+
       <div className="mt-10">
         <Segmented<'payments' | 'users'> label={a('title')} value={tab} onChange={setTab}
           options={[{ value: 'payments', label: a('tabPayments') }, { value: 'users', label: a('tabUsers') }]} />
@@ -131,10 +134,16 @@ function PaymentsTable({ onChanged, reload }: { onChanged: () => void; reload: n
   }, [status, currency, q, offset]);
   useEffect(() => { const id = setTimeout(load, q ? 250 : 0); return () => clearTimeout(id); }, [load, q, reload]);
 
-  const refund = async () => {
+  const [creditsUsed, setCreditsUsed] = useState(false);
+  const refund = async (force = false) => {
     if (!confirm) return;
     setBusy(true); setErr(null);
-    try { await backend.admin.refund(confirm.id); setConfirm(null); load(); onChanged(); } catch (e) { setErr(errorKey(e)); } finally { setBusy(false); }
+    try {
+      await backend.admin.refund(confirm.id, force); setConfirm(null); setCreditsUsed(false); load(); onChanged();
+    } catch (e) {
+      const k = errorKey(e);
+      if (k === 'errors.credits_used') setCreditsUsed(true); else setErr(k);
+    } finally { setBusy(false); }
   };
 
   return (
@@ -168,7 +177,7 @@ function PaymentsTable({ onChanged, reload }: { onChanged: () => void; reload: n
                 <td className="whitespace-nowrap px-4 py-3 font-semibold">{fmt.money(p.amountMinor, p.currency)}</td>
                 <td className="px-4 py-3"><Badge tone={p.status === 'paid' ? 'primary' : p.status === 'refunded' ? 'accent' : 'neutral'}>{t(`status.${p.status}` as TKey)}</Badge></td>
                 <td className="px-4 py-3 text-end">
-                  {p.status === 'paid' && <Button size="sm" variant="ghost" onClick={() => { setErr(null); setConfirm(p); }}>{a('refund')}</Button>}
+                  {p.status === 'paid' && <Button size="sm" variant="ghost" onClick={() => { setErr(null); setCreditsUsed(false); setConfirm(p); }}>{a('refund')}</Button>}
                 </td>
               </tr>
             ))}
@@ -186,9 +195,12 @@ function PaymentsTable({ onChanged, reload }: { onChanged: () => void; reload: n
             <p className="mt-2 text-sm text-fg-muted">{a('refundConfirm', { amount: fmt.money(confirm.amountMinor, confirm.currency), email: confirm.userEmail ?? '', credits: fmt.num(confirm.credits) })}</p>
             {confirm.livemode && <p className="mt-2 rounded-xl bg-accent-soft px-3 py-2 text-xs text-accent-fg">{a('manualRefund', { p: confirm.provider })}</p>}
             {err && <p role="alert" className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{t(err)}</p>}
+            {creditsUsed && <p role="alert" className="mt-3 rounded-xl bg-danger-soft px-3 py-2 text-sm text-danger">{a('creditsUsed')}</p>}
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setConfirm(null)}>{a('cancel')}</Button>
-              <Button onClick={refund} disabled={busy}>{a('confirm')}</Button>
+              {creditsUsed
+                ? <Button variant="outline" onClick={() => refund(true)} disabled={busy}>{a('refundAnyway')}</Button>
+                : <Button onClick={() => refund()} disabled={busy}>{a('confirm')}</Button>}
             </div>
           </div>
         )}

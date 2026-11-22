@@ -28,7 +28,48 @@ export interface Me {
   role: Role;
   planId: PlanId;
   billingCycle: BillingCycle | null;
+  /** total = paid + free */
   balance: number;
+  /** bought credits — any model */
+  paidBalance: number;
+  /** sign-up bonus + rewarded ads — only models marked freeCredits */
+  freeBalance: number;
+}
+
+/** GET /api/ads/status */
+export interface AdStatus {
+  enabled: boolean;
+  dailyCap: number;
+  viewsToday: number;
+  /** fractional credits per completed view (whole credits are granted as views add up) */
+  creditsPerView: number;
+  /** progress towards the next whole credit, 0..1 */
+  nextCreditProgress: number;
+  minWatchSeconds: number;
+}
+
+export interface AdEconomics {
+  netCreditUsd: number;
+  targetMargin: number;
+  gatewayFee: number;
+  adRevenuePerViewUsd: number;
+  table: import('./economics').ModelEconomics[];
+  taxRate: number;
+  last30d: {
+    /** paid revenue in the current payment mode, converted to USD */
+    revenueUsd: number;
+    gatewayFeesUsd: number;
+    taxUsd: number;
+    /** estimated vendor spend for finished generations */
+    aiCostUsd: number;
+    adViews: number;
+    adRevenueUsd: number;
+    adCreditsGranted: number;
+    /** hosting, domain, tools… (FIXED_COSTS_USD_MONTHLY) */
+    fixedCostsUsd: number;
+    /** revenue − fees − tax − AI cost − fixed costs + ad revenue */
+    profitUsd: number;
+  };
 }
 
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
@@ -130,4 +171,6 @@ export interface UploadResult { key: string; url: string }
 export type ApiErrorCode =
   | 'invalid_input' | 'invalid_email' | 'weak_password' | 'email_taken' | 'invalid_credentials'
   | 'unauthorized' | 'forbidden' | 'not_found' | 'insufficient_credits' | 'rate_limited'
-  | 'payments_disabled' | 'signup_disabled' | 'invalid_model' | 'invalid_prompt' | 'conflict' | 'server_error';
+  | 'payments_disabled' | 'signup_disabled' | 'invalid_model' | 'invalid_prompt' | 'conflict' | 'server_error'
+  /** refund refused: the customer already spent credits from this payment (money for AI is gone) */
+  | 'credits_used';

@@ -5,6 +5,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { PlanCard } from './PlanCard';
 import { CreditPacks } from './CreditPacks';
 import { CurrencySelect } from './CurrencySelect';
+import { EarnCreditsCard } from '@/components/ads/EarnCreditsCard';
 import { useApp } from '@/store/AppStore';
 import { useI18n } from '@/i18n';
 import type { BillingCycle, Plan } from '@/types';
@@ -48,6 +49,7 @@ export function PricingPage() {
         ))}
       </div>
       <CreditPacks paymentsEnabled={paymentsEnabled} />
+      {me && <div className="mt-10"><EarnCreditsCard /></div>}
     </div>
   );
 }
