@@ -39,11 +39,13 @@ $("#profileSelect").addEventListener("change", async (e) => {
 function route() {
   clearInterval(pollTimer);
   const [, page, id] = location.hash.split("/");
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === (page || "new")));
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === (page === "research" ? "strategy" : page || "new")));
   if (page === "history") return viewHistory();
   if (page === "settings") return viewSettings(id || "api");
   if (page === "library") return viewLibrary();
   if (page === "project" && id) return viewProject(id);
+  if (page === "strategy") return viewStrategy(id || "niche");
+  if (page === "research" && id) return viewResearch(id);
   return viewNew();
 }
 window.addEventListener("hashchange", route);
@@ -105,7 +107,7 @@ async function viewHistory() {
 // ---------------- settings ----------------
 const TABS = {
   api: "API", script: "Skript", visual: "Vizual", voice: "Səsləndirmə", subtitles: "Altyazı",
-  music: "Musiqi", motion: "Hərəkət", transitions: "Keçidlər", branding: "Brendinq", output: "Çıxış", costs: "Qiymətlər",
+  research: "Araşdırma", music: "Musiqi", motion: "Hərəkət", transitions: "Keçidlər", branding: "Brendinq", output: "Çıxış", costs: "Qiymətlər",
 };
 const FIELDS = {
   script: [
@@ -138,6 +140,15 @@ const FIELDS = {
     ["fish_model", "Fish Audio modeli", "text", null, "s1"],
     ["speed", "Danışıq sürəti (1 = normal, 1.05 = 5% tez)", "number"],
   ],
+  research: [
+    ["content_language", "Auditoriyanın dili (title/tag-lər bu dildə)", "text", null, "English"],
+    ["lang_code", "Dil kodu (YouTube axtarışı üçün)", "text", null, "en · ru · tr · de · es · az"],
+    ["region", "Əsas ölkə (YouTube region kodu)", "text", null, "US · GB · CA · AU · DE · TR"],
+    ["ui_language", "İzahların dili", "text", null, "Azerbaijani"],
+    ["days", "Neçə günlük videolar təhlil olunsun", "number"],
+    ["max_keywords", "Bir araşdırmada max açar söz (hər biri ≈ 102 kvota vahidi)", "number"],
+    ["llm_provider", "Strategiya AI (boş = Skript tabındakı)", "select", ["", "anthropic", "openai", "deepseek"]],
+    ["llm_model", "Model (boş = avtomatik)", "text", null, "claude-opus-5-5 · gpt-4.1 · deepseek-reasoner"]],
   subtitles: [["enabled", "Altyazı (.srt) yarat", "bool"], ["burn_in", "Altyazını videoya yandır", "bool"],
     ["max_lines", "Sətir sayı", "number"], ["chars_per_line", "Sətirdə hərf", "number"], ["font_size", "Şrift ölçüsü", "number"]],
   music: [["enabled", "Arxa fon musiqisi", "bool"], ["volume", "Səs səviyyəsi (0.05–0.3)", "number"], ["file", "Fayl", "upload:music"]],
@@ -227,7 +238,8 @@ function renderApiTab(el) {
     ["fish", "Fish Audio (səsləndirmə, emosiyalar)", "fish.audio → Developers → API keys"],
     ["elevenlabs", "ElevenLabs (alternativ səs)", "elevenlabs.io → Profile → API key"],
     ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"],
-    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"]];
+    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"],
+    ["youtube", "YouTube Data API v3 (kanal strategiyası: real baxış və abunəçi rəqəmləri, pulsuz)", "console.cloud.google.com → YouTube Data API v3 → Enable → Credentials → API key"]];
   el.innerHTML = `<label><input type="checkbox" id="demo" ${state.settings.demo_mode ? "checked" : ""}> <b>Demo rejimi</b> — API-siz test: şəkillər, səs və ssenari süni yaradılır, xərc 0. Real video üçün söndürün.</label>
    ${rows.map(([k, label, hint]) => `<label>${label} <span class="muted">· ${hint}</span></label>
      <div class="row"><input data-key="${k}" placeholder="API açarı" value="${esc(state.keys[k])}" style="flex:1">
@@ -460,3 +472,208 @@ function wireScene(p, s) {
 }
 
 loadSettings().then(route).catch((e) => { view.innerHTML = `<p class="err">Server ilə əlaqə yoxdur: ${esc(e.message)}</p>`; });
+
+// ---------------- channel strategy agent ----------------
+const STRAT_TABS = { niche: "1. Niş və kanal adı", ideas: "2. Video ideyaları", seo: "3. Title · Description · Tags" };
+const KIND_LABEL = { niche: "Niş", ideas: "İdeyalar", seo: "SEO" };
+const stratDraft = (() => { try { return JSON.parse(localStorage.getItem("stratDraft") || "{}"); } catch { return {}; } })();
+const saveDraft = () => { try { localStorage.setItem("stratDraft", JSON.stringify(stratDraft)); } catch { /* ignore */ } };
+
+async function viewStrategy(tab) {
+  const r = state.settings.research || {};
+  const hasYt = !!state.keys.youtube;
+  const d = stratDraft;
+  const forms = {
+    niche: `<p class="muted">Agent namizəd nişlər seçir, YouTube-da real rəqəmləri yığır (son ${esc(r.days)} gün), nişləri 5 meyarla qiymətləndirir, qalibi seçir,
+       10 kanal adı təklif edir və adların boş olub-olmadığını yoxlayır. Sonra kanalın təsvirini, avatar/banner prompt-larını, ilk 10 videonu və pul qazanma planını yazır.</p>
+     <label>Maraqlarınız / fikirləşdiyiniz mövzular (boş saxlasanız, agent ən gəlirli nişləri özü axtarır)</label>
+     <textarea id="sInterests" placeholder="history, mysteries, AI, luxury cars, psychology...">${esc(d.interests || "")}</textarea>
+     <div class="grid">
+       <div><label>Format</label><select id="sFormat"><option value="long">Uzun videolar (ən çox gəlir)</option><option value="shorts" ${d.format === "shorts" ? "selected" : ""}>Shorts</option></select></div>
+       <div><label>Həftədə neçə video</label><input id="sPerWeek" type="number" value="${esc(d.per_week || 3)}"></div>
+       <div><label>Vizual üslub</label><input id="sStyle" value="${esc(d.style || "realistic cinematic")}"></div>
+       <div><label>Məqsəd</label><input id="sGoal" value="${esc(d.goal || "")}" placeholder="tez monetizasiya, yüksək RPM..."></div>
+     </div>`,
+    ideas: `<p class="muted">Agent nişdə son videoları yığır, kanal ölçüsünə görə <b>outlier</b> videoları (kiçik kanalda böyük baxış) tapır və
+       sübut olunmuş mövzulardan daha güclü bucaqla ideyalar yazır: title, hook (ilk 15 san), struktur, thumbnail konsepti, bal.</p>
+     <label>Niş / kanal mövzusu</label><input id="sNiche" value="${esc(d.niche || "")}" placeholder="unsolved historical mysteries">
+     <label>Əlavə açar sözlər (vergüllə, könüllü)</label><input id="sKeywords" value="${esc(d.keywords || "")}" placeholder="lost civilizations, ancient secrets">
+     <label>Kanalın bucağı / pozisiyası (könüllü, 1-ci addımdan)</label><input id="sPos" value="${esc(d.positioning || "")}">
+     <div class="grid">
+       <div><label>Neçə ideya</label><input id="sCount" type="number" min="3" max="30" value="${esc(d.count || 10)}"></div>
+       <div><label>Format</label><select id="sFormat"><option value="long">Uzun videolar</option><option value="shorts" ${d.format === "shorts" ? "selected" : ""}>Shorts</option></select></div>
+     </div>`,
+    seo: `<p class="muted">Bir video üçün yükləmə paketi: 5 title variantı, description (chapters + hashtag), 500 simvol limitinə uyğun tag-lər,
+       thumbnail mətni və prompt-u, pinned comment, Shorts ideyaları.</p>
+     <label>Video başlığı / mövzusu</label><input id="sTitle" value="${esc(d.title || "")}">
+     <label>Əsas açar söz (könüllü)</label><input id="sKw" value="${esc(d.keyword || "")}">
+     <label>Niş (könüllü)</label><input id="sNiche2" value="${esc(d.niche || "")}">
+     <label>Ssenari və ya qısa məzmun (könüllü, description daha dəqiq olur)</label><textarea id="sCtx">${esc(d.context || "")}</textarea>`,
+  };
+  view.innerHTML = `<h1>Kanal strategiyası</h1>
+   <div class="tabs">${Object.entries(STRAT_TABS).map(([k, v]) => `<a href="#/strategy/${k}"><button class="${k === tab ? "on" : ""}">${v}</button></a>`).join("")}</div>
+   <div class="card">
+     ${hasYt ? "" : `<p class="warn">YouTube Data API açarı yoxdur: agent real baxış/abunəçi rəqəmləri olmadan, yalnız autocomplete və AI biliyi ilə işləyəcək.
+        Açar pulsuzdur: <a href="#/settings/api">Ayarlar → API</a>.</p>`}
+     ${state.settings.demo_mode ? `<p class="warn">Demo rejimi aktivdir: nəticə nümunədir. Real araşdırma üçün Ayarlar → API-də söndürün.</p>` : ""}
+     ${forms[tab]}
+     <div class="grid">
+       <div><label>Auditoriya dili</label><input id="sLang" value="${esc(d.language || r.content_language || "English")}"></div>
+       <div><label>Ölkə (region kodu)</label><input id="sRegion" value="${esc(d.region || r.region || "US")}"></div>
+     </div>
+     <div class="row" style="margin-top:12px"><button class="primary" id="sRun">Araşdırmanı başlat</button>
+       <span class="muted">Ətraflı ayarlar: <a href="#/settings/research">Ayarlar → Araşdırma</a></span></div>
+   </div>
+   <div class="card"><h3>Araşdırmalar</h3><div id="rList" class="muted">yüklənir...</div></div>`;
+  const val = (id) => ($("#" + id) ? $("#" + id).value : undefined);
+  $("#sRun").onclick = async () => {
+    const common = { language: val("sLang"), region: val("sRegion"), format: val("sFormat") };
+    const body = tab === "niche" ? { ...common, interests: val("sInterests"), per_week: +val("sPerWeek"), style: val("sStyle"), goal: val("sGoal") }
+      : tab === "ideas" ? { ...common, niche: val("sNiche"), keywords: val("sKeywords"), positioning: val("sPos"), count: +val("sCount") }
+      : { ...common, title: val("sTitle"), keyword: val("sKw"), niche: val("sNiche2"), context: val("sCtx") };
+    if (tab === "ideas" && !body.niche.trim()) return toast("Niş yazın", "err");
+    if (tab === "seo" && !body.title.trim()) return toast("Başlıq yazın", "err");
+    Object.assign(stratDraft, body, tab === "seo" ? { niche: body.niche || stratDraft.niche } : {}); saveDraft();
+    try { const doc = await api(`/research/${tab}`, { method: "POST", body }); location.hash = `#/research/${doc.id}`; }
+    catch (e) { toast(e.message, "err"); }
+  };
+  const list = await api("/research");
+  const st = { running: "gedir...", done: "hazır", error: "xəta" };
+  $("#rList").innerHTML = list.length ? `<table>${list.map((x) => `<tr><td>${KIND_LABEL[x.kind] || x.kind}</td><td>${esc(x.title)}</td>
+      <td class="${x.status === "error" ? "err" : x.status === "done" ? "ok" : ""}">${st[x.status] || x.status}</td>
+      <td>${new Date(x.updated * 1000).toLocaleString()}</td>
+      <td class="row"><a href="#/research/${x.id}"><button class="small">Aç</button></a><button class="small" data-rdel="${x.id}">Sil</button></td></tr>`).join("")}</table>`
+    : "Hələ araşdırma yoxdur";
+  view.querySelectorAll("[data-rdel]").forEach((b) => b.onclick = async () => { await api(`/research/${b.dataset.rdel}`, { method: "DELETE" }); viewStrategy(tab); });
+}
+
+async function viewResearch(rid) {
+  let doc;
+  try { doc = await api(`/research/${rid}`); } catch (e) { view.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const back = `<a href="#/strategy/${doc.kind}"><button class="small">← Kanal strategiyası</button></a>`;
+  if (doc.status === "running") {
+    view.innerHTML = `${back}<h1>${esc(doc.title)}</h1><div class="card"><div class="kv"><span>${esc(doc.message)}</span><span>${doc.progress}%</span></div>
+      <div class="progress"><div style="width:${doc.progress}%"></div></div>
+      <p class="muted">Real araşdırma 1-4 dəqiqə çəkir. Səhifəni bağlaya bilərsiniz, nəticə "Araşdırmalar" siyahısında qalacaq.</p></div>`;
+    pollTimer = setTimeout(() => location.hash === `#/research/${rid}` && viewResearch(rid), 2500);
+    return;
+  }
+  if (doc.status === "error") {
+    view.innerHTML = `${back}<h1>${esc(doc.title)}</h1><div class="card"><p class="err">${esc(doc.error)}</p></div>`;
+    return;
+  }
+  const notes = (doc.data?.notes || []).map((n) => `<p class="warn">${esc(n)}</p>`).join("");
+  view.innerHTML = `${back}<h1>${esc(doc.title)}</h1>${notes}
+    <p class="muted">AI xərci: ${money(doc.total_cost)} · ${new Date(doc.updated * 1000).toLocaleString()}</p><div id="rBody"></div>${renderEvidence(doc.data)}`;
+  const body = $("#rBody");
+  if (doc.kind === "niche") renderNiche(body, doc);
+  if (doc.kind === "ideas") renderIdeas(body, doc);
+  if (doc.kind === "seo") renderSeo(body, doc.result, doc.params);
+  wireCopy(view);
+}
+
+const copyBtn = (text) => `<button class="small" data-copy="${esc(text)}">Kopyala</button>`;
+function wireCopy(el) {
+  el.querySelectorAll("[data-copy]").forEach((b) => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast("Kopyalandı", "ok"); } catch { toast("Kopyalamaq alınmadı", "err"); }
+  });
+}
+const ul = (arr) => (arr && arr.length) ? `<ul>${arr.map((x) => `<li>${esc(typeof x === "string" ? x : JSON.stringify(x))}</li>`).join("")}</ul>` : "";
+const fmtN = (n) => (n || 0).toLocaleString("en-US");
+
+function scoreBar(scores) {
+  const names = { demand: "Tələb", competition: "Rəqabət (10 = asan)", rpm: "RPM", ai_fit: "AI uyğunluğu", evergreen: "Evergreen" };
+  return Object.entries(names).map(([k, l]) => `<div class="kv"><span>${l}</span><span>${esc(scores?.[k] ?? "-")}/10</span></div>
+    <div class="progress" style="height:5px;margin-bottom:4px"><div style="width:${(scores?.[k] || 0) * 10}%"></div></div>`).join("");
+}
+
+function renderNiche(el, doc) {
+  const res = doc.result || {}, w = res.winner || {};
+  const hs = { free: '<span class="ok">ehtimal ki boşdur</span>', taken: '<span class="err">tutulub</span>', unknown: '<span class="muted">yoxlanılmadı</span>' };
+  el.innerHTML = `
+   <div class="card"><h3>Tövsiyə olunan niş: ${esc(w.niche)}</h3><p>${esc(w.why)}</p><p><b>Pozisiya:</b> ${esc(w.positioning)}</p>
+     <div class="row"><button class="primary" id="goIdeas">Bu niş üçün video ideyaları tap →</button></div></div>
+   <div class="card"><h3>Kanal adları</h3><p class="muted">@handle yoxlaması youtube.com/@ad səhifəsinə əsaslanır və yalnız ipucudur. Kanalı yaradarkən YouTube özü dəqiq deyəcək.</p>
+     <table><tr><th>Ad</th><th>@handle</th><th>Status</th><th>Niyə</th><th></th></tr>
+     ${(w.channel_names || []).map((n) => `<tr><td><b>${esc(n.name)}</b></td><td>@${esc(n.handle)}</td><td>${hs[n.handle_status] || hs.unknown}</td><td>${esc(n.why)}</td><td>${copyBtn(n.name)}</td></tr>`).join("")}</table></div>
+   <div class="split">
+     <div class="card"><h3>Kanal təsviri (About)</h3><pre class="pre">${esc(w.channel_description)}</pre>${copyBtn(w.channel_description || "")}
+       <h3 style="margin-top:14px">Kanal açar sözləri</h3><pre class="pre">${esc((w.channel_keywords || []).join(", "))}</pre>${copyBtn((w.channel_keywords || []).join(", "))}</div>
+     <div class="card"><h3>Avatar prompt</h3><pre class="pre">${esc(w.avatar_prompt)}</pre>${copyBtn(w.avatar_prompt || "")}
+       <h3 style="margin-top:14px">Banner prompt</h3><pre class="pre">${esc(w.banner_prompt)}</pre>${copyBtn(w.banner_prompt || "")}</div>
+   </div>
+   <div class="card"><h3>Kontent sütunları</h3><table><tr><th>Sütun</th><th>Məqsəd</th><th>Nümunə</th></tr>
+     ${(w.content_pillars || []).map((c) => `<tr><td>${esc(c.name)}</td><td>${esc(c.purpose)}</td><td>${esc(c.example)}</td></tr>`).join("")}</table>
+     <p><b>Video uzunluğu:</b> ${esc(w.video_length)}</p><p><b>Yükləmə planı:</b> ${esc(w.upload_plan)}</p></div>
+   <div class="card"><h3>İlk 10 video</h3><table>${(w.first_10_videos || []).map((v, i) => `<tr><td>${i + 1}</td><td><b>${esc(v.title)}</b><div class="muted">${esc(v.pillar)} · ${esc(v.why_first)}</div></td>
+     <td class="row"><button class="small" data-seo="${esc(v.title)}">SEO paketi</button><button class="small" data-mk="${esc(v.title)}">Video yarat</button></td></tr>`).join("")}</table></div>
+   <div class="split"><div class="card"><h3>Pul qazanma</h3>${ul(w.monetization)}<h3>90 günlük KPI-lar</h3>${ul(w.kpis)}</div>
+     <div class="card"><h3>Nədən qaçmalı</h3>${ul(w.avoid)}</div></div>
+   <h2>Bütün nişlərin müqayisəsi</h2><div class="scenes">${(res.niches || []).map((n) => `<div class="card"><h3>${esc(n.name)} <span class="muted">· RPM ${esc(n.rpm_tier)}</span></h3>
+     <p>${esc(n.verdict)}</p><p class="muted">${esc(n.audience)}</p>${scoreBar(n.scores)}
+     <details><summary>Sübutlar və risklər</summary>${ul(n.evidence)}${ul(n.risks)}</details></div>`).join("")}</div>`;
+  $("#goIdeas").onclick = () => { Object.assign(stratDraft, { niche: w.niche, positioning: w.positioning }); saveDraft(); location.hash = "#/strategy/ideas"; };
+  wireIdeaButtons(el, w.niche);
+}
+
+function wireIdeaButtons(el, niche, ideas = []) {
+  el.querySelectorAll("[data-seo]").forEach((b) => b.onclick = async () => {
+    const idea = ideas[b.dataset.idx] || {};
+    const body = { title: b.dataset.seo, niche, keyword: idea.target_keyword || "", language: stratDraft.language, region: stratDraft.region,
+      context: idea.angle ? `${idea.angle}\nHook: ${idea.hook}\nOutline: ${(idea.outline || []).join(" / ")}` : "" };
+    try { const doc = await api("/research/seo", { method: "POST", body }); location.hash = `#/research/${doc.id}`; } catch (e) { toast(e.message, "err"); }
+  });
+  el.querySelectorAll("[data-mk]").forEach((b) => b.onclick = async () => {
+    const idea = ideas[b.dataset.idx] || {};
+    const brief = idea.angle ? `${idea.angle}\n\nOpening hook: ${idea.hook}\n\nStructure: ${(idea.outline || []).join(" → ")}` : `Niche: ${niche}`;
+    try { const p = await api("/research-to-project", { method: "POST", body: { title: b.dataset.mk, brief } }); location.hash = `#/project/${p.id}`; }
+    catch (e) { toast(e.message, "err"); }
+  });
+}
+
+function renderIdeas(el, doc) {
+  const ideas = doc.result?.ideas || [];
+  const typ = { search: "axtarış", browse: "tövsiyə", series: "seriya" };
+  el.innerHTML = `<p class="muted">"Video yarat" ideyanın bucağını, hook-unu və strukturunu ssenari təsviri kimi video layihəsinə ötürür.</p>
+   ${ideas.map((x, i) => `<div class="card">
+     <div class="kv"><h3>${i + 1}. ${esc(x.title)}</h3><span><b>${esc(x.score)}/10</b> · ${typ[x.type] || esc(x.type)} · ${esc(x.length_min)} dəq</span></div>
+     <p class="muted">Alternativ: ${(x.alt_titles || []).map(esc).join(" · ")}</p>
+     <p><b>Bucaq:</b> ${esc(x.angle)}</p><p><b>Hook (ilk 15 san):</b> “${esc(x.hook)}”</p>
+     <p><b>Niyə işləyəcək:</b> ${esc(x.why)} <span class="muted">· əsas: ${esc(x.based_on)}</span></p>
+     <details><summary>Struktur, thumbnail, açar söz</summary><ol>${(x.outline || []).map((o) => `<li>${esc(o)}</li>`).join("")}</ol>
+       <p><b>Thumbnail:</b> ${esc(x.thumbnail)}</p><p><b>Açar söz:</b> ${esc(x.target_keyword)}</p></details>
+     <div class="row" style="margin-top:8px">${copyBtn(x.title)}<button class="small" data-idx="${i}" data-seo="${esc(x.title)}">Title · Description · Tags</button>
+       <button class="small primary" data-idx="${i}" data-mk="${esc(x.title)}">Video yarat</button></div></div>`).join("")}`;
+  wireIdeaButtons(el, doc.params.niche, ideas);
+}
+
+function renderSeo(el, r, params) {
+  r = r || {};
+  el.innerHTML = `
+   <div class="card"><h3>Title variantları</h3><table>${(r.titles || []).map((t) => `<tr><td><b>${esc(t.title)}</b> <span class="muted">(${esc(t.title?.length)} simvol)</span>
+     <div class="muted">${esc(t.style)} · ${esc(t.why)}</div></td><td>${copyBtn(t.title)}</td></tr>`).join("")}</table>
+     <p><b>Tövsiyə:</b> ${esc(r.recommended_title)} ${copyBtn(r.recommended_title || "")}</p></div>
+   <div class="card"><div class="kv"><h3>Description</h3>${copyBtn(r.description || "")}</div><pre class="pre">${esc(r.description)}</pre></div>
+   <div class="card"><div class="kv"><h3>Tags <span class="muted">(${esc(r.tags_chars)}/500 simvol)</span></h3>${copyBtn(r.tags_csv || "")}</div>
+     <pre class="pre">${esc(r.tags_csv)}</pre><p class="muted">Hashtag-lər: ${(r.hashtags || []).map(esc).join(" ")}</p></div>
+   <div class="split"><div class="card"><h3>Thumbnail</h3><p><b>Mətn:</b> ${esc(r.thumbnail_text)}</p><pre class="pre">${esc(r.thumbnail_prompt)}</pre>${copyBtn(r.thumbnail_prompt || "")}</div>
+     <div class="card"><h3>Pinned comment</h3><p>${esc(r.pinned_comment)}</p>${copyBtn(r.pinned_comment || "")}<h3 style="margin-top:12px">Shorts ideyaları</h3>${ul(r.shorts_hooks)}</div></div>
+   <div class="card"><h3>SEO strategiyası</h3><p>${esc(r.seo_notes)}</p>
+     <div class="row"><button class="primary" id="seoMk">Bu paketlə video layihəsi yarat</button></div></div>`;
+  $("#seoMk").onclick = async () => {
+    const brief = params.context || `Niche: ${params.niche || ""}`;
+    try { const p = await api("/research-to-project", { method: "POST", body: { title: r.recommended_title || params.title, brief, metadata: r } }); location.hash = `#/project/${p.id}`; }
+    catch (e) { toast(e.message, "err"); }
+  };
+}
+
+function renderEvidence(data) {
+  const snaps = data?.snapshots || [];
+  if (!snaps.length) return "";
+  return `<h2>Toplanan YouTube datası</h2><p class="muted">Outlier = baxış / abunəçi (min 1000). x3-dən yuxarı = mövzu kanalın ölçüsündən güclüdür.</p>
+   ${snaps.map((s) => `<details class="card"><summary><b>${esc(s.keyword)}</b> · median ${fmtN(s.summary.median_views)} baxış ·
+     kiçik kanal hitləri: ${esc(s.summary.small_channel_hits)} · outlier: ${esc(s.summary.outlier_count)}</summary>
+     <table><tr><th>Video</th><th>Kanal</th><th>Baxış</th><th>Abunəçi</th><th>Gündə</th><th>Outlier</th><th>Dəq</th></tr>
+     ${s.videos.slice(0, 15).map((v) => `<tr><td><a href="https://www.youtube.com/watch?v=${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a></td>
+       <td>${esc(v.channel)}</td><td>${fmtN(v.views)}</td><td>${fmtN(v.subs)}</td><td>${fmtN(v.views_per_day)}</td><td>x${esc(v.outlier)}</td><td>${esc(v.minutes)}</td></tr>`).join("")}</table></details>`).join("")}`;
+}

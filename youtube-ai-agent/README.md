@@ -9,6 +9,25 @@ Mövzu → Ssenari (DeepSeek / Claude / OpenAI) → Səhnələrə bölmə → H�
       → MP4 + .srt + YouTube metadata
 ```
 
+## 0. Kanal strategiyası (video çəkməzdən əvvəl)
+
+Sol menyuda **Kanal strategiyası** bölməsi var. Bu agent sizə hansı kanalı açmağı və hansı videoları çəkməyi deyir. Üç addımdan ibarətdir:
+
+| Addım | Agent nə edir | Nəticə |
+|---|---|---|
+| 1. Niş və kanal adı | 8 namizəd niş seçir, YouTube-dan real rəqəmləri yığır, hər nişə 5 meyarla bal verir (tələb, rəqabət, RPM, AI uyğunluğu, evergreen) və qalibi seçir | 10 kanal adı (@handle-in boş olub-olmadığı yoxlanılır), About mətni, kanal açar sözləri, avatar və banner prompt-ları, kontent sütunları, ilk 10 video, pul qazanma planı, 90 günlük KPI-lar |
+| 2. Video ideyaları | Nişdə son videoları toplayır və **outlier**-ləri tapır, yəni kiçik kanalda böyük baxış toplamış videoları. Sübut olunmuş mövzulardan daha güclü bucaqla ideya yazır | Hər ideya üçün title, 2 alternativ title, hook (ilk 15 saniyə), struktur, thumbnail konsepti, bal və "niyə işləyəcək" izahı |
+| 3. Title · Description · Tags | Autocomplete-dən real axtarış sorğularını götürür | 5 title variantı, chapters və hashtag-li description, tag-lər (500 simvol limitinə uyğun), thumbnail mətni və prompt-u, pinned comment, Shorts ideyaları |
+
+Hər ideyanın altında **Video yarat** düyməsi var. O, ideyanın bucağını, hook-unu və strukturunu video layihəsinə ötürür. SEO paketindən yaradılan layihədə title, description və tag-lər də hazır olur.
+
+**Data mənbələri:**
+- YouTube autocomplete: pulsuzdur, açar tələb etmir. İnsanların real yazdığı axtarışları göstərir.
+- **YouTube Data API v3**: pulsuzdur, amma açar lazımdır. Açarı belə alırsınız: console.cloud.google.com → yeni layihə → *APIs & Services → Library → YouTube Data API v3 → Enable* → *Credentials → Create credentials → API key*. Açarı **Ayarlar → API → YouTube** xanasına yazın. Gündəlik kvota 10 000 vahiddir, bir açar sözün təhlili ≈ 102 vahid aparır. Deməli gündə ≈ 90 açar söz təhlil edə bilərsiniz. Açar olmasa da agent işləyir, amma onda baxış və abunəçi rəqəmləri olmur və nəticə AI biliyinə əsaslanır.
+- AI-a sistemdə açıq qadağa qoyulub: rəqəm uydurmamalıdır. Data olmayanda nəticəni "estimate" kimi qeyd edir. RPM səviyyələri də təxminidir.
+
+Dil, ölkə, neçə günlük videoların təhlil olunacağı və hansı AI modelinin işləyəcəyi **Ayarlar → Araşdırma** tabında seçilir. Strategiya üçün güclü model tövsiyə olunur, məsələn `claude-opus-5-5` və ya `deepseek-reasoner`.
+
 ## 1. Quraşdırma (bir dəfə)
 
 1. **Python 3.10+**: https://www.python.org/downloads/ (Windows-da "Add Python to PATH" seçin)
@@ -32,6 +51,7 @@ Brauzer avtomatik açılır: http://127.0.0.1:8765
 | fal.ai | Kie.ai-yə alternativ (könüllü) | fal.ai → Keys | ≈ $0.2–0.7 / klip |
 | Anthropic | Ssenarini Claude ilə yazmaq (könüllü) | console.anthropic.com | modeldən asılı |
 | ElevenLabs | Alternativ səs (könüllü) | elevenlabs.io | planından asılı |
+| YouTube Data API v3 | Kanal strategiyası: real baxış və abunəçi rəqəmləri | console.cloud.google.com | pulsuz (gündə 10 000 vahid) |
 
 Hər açardan sonra **Yadda saxla**, sonra **Bağlantını yoxla** düyməsini basın. Real video üçün **Demo rejimi**ni söndürün. Demo rejimi API-siz işləyir: şəkillərin, səsin və ssenarinin yerinə süni nümunələr yaranır, xərc $0 olur. Proqramı sınamaq üçün nəzərdə tutulub.
 

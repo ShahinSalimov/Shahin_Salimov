@@ -78,6 +78,16 @@ DEFAULT_SETTINGS: dict = {
     "transitions": {"mode": "crossfade", "duration": 0.5, "types": ["fade", "dissolve", "smoothleft", "smoothright"]},
     "branding": {"logo": "", "logo_width_percent": 8, "position": "top-left"},
     "output": {"fps": 30, "crf": 20, "audio_bitrate": "192k"},
+    "research": {
+        "content_language": "English",
+        "lang_code": "en",
+        "region": "US",
+        "ui_language": "Azerbaijani",
+        "days": 90,
+        "max_keywords": 12,
+        "llm_provider": "",
+        "llm_model": "",
+    },
     "costs": {
         "image_low": 0.016,
         "image_medium": 0.063,
@@ -93,7 +103,7 @@ DEFAULT_SETTINGS: dict = {
     },
 }
 
-DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": ""}
+DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": "", "youtube": ""}
 
 BASE_STYLES = [
     {

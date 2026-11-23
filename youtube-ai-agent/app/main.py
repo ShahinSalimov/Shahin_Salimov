@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import llm, pipeline, script, store
+from . import llm, pipeline, research, script, store
 
 STATIC = Path(__file__).parent / "static"
 
@@ -23,6 +23,7 @@ async def lifespan(_app):
     store.DATA.mkdir(parents=True, exist_ok=True)
     store.OUTPUT.mkdir(parents=True, exist_ok=True)
     pipeline.recover_interrupted()
+    research.recover_interrupted()
     yield
 
 
@@ -319,6 +320,60 @@ def open_folder(pid: str):
     except OSError:
         pass
     return {"folder": folder}
+
+
+# ---------------- channel strategy agent ----------------
+@app.get("/api/research")
+def research_list():
+    return research.list_all()
+
+
+@app.post("/api/research/{kind}")
+def research_start(kind: str, body: dict):
+    if kind not in ("niche", "ideas", "seo"):
+        raise HTTPException(400, "kind")
+    return research.start(kind, body)
+
+
+def _research(rid: str) -> dict:
+    try:
+        return research.get(rid)
+    except KeyError:
+        raise HTTPException(404, "Araşdırma tapılmadı")
+
+
+@app.get("/api/research/{rid}")
+def research_get(rid: str):
+    doc = _research(rid)
+    doc["total_cost"] = round(sum(c.get("usd", 0) for c in doc.get("costs", [])), 4)
+    return doc
+
+
+@app.delete("/api/research/{rid}")
+def research_delete(rid: str):
+    research.delete(rid)
+    return {"ok": True}
+
+
+class IdeaToProject(BaseModel):
+    title: str
+    brief: str = ""
+    metadata: dict | None = None
+    auto: bool = False
+
+
+@app.post("/api/research-to-project")
+def research_to_project(body: IdeaToProject):
+    """Send a researched idea (and its SEO pack, if made) into the video pipeline."""
+    p = store.create_project(body.title, body.brief)
+    if body.metadata:
+        m = body.metadata
+        meta = {"title": m.get("recommended_title") or body.title, "description": m.get("description", ""),
+                "tags": m.get("tags", []), "thumbnail_prompt": m.get("thumbnail_prompt", "")}
+        p = store.update_project(p["id"], lambda x: x.update(metadata=meta))
+    if body.auto:
+        _job(p["id"], "full_auto", pipeline.job_full_auto)
+    return p
 
 
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")
