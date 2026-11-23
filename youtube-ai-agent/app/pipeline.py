@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import threading
+from pathlib import Path
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from . import media, render, script, store
+from . import media, render, script, store, youtube
 
 _stops: dict[str, threading.Event] = {}
 _running: dict[str, threading.Thread] = {}
@@ -239,3 +240,77 @@ def job_full_auto(pid: str, ev: threading.Event) -> None:
             raise RuntimeError("Dayandırıldı")
         step(pid, ev)
     job_render(pid, ev)
+    ch = _channel(store.get_project(pid))
+    if ch and ch["upload"].get("auto") and (ch["youtube"].get("channel_id") or youtube.is_connected(ch["id"])):
+        opts = dict(ch["upload"])
+        if opts.get("publish_time"):
+            opts["publish_at"] = youtube.next_publish_at(opts["publish_time"])
+        job_upload(pid, ev, {**opts, "channel_id": ch["id"]})
+
+
+def _channel(proj: dict) -> dict | None:
+    from . import channels
+    try:
+        return channels.get(proj.get("channel_id") or "")
+    except KeyError:
+        return None
+
+
+def job_thumbnail(pid: str, ev: threading.Event) -> None:
+    proj = store.get_project(pid)
+    meta = proj.get("metadata") or {}
+    prompt = meta.get("thumbnail_prompt") or f"Cinematic realistic YouTube thumbnail about: {proj['title']}"
+    st = {**proj["settings"], "visual": {**proj["settings"]["visual"], "aspect": "16:9"}}
+    _set_job(pid, progress=20, message="Thumbnail çəkilir")
+    name = f"thumb_{int(time.time())}.png"
+    cost = media.generate_image(prompt + ", no text, high contrast, one clear focal subject", store.project_dir(pid) / name, st)
+    _add_costs(pid, [cost])
+    store.update_project(pid, lambda p: p.update(thumbnail=name))
+
+
+def job_upload(pid: str, ev: threading.Event, opts: dict | None = None) -> None:
+    """Upload the rendered MP4 (+ thumbnail) to the project's channel."""
+    opts = dict(opts or {})
+    proj = store.get_project(pid)
+    cid = opts.get("channel_id") or proj.get("channel_id")
+    if not proj.get("output"):
+        raise RuntimeError("Əvvəlcə videonu montaj edin")
+    if not cid:
+        raise RuntimeError("Kanal seçilməyib")
+    from . import channels
+    ch = channels.get(cid)
+    opts = {**ch["upload"], **{k: v for k, v in opts.items() if v not in (None, "")}}
+    if not proj.get("metadata"):
+        _set_job(pid, progress=2, message="Title, description, tag-lər yazılır")
+        job_metadata(pid, ev)
+        proj = store.get_project(pid)
+    meta = dict(proj["metadata"])
+    footer = (ch["kit"].get("description_footer") or "").strip()
+    if footer and footer not in meta.get("description", ""):
+        meta["description"] = (meta.get("description", "").rstrip() + "\n\n" + footer)
+    meta["tags"] = list(dict.fromkeys(list(meta.get("tags", [])) + list(ch["kit"].get("default_tags", []))))
+    body = youtube.build_body(meta, opts, ch.get("lang_code", ""))
+    if proj["settings"].get("demo_mode"):
+        vid = "demo_" + pid[:6]
+        _set_job(pid, progress=90, message="DEMO: YouTube-a yükləmə simulyasiya olundu")
+    else:
+        vid = youtube.upload_video(cid, Path(proj["output"]),
+                                   body, progress=lambda pct, msg: _set_job(pid, progress=5 + pct * 0.85, message=msg),
+                                   should_stop=ev.is_set)
+    warn = ""
+    if opts.get("thumbnail", True):
+        try:
+            if not proj.get("thumbnail"):
+                job_thumbnail(pid, ev)
+                proj = store.get_project(pid)
+            if not proj["settings"].get("demo_mode"):
+                _set_job(pid, progress=95, message="Thumbnail qoyulur")
+                youtube.set_thumbnail(cid, vid, store.project_dir(pid) / proj["thumbnail"])
+        except Exception as e:  # noqa: BLE001 - video is already up; thumbnail is secondary
+            warn = str(e)
+    info = {"video_id": vid, "url": f"https://youtu.be/{vid}", "channel_id": cid, "privacy": body["status"]["privacyStatus"],
+            "publish_at": body["status"].get("publishAt", ""), "uploaded_at": time.time(), "thumbnail_warning": warn,
+            "title": body["snippet"]["title"]}
+    store.update_project(pid, lambda p: p.update(youtube=info, channel_id=cid))
+    if proj.get("idea_id"):
+        channels.patch_idea(cid, proj["idea_id"], status="uploaded", video_url=info["url"])

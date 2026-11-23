@@ -38,14 +38,16 @@ $("#profileSelect").addEventListener("change", async (e) => {
 // ---------------- router ----------------
 function route() {
   clearInterval(pollTimer);
-  const [, page, id] = location.hash.split("/");
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === (page === "research" ? "strategy" : page || "new")));
+  const [, page, id, sub] = location.hash.split("/");
+  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === ({ research: "strategy", channel: "channels" }[page] || page || "new")));
   if (page === "history") return viewHistory();
   if (page === "settings") return viewSettings(id || "api");
   if (page === "library") return viewLibrary();
   if (page === "project" && id) return viewProject(id);
   if (page === "strategy") return viewStrategy(id || "niche");
   if (page === "research" && id) return viewResearch(id);
+  if (page === "channels") return viewChannels();
+  if (page === "channel" && id) return viewChannel(id, sub || "ideas");
   return viewNew();
 }
 window.addEventListener("hashchange", route);
@@ -239,11 +241,13 @@ function renderApiTab(el) {
     ["elevenlabs", "ElevenLabs (alternativ səs)", "elevenlabs.io → Profile → API key"],
     ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"],
     ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"],
-    ["youtube", "YouTube Data API v3 (kanal strategiyası: real baxış və abunəçi rəqəmləri, pulsuz)", "console.cloud.google.com → YouTube Data API v3 → Enable → Credentials → API key"]];
+    ["youtube", "YouTube Data API v3 (kanal strategiyası: real baxış və abunəçi rəqəmləri, pulsuz)", "console.cloud.google.com → YouTube Data API v3 → Enable → Credentials → API key"],
+    ["yt_client_id", "YouTube-a yükləmə: Google OAuth Client ID", "Credentials → Create credentials → OAuth client ID → Desktop app"],
+    ["yt_client_secret", "YouTube-a yükləmə: Google OAuth Client secret", "eyni OAuth client-in secret-i"]];
   el.innerHTML = `<label><input type="checkbox" id="demo" ${state.settings.demo_mode ? "checked" : ""}> <b>Demo rejimi</b> — API-siz test: şəkillər, səs və ssenari süni yaradılır, xərc 0. Real video üçün söndürün.</label>
    ${rows.map(([k, label, hint]) => `<label>${label} <span class="muted">· ${hint}</span></label>
      <div class="row"><input data-key="${k}" placeholder="API açarı" value="${esc(state.keys[k])}" style="flex:1">
-     <button class="small" data-save="${k}">Yadda saxla</button><button class="small" data-test="${k}">Bağlantını yoxla</button>
+     <button class="small" data-save="${k}">Yadda saxla</button>${k.startsWith("yt_") ? "" : `<button class="small" data-test="${k}">Bağlantını yoxla</button>`}
      <span data-res="${k}" class="muted"></span></div>`).join("")}`;
   $("#demo").onchange = (e) => api("/settings", { method: "PUT", body: { demo_mode: e.target.checked } })
     .then(loadSettings).then(() => toast(e.target.checked ? "Demo rejimi aktivdir" : "Real API rejimi aktivdir", "ok"));
@@ -344,7 +348,7 @@ async function viewProject(pid) {
     if (sig !== lastJobSig) { lastJobSig = sig; if (!q.running || q.job?.name === "frames" || q.job?.name === "voice") rerender(q); }
   }, 2000);
 }
-const jobSig = (p) => JSON.stringify([p.running, p.job?.status, p.script.length, p.scenes.map((s) => s.image + s.audio + s.video + s.error), p.output]);
+const jobSig = (p) => JSON.stringify([p.running, p.job?.status, p.script.length, p.scenes.map((s) => s.image + s.audio + s.video + s.error), p.output, p.thumbnail, p.youtube?.video_id]);
 function rerender(p) {
   const active = document.activeElement;
   if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT") && view.contains(active)) return; // don't clobber typing
@@ -405,7 +409,8 @@ function renderStoryboard(p) {
      <a href="/api/projects/${p.id}/output?srt=true"><button>Altyazı (.srt)</button></a><button id="of">Qovluğu aç</button>
      <span class="muted">${esc(p.output)}</span></div>
      ${meta ? `<h2>YouTube üçün</h2><label>Başlıq</label><input value="${esc(meta.title)}" readonly><label>Təsvir</label><textarea readonly>${esc(meta.description)}</textarea>
-       <label>Teqlər</label><input value="${esc((meta.tags || []).join(", "))}" readonly><label>Thumbnail prompt</label><textarea readonly>${esc(meta.thumbnail_prompt)}</textarea>` : `<button id="md" ${dis}>YouTube başlıq/təsvir/teq yarat</button>`}</div>` : ""}
+       <label>Teqlər</label><input value="${esc((meta.tags || []).join(", "))}" readonly><label>Thumbnail prompt</label><textarea readonly>${esc(meta.thumbnail_prompt)}</textarea>` : `<button id="md" ${dis}>YouTube başlıq/təsvir/teq yarat</button>`}</div>
+     <div class="card" id="ytPanel"></div>` : ""}
    <div class="card"><div class="row" style="justify-content:space-between">
      <span><b>${p.scenes.length}</b> səhnə · səs: ${total ? Math.floor(total / 60) + ":" + String(Math.round(total % 60)).padStart(2, "0") : "—"} · xərc ${money(p.total_cost)}</span>
      <span class="row">
@@ -425,6 +430,35 @@ function renderStoryboard(p) {
   $("#md") && ($("#md").onclick = () => post("/metadata"));
   $("#of") && ($("#of").onclick = async () => { const r = await post("/open-folder"); r && toast("Qovluq: " + r.folder); });
   p.scenes.forEach((s) => wireScene(p, s));
+  if (p.output) renderUploadPanel(p);
+}
+
+async function renderUploadPanel(p) {
+  const el = $("#ytPanel"); if (!el) return;
+  const chans = await api("/channels").catch(() => []);
+  const cur = chans.find((c) => c.id === p.channel_id) || chans[0];
+  const yt = p.youtube;
+  const up = cur?.upload || {};
+  el.innerHTML = `<h3>YouTube-a yüklə</h3>
+    ${yt ? `<p class="ok">Yükləndi: <a href="${esc(yt.url)}" target="_blank" rel="noopener">${esc(yt.url)}</a> · ${esc(yt.privacy)}${yt.publish_at ? " · yayım: " + new Date(yt.publish_at).toLocaleString() : ""}</p>
+      ${yt.thumbnail_warning ? `<p class="warn">${esc(yt.thumbnail_warning)}</p>` : ""}` : ""}
+    ${chans.length ? `<div class="grid">
+      <div><label>Kanal</label><select id="upCh">${chans.map((c) => `<option value="${esc(c.id)}" ${c.id === cur?.id ? "selected" : ""}>${esc(c.name)} ${c.connected ? "✓" : "(bağlı deyil)"}</option>`).join("")}</select></div>
+      <div><label>Görünmə</label><select id="upPriv">${["private", "unlisted", "public"].map((x) => `<option ${x === up.privacy ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+      <div><label>Planlı yayım (boş = dərhal)</label><input id="upAt" type="datetime-local"></div>
+      <div><label><input type="checkbox" id="upThumb" ${up.thumbnail !== false ? "checked" : ""}> Thumbnail yarat və qoy</label></div></div>
+      <div class="row" style="margin-top:8px"><button class="primary" id="upGo" ${p.running ? "disabled" : ""}>${yt ? "Yenidən yüklə" : "YouTube-a yüklə"}</button>
+        <button id="thGo" ${p.running ? "disabled" : ""}>Thumbnail yarat</button></div>
+      ${p.thumbnail ? `<img src="/api/projects/${p.id}/thumb?t=${p.updated}" style="max-width:320px;border-radius:8px;margin-top:8px">` : ""}
+      <p class="muted">Title, description və tag-lər yuxarıdakı "YouTube üçün" blokundan götürülür, kanalın standart tag-ləri və description footer-i əlavə olunur.
+       Planlı yayımda video "private" yüklənir və seçdiyiniz vaxtda avtomatik açılır.</p>`
+      : `<p class="muted">Hələ kanal yoxdur. <a href="#/channels">Kanallarım</a> bölməsində kanal əlavə edib YouTube-a bağlayın.</p>`}`;
+  if (!chans.length) return;
+  $("#upGo").onclick = async () => {
+    const body = { channel_id: $("#upCh").value, privacy: $("#upPriv").value, thumbnail: $("#upThumb").checked, publish_at: $("#upAt").value || undefined };
+    try { await api(`/projects/${p.id}/upload`, { method: "POST", body }); toast("Yükləmə başladı", "ok"); } catch (e) { toast(e.message, "err"); }
+  };
+  $("#thGo").onclick = () => api(`/projects/${p.id}/thumbnail`, { method: "POST" }).catch((e) => toast(e.message, "err"));
 }
 
 function sceneCard(p, s, i) {
@@ -593,6 +627,13 @@ function renderNiche(el, doc) {
   el.innerHTML = `
    <div class="card"><h3>Tövsiyə olunan niş: ${esc(w.niche)}</h3><p>${esc(w.why)}</p><p><b>Pozisiya:</b> ${esc(w.positioning)}</p>
      <div class="row"><button class="primary" id="goIdeas">Bu niş üçün video ideyaları tap →</button></div></div>
+   <div class="card"><h3>Kanalı yaratdınız? Kanallarıma əlavə edin</h3>
+     <p class="muted">YouTube-da kanalı açdıqdan sonra onu bura əlavə edin. Bu strategiyanın hamısı (niş, pozisiya, description, açar sözlər, sütunlar) kanala yazılır.
+       Agent bundan sonra kanal üçün standart tag-lər, description footer və title qaydalarını da hazırlayır.</p>
+     <div class="grid"><div><label>Kanalın adı (YouTube-da necə yazdınızsa)</label><input id="chName" list="chNames" value="${esc((w.channel_names || [{}])[0]?.name || "")}">
+       <datalist id="chNames">${(w.channel_names || []).map((n) => `<option value="${esc(n.name)}">`).join("")}</datalist></div>
+       <div><label>@handle</label><input id="chHandle" value="${esc((w.channel_names || [{}])[0]?.handle || "")}"></div></div>
+     <div class="row" style="margin-top:8px"><button class="primary" id="chAdd">Kanallarıma əlavə et</button></div></div>
    <div class="card"><h3>Kanal adları</h3><p class="muted">@handle yoxlaması youtube.com/@ad səhifəsinə əsaslanır və yalnız ipucudur. Kanalı yaradarkən YouTube özü dəqiq deyəcək.</p>
      <table><tr><th>Ad</th><th>@handle</th><th>Status</th><th>Niyə</th><th></th></tr>
      ${(w.channel_names || []).map((n) => `<tr><td><b>${esc(n.name)}</b></td><td>@${esc(n.handle)}</td><td>${hs[n.handle_status] || hs.unknown}</td><td>${esc(n.why)}</td><td>${copyBtn(n.name)}</td></tr>`).join("")}</table></div>
@@ -612,6 +653,12 @@ function renderNiche(el, doc) {
    <h2>Bütün nişlərin müqayisəsi</h2><div class="scenes">${(res.niches || []).map((n) => `<div class="card"><h3>${esc(n.name)} <span class="muted">· RPM ${esc(n.rpm_tier)}</span></h3>
      <p>${esc(n.verdict)}</p><p class="muted">${esc(n.audience)}</p>${scoreBar(n.scores)}
      <details><summary>Sübutlar və risklər</summary>${ul(n.evidence)}${ul(n.risks)}</details></div>`).join("")}</div>`;
+  $("#chAdd").onclick = async () => {
+    try {
+      const c = await api(`/channels/from-research/${doc.id}`, { method: "POST", body: { name: $("#chName").value, handle: $("#chHandle").value } });
+      toast("Kanal əlavə olundu, kanal paketi hazırlanır", "ok"); location.hash = `#/channel/${c.id}/kit`;
+    } catch (e) { toast(e.message, "err"); }
+  };
   $("#goIdeas").onclick = () => { Object.assign(stratDraft, { niche: w.niche, positioning: w.positioning }); saveDraft(); location.hash = "#/strategy/ideas"; };
   wireIdeaButtons(el, w.niche);
 }
@@ -676,4 +723,202 @@ function renderEvidence(data) {
      <table><tr><th>Video</th><th>Kanal</th><th>Baxış</th><th>Abunəçi</th><th>Gündə</th><th>Outlier</th><th>Dəq</th></tr>
      ${s.videos.slice(0, 15).map((v) => `<tr><td><a href="https://www.youtube.com/watch?v=${esc(v.video_id)}" target="_blank" rel="noopener">${esc(v.title)}</a></td>
        <td>${esc(v.channel)}</td><td>${fmtN(v.views)}</td><td>${fmtN(v.subs)}</td><td>${fmtN(v.views_per_day)}</td><td>x${esc(v.outlier)}</td><td>${esc(v.minutes)}</td></tr>`).join("")}</table></details>`).join("")}`;
+}
+
+// ---------------- my channels ----------------
+// Polls a background job (research doc) and calls done() when it finishes.
+function watchJob(docId, el, done) {
+  const tick = async () => {
+    if (!document.body.contains(el)) return;
+    const d = await api(`/research/${docId}`).catch(() => null);
+    if (!d) return;
+    if (d.status === "running") {
+      el.innerHTML = `<div class="jobbar"><div class="kv"><span>${esc(d.message)}</span><span>${d.progress}%</span></div>
+        <div class="progress"><div style="width:${d.progress}%"></div></div></div>`;
+      pollTimer = setTimeout(tick, 2000);
+    } else {
+      el.innerHTML = d.status === "error" ? `<div class="jobbar err">${esc(d.error)}</div>` : "";
+      if (d.status === "done") done && done(d);
+    }
+  };
+  tick();
+}
+
+async function viewChannels() {
+  const list = await api("/channels");
+  view.innerHTML = `<h1>Kanallarım</h1>
+   <p class="muted">Hər kanalın öz strategiya paketi var. Gündəlik ideyalar, ssenarilər, title/description/tag-lər həmin paketə əsasən yazılır.
+     Yeni kanal üçün əvvəlcə <a href="#/strategy">Kanal strategiyası</a> edin və nəticədə "Kanallarıma əlavə et" düyməsini basın, ya da mövcud kanalı aşağıdan əl ilə əlavə edin.</p>
+   <div class="scenes">${list.map((c) => `<div class="card"><h3>${esc(c.name)} <span class="muted">@${esc(c.handle)}</span></h3>
+     <p>${esc(c.niche)}</p><p class="muted">${esc(c.language)} · ${esc(c.region)} · ${c.idea_count} ideya</p>
+     <p>${c.connected ? `<span class="ok">YouTube bağlıdır: ${esc(c.youtube.title)}</span>` : '<span class="warn">YouTube bağlı deyil</span>'}
+       ${c.auto.enabled ? ` · <span class="ok">gündəlik ideyalar ${esc(c.auto.time)}</span>` : ""}</p>
+     <a href="#/channel/${c.id}/ideas"><button class="primary small">Aç</button></a></div>`).join("") || '<p class="muted">Hələ kanal yoxdur.</p>'}</div>
+   <div class="card"><h3>Mövcud kanalı əl ilə əlavə et</h3>
+     <div class="grid"><div><label>Kanal adı</label><input id="mName"></div><div><label>@handle</label><input id="mHandle"></div>
+       <div style="grid-column:1/-1"><label>Niş / kanal nədən bəhs edir</label><input id="mNiche" placeholder="unsolved historical mysteries, cinematic documentary style"></div>
+       <div><label>Auditoriya dili</label><input id="mLang" value="${esc(state.settings.research.content_language)}"></div>
+       <div><label>Dil kodu</label><input id="mCode" value="${esc(state.settings.research.lang_code)}"></div>
+       <div><label>Ölkə</label><input id="mRegion" value="${esc(state.settings.research.region)}"></div></div>
+     <div class="row" style="margin-top:8px"><button class="primary" id="mAdd">Əlavə et və kanal paketini AI ilə hazırla</button></div></div>`;
+  $("#mAdd").onclick = async () => {
+    try {
+      const c = await api("/channels", { method: "POST", body: { name: $("#mName").value, handle: $("#mHandle").value.replace(/^@/, ""), niche: $("#mNiche").value,
+        language: $("#mLang").value, lang_code: $("#mCode").value, region: $("#mRegion").value } });
+      location.hash = `#/channel/${c.id}/kit`;
+    } catch (e) { toast(e.message, "err"); }
+  };
+}
+
+const CH_TABS = { ideas: "İdeyalar və ssenarilər", kit: "Kanal paketi", upload: "YouTube və yükləmə", settings: "Avtomatlaşdırma və ayarlar" };
+
+async function viewChannel(cid, tab) {
+  let c;
+  try { c = await api(`/channels/${cid}`); } catch (e) { view.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  view.innerHTML = `<a href="#/channels"><button class="small">← Kanallarım</button></a>
+   <h1>${esc(c.name)} <span class="muted">@${esc(c.handle)}</span></h1>
+   <div class="tabs">${Object.entries(CH_TABS).map(([k, v]) => `<a href="#/channel/${cid}/${k}"><button class="${k === tab ? "on" : ""}">${v}</button></a>`).join("")}</div>
+   <div id="chJob"></div><div id="chBody"></div>`;
+  const body = $("#chBody");
+  const running = (await api(`/research?channel_id=${cid}`)).find((r) => r.status === "running");
+  const reload = () => location.hash === `#/channel/${cid}/${tab}` && viewChannel(cid, tab);
+  if (running) watchJob(running.id, $("#chJob"), reload);
+  const start = async (path, b) => {
+    try { const d = await api(`/channels/${cid}${path}`, { method: "POST", body: b || {} }); watchJob(d.id, $("#chJob"), reload); }
+    catch (e) { toast(e.message, "err"); }
+  };
+  ({ ideas: chIdeas, kit: chKit, upload: chUpload, settings: chSettings })[tab](body, c, start, reload);
+  wireCopy(view);
+}
+
+function chIdeas(el, c, start, reload) {
+  const st = { new: "yeni", script: "ssenari hazır", project: "video layihəsi", uploaded: "yüklənib" };
+  const byDate = {};
+  c.ideas.forEach((i) => (byDate[i.date] = byDate[i.date] || []).push(i));
+  Object.values(byDate).forEach((arr) => arr.sort((a, b) => (b.score || 0) - (a.score || 0)));
+  el.innerHTML = `
+   <div class="split">
+     <div class="card"><h3>Komanda ilə ssenari</h3>
+       <p class="muted">İstədiyiniz mövzunu yazın: agent onu kanalın nişinə və title qaydalarına uyğun ideyaya çevirir və tam ssenarini yazır.</p>
+       <textarea id="cmd" placeholder="Məs: Roma legionunun izsiz yoxa çıxması haqqında ssenari yaz, sonu gözlənilməz olsun"></textarea>
+       <div class="row" style="margin-top:8px"><input id="cmdMin" type="number" step="0.5" min="0.5" placeholder="dəqiqə" style="max-width:110px">
+         <button class="primary" id="cmdGo">Ssenari yaz</button></div></div>
+     <div class="card"><h3>Yeni ideyalar</h3>
+       <p class="muted">Agent kanalın nişində ən son outlier videoları tapır və əvvəlki ideyaları təkrarlamadan yeni ideyalar yazır.
+        ${c.auto.enabled ? `Avtomatik: hər gün ${esc(c.auto.time)}-da ${esc(c.auto.count)} ideya.` : `Hər gün avtomatik etmək üçün: <a href="#/channel/${c.id}/settings">Avtomatlaşdırma</a>.`}</p>
+       <div class="row"><input id="idCount" type="number" min="3" max="30" value="${esc(c.auto.count || 5)}" style="max-width:90px">
+         <label style="margin:0"><input type="checkbox" id="idScr"> ən yaxşısına ssenari də yaz</label>
+         <button class="primary" id="idGo">İdeyaları yarat</button></div></div>
+   </div>
+   ${Object.entries(byDate).map(([d, items]) => `<h2>${esc(d)}</h2>${items.map((x) => `<div class="card">
+     <div class="kv"><h3>${esc(x.title)}</h3><span>${x.score ? `<b>${esc(x.score)}/10</b> · ` : ""}${esc(st[x.status] || x.status)}${x.length_min ? ` · ${esc(x.length_min)} dəq` : ""}</span></div>
+     ${x.command ? `<p class="muted">Komanda: ${esc(x.command)}</p>` : ""}
+     <p><b>Bucaq:</b> ${esc(x.angle)}</p><p><b>Hook:</b> “${esc(x.hook)}”</p>
+     ${x.video_url ? `<p class="ok">YouTube: <a href="${esc(x.video_url)}" target="_blank" rel="noopener">${esc(x.video_url)}</a></p>` : ""}
+     ${x.script ? `<details><summary>Ssenari (${x.script.split(/\s+/).length} söz ≈ ${(x.script.split(/\s+/).length / 150).toFixed(1)} dəq)</summary>
+        <textarea data-scr="${x.id}" style="min-height:300px">${esc(x.script)}</textarea>
+        <div class="row">${copyBtn(x.script)}<button class="small" data-savescr="${x.id}">Dəyişikliyi saxla</button></div></details>` : ""}
+     ${x.seo ? `<details><summary>Title · Description · Tags</summary><p><b>${esc(x.seo.recommended_title)}</b> ${copyBtn(x.seo.recommended_title || "")}</p>
+        <pre class="pre">${esc(x.seo.description)}</pre>${copyBtn(x.seo.description || "")}<pre class="pre">${esc(x.seo.tags_csv)}</pre>${copyBtn(x.seo.tags_csv || "")}</details>` : ""}
+     <div class="row" style="margin-top:8px">
+       <button class="small" data-act="script" data-id="${x.id}">${x.script ? "Ssenarini yenidən yaz" : "Ssenari yaz"}</button>
+       <button class="small" data-act="seo" data-id="${x.id}">${x.seo ? "SEO-nu yenilə" : "Title · Description · Tags"}</button>
+       ${x.project_id ? `<a href="#/project/${x.project_id}"><button class="small">Layihəni aç</button></a>` : `<button class="small primary" data-mk="${x.id}">Video layihəsi yarat</button>
+       <button class="small" data-mkauto="${x.id}">Tam avtomatik video</button>`}
+       <button class="small" data-del="${x.id}">Sil</button></div></div>`).join("")}`).join("") || '<p class="muted">Hələ ideya yoxdur.</p>'}`;
+  $("#cmdGo").onclick = () => { if (!$("#cmd").value.trim()) return toast("Komanda yazın", "err"); start("/command", { text: $("#cmd").value, minutes: parseFloat($("#cmdMin").value) || undefined }); };
+  $("#idGo").onclick = () => start("/ideas", { count: +$("#idCount").value, scripts: $("#idScr").checked ? 1 : 0 });
+  el.querySelectorAll("[data-act]").forEach((b) => b.onclick = () => start(`/ideas/${b.dataset.id}/${b.dataset.act}`));
+  el.querySelectorAll("[data-savescr]").forEach((b) => b.onclick = async () => {
+    await api(`/channels/${c.id}/ideas/${b.dataset.savescr}/save`, { method: "POST", body: { script: $(`[data-scr="${b.dataset.savescr}"]`).value } });
+    toast("Saxlanıldı", "ok");
+  });
+  const mk = async (iid, auto) => {
+    try { const p = await api(`/channels/${c.id}/ideas/${iid}/project`, { method: "POST", body: { auto } }); location.hash = `#/project/${p.id}`; } catch (e) { toast(e.message, "err"); }
+  };
+  el.querySelectorAll("[data-mk]").forEach((b) => b.onclick = () => mk(b.dataset.mk, false));
+  el.querySelectorAll("[data-mkauto]").forEach((b) => b.onclick = () => mk(b.dataset.mkauto, true));
+  el.querySelectorAll("[data-del]").forEach((b) => b.onclick = async () => { if (!confirm("İdeya silinsin?")) return; await api(`/channels/${c.id}/ideas/${b.dataset.del}`, { method: "DELETE" }); reload(); });
+}
+
+function chKit(el, c, start, reload) {
+  const k = c.kit;
+  const lines = (a) => (a || []).map((x) => typeof x === "string" ? x : `${x.name} | ${x.purpose} | ${x.example}`).join("\n");
+  const fields = [
+    ["positioning", "Pozisiya (rəqiblərdən fərqi)", "text"], ["audience", "Auditoriya", "text"],
+    ["channel_description", "Kanal təsviri (About)", "text"], ["channel_keywords", "Kanal açar sözləri", "csv"],
+    ["default_tags", "Standart tag-lər (hər videoya əlavə olunur)", "csv"], ["description_footer", "Description footer (hər videonun sonuna)", "text"],
+    ["title_rules", "Title qaydaları", "text"], ["thumbnail_style", "Thumbnail üslubu", "text"],
+    ["content_pillars", "Kontent sütunları (ad | məqsəd | nümunə, hər sətir bir sütun)", "pillars"],
+    ["video_length", "Video uzunluğu", "text"], ["upload_plan", "Yükləmə planı", "text"],
+    ["avoid", "Nədən qaçmalı (hər sətir bir)", "lines"], ["monetization", "Pul qazanma (hər sətir bir)", "lines"], ["kpis", "KPI-lar (hər sətir bir)", "lines"],
+    ["avatar_prompt", "Avatar prompt", "text"], ["banner_prompt", "Banner prompt", "text"]];
+  const val = (f, t) => t === "csv" ? (k[f] || []).join(", ") : t === "lines" || t === "pillars" ? lines(k[f]) : (k[f] || "");
+  el.innerHTML = `<div class="card"><p class="muted">Bu, kanalın strategiya paketidir. Agent bu kanal üçün yazdığı hər ideyada, ssenaridə, title, description və tag-lərdə bu paketi istifadə edir.
+     Dəyişə və saxlaya bilərsiniz.</p>
+    <div class="grid"><div><label>Niş</label><input id="kNiche" value="${esc(c.niche)}"></div><div><label>Kanal adı</label><input id="kName" value="${esc(c.name)}"></div></div>
+    ${fields.map(([f, l, t]) => `<label>${l}</label><div class="row" style="align-items:flex-start"><textarea data-f="${f}" data-t="${t}" style="flex:1;min-height:${t === "text" && f.includes("description") ? 140 : 60}px">${esc(val(f, t))}</textarea>${copyBtn(val(f, t))}</div>`).join("")}
+    <div class="row" style="margin-top:10px"><button class="primary" id="kSave">Yadda saxla</button><button id="kGen">AI ilə tamamla / yenilə</button></div></div>`;
+  $("#kSave").onclick = async () => {
+    const kit = {};
+    el.querySelectorAll("[data-f]").forEach((t) => {
+      const v = t.value, ty = t.dataset.t;
+      kit[t.dataset.f] = ty === "csv" ? v.split(",").map((x) => x.trim()).filter(Boolean)
+        : ty === "lines" ? v.split("\n").map((x) => x.trim()).filter(Boolean)
+        : ty === "pillars" ? v.split("\n").filter((x) => x.trim()).map((x) => { const [name, purpose, example] = x.split("|").map((y) => (y || "").trim()); return { name, purpose, example }; })
+        : v;
+    });
+    await api(`/channels/${c.id}`, { method: "PUT", body: { kit, niche: $("#kNiche").value, name: $("#kName").value } });
+    toast("Kanal paketi saxlanıldı", "ok");
+  };
+  $("#kGen").onclick = () => start("/kit");
+}
+
+function chUpload(el, c, start, reload) {
+  const u = c.upload;
+  el.innerHTML = `<div class="card"><h3>YouTube bağlantısı</h3>
+     ${c.connected ? `<p class="ok">Bağlıdır: <b>${esc(c.youtube.title)}</b> <span class="muted">(${esc(c.youtube.channel_id)})</span></p>
+       <button id="ytOff">Bağlantını kəs</button>` : `<p>Kanalı bağlamaq üçün Google hesabınıza daxil olub bu kanalı seçəcəksiniz. Bir Google hesabında bir neçə kanal (brand account) varsa, açılan pəncərədə düzgün kanalı seçin.</p>
+       ${state.keys.yt_client_id ? `<a href="/api/youtube/connect/${c.id}"><button class="primary">YouTube-a bağla</button></a>` : `<p class="warn">Əvvəlcə Ayarlar → API-də Google OAuth Client ID və secret yazın (README → "YouTube-a yükləmə").</p>`}`}</div>
+   <div class="card"><h3>Yükləmə ayarları</h3><div class="grid">
+     <div><label>Standart görünmə</label><select data-u="privacy">${["private", "unlisted", "public"].map((x) => `<option ${x === u.privacy ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+     <div><label>Kateqoriya</label><select data-u="category_id">${[["22", "People & Blogs"], ["27", "Education"], ["24", "Entertainment"], ["28", "Science & Technology"], ["25", "News & Politics"], ["19", "Travel & Events"], ["26", "Howto & Style"], ["1", "Film & Animation"]].map(([v, l]) => `<option value="${v}" ${v === String(u.category_id) ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+     <div><label>Avtomatik yayım saatı (boş = dərhal)</label><input data-u="publish_time" type="time" value="${esc(u.publish_time)}"></div>
+     <div><label><input type="checkbox" data-u="auto" ${u.auto ? "checked" : ""}> "Tam avtomatik" video hazır olanda YouTube-a özü yükləsin</label></div>
+     <div><label><input type="checkbox" data-u="thumbnail" ${u.thumbnail ? "checked" : ""}> Thumbnail yaratsın və qoysun</label></div>
+     <div><label><input type="checkbox" data-u="synthetic" ${u.synthetic ? "checked" : ""}> "Altered or synthetic content" işarəsi (real görünən AI video üçün tələb olunur)</label></div>
+     <div><label><input type="checkbox" data-u="made_for_kids" ${u.made_for_kids ? "checked" : ""}> Uşaqlar üçündür</label></div></div>
+     <p class="muted">Avtomatik yayım saatı seçilsə, video "private" yüklənir və növbəti həmin saatda (ən azı 1 saat sonra) özü açılır.</p></div>`;
+  $("#ytOff") && ($("#ytOff").onclick = async () => { if (!confirm("Bağlantı kəsilsin?")) return; await api(`/channels/${c.id}/disconnect`, { method: "POST" }); reload(); });
+  el.querySelectorAll("[data-u]").forEach((i) => i.onchange = async () => {
+    const v = i.type === "checkbox" ? i.checked : i.value;
+    await api(`/channels/${c.id}`, { method: "PUT", body: { upload: { [i.dataset.u]: v } } }); toast("Saxlanıldı", "ok");
+  });
+}
+
+function chSettings(el, c, start, reload) {
+  const a = c.auto;
+  el.innerHTML = `<div class="card"><h3>Gündəlik avtomatik ideyalar</h3>
+     <label><input type="checkbox" data-a="enabled" ${a.enabled ? "checked" : ""}> Hər gün yeni ideyalar yaratsın</label>
+     <div class="grid"><div><label>Saat</label><input data-a="time" type="time" value="${esc(a.time)}"></div>
+       <div><label>Neçə ideya</label><input data-a="count" type="number" min="3" max="30" value="${esc(a.count)}"></div>
+       <div><label>Neçəsinə ssenari yazsın (ən yüksək ballılar)</label><input data-a="scripts" type="number" min="0" max="10" value="${esc(a.scripts)}"></div></div>
+     <p class="muted">Proqram açıq olduqda işləyir: seçdiyiniz saatda (və ya proqramı həmin saatdan sonra açanda) gündə bir dəfə. Son işləmə: ${esc(a.last_date || "hələ yox")}.</p></div>
+   <div class="card"><h3>Kanal ayarları</h3><div class="grid">
+     <div><label>Auditoriya dili</label><input data-c="language" value="${esc(c.language)}"></div>
+     <div><label>Dil kodu</label><input data-c="lang_code" value="${esc(c.lang_code)}"></div>
+     <div><label>Ölkə</label><input data-c="region" value="${esc(c.region)}"></div>
+     <div><label>@handle</label><input data-c="handle" value="${esc(c.handle)}"></div>
+     <div><label>Video ayarları profili (səs, vizual stil, ssenari qaydaları)</label><select data-c="profile_id"><option value="">— aktiv ayarlar —</option>
+       ${state.profiles.map((p) => `<option value="${esc(p.id)}" ${p.id === c.profile_id ? "selected" : ""}>${esc(p.name)}</option>`).join("")}</select></div></div>
+     <p class="muted">Hər kanala ayrıca profil bağlayın (Ayarlar → Profil). Bu kanalın videoları həmişə həmin səs və stillə hazırlanacaq.</p>
+     <div class="row" style="margin-top:12px"><button id="chDel">Kanalı sil</button></div></div>`;
+  el.querySelectorAll("[data-a]").forEach((i) => i.onchange = async () => {
+    const v = i.type === "checkbox" ? i.checked : i.type === "number" ? +i.value : i.value;
+    await api(`/channels/${c.id}`, { method: "PUT", body: { auto: { [i.dataset.a]: v } } }); toast("Saxlanıldı", "ok");
+  });
+  el.querySelectorAll("[data-c]").forEach((i) => i.onchange = async () => {
+    await api(`/channels/${c.id}`, { method: "PUT", body: { [i.dataset.c]: i.value } }); toast("Saxlanıldı", "ok");
+  });
+  $("#chDel").onclick = async () => { if (!confirm("Kanal və bütün ideyaları silinsin? (YouTube-dakı kanala toxunulmur)")) return; await api(`/channels/${c.id}`, { method: "DELETE" }); location.hash = "#/channels"; };
 }

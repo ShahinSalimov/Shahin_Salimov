@@ -252,7 +252,9 @@ def list_all() -> list[dict]:
             x = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
-        out.append({k: x.get(k) for k in ("id", "kind", "title", "status", "updated", "message")})
+        row = {k: x.get(k) for k in ("id", "kind", "title", "status", "updated", "message", "progress", "error")}
+        row["channel_id"] = (x.get("params") or {}).get("channel_id", "")
+        out.append(row)
     return sorted(out, key=lambda x: -(x["updated"] or 0))
 
 
@@ -267,7 +269,7 @@ def recover_interrupted() -> None:
 
 
 def start(kind: str, params: dict) -> dict:
-    fn = {"niche": job_niche, "ideas": job_ideas, "seo": job_seo}[kind]
+    fn = JOBS[kind]
     title = params.get("title") or params.get("niche") or params.get("interests") or kind
     doc = _save({"id": uuid.uuid4().hex[:12], "kind": kind, "title": str(title)[:120], "params": params,
                  "status": "running", "progress": 0, "message": "Başlayır...", "result": None,
@@ -406,6 +408,8 @@ def job_ideas(params: dict, progress) -> tuple[dict, dict, list]:
     res, c = _ask(cfg, f"""Channel niche: {niche}
 Audience language: {content_lang}; country: {cfg['region']}; format: {'Shorts' if shorts else 'long-form'};
 production: faceless AI voice + AI visuals. {('Channel positioning: ' + params['positioning']) if params.get('positioning') else ''}
+{params.get('channel_context', '')}
+{('ALREADY PLANNED OR PUBLISHED (do not repeat these topics or near-duplicates): ' + ' | '.join(params['exclude'])) if params.get('exclude') else ''}
 
 DATA:
 {compact_data(snaps, sugg)}
@@ -438,8 +442,9 @@ def job_seo(params: dict, progress) -> tuple[dict, dict, list]:
     if not title:
         raise ResearchError("Video başlığı / mövzusu yazın")
     content_lang = params.get("language") or cfg["content_language"]
+    ch = params.get("channel") or {}
     if cfg["demo"]:
-        return finalize_seo(demo_seo(title)), {"notes": ["DEMO rejimi"]}, []
+        return finalize_seo(demo_seo(title), ch), {"notes": ["DEMO rejimi"]}, []
     progress(10, "Açar sözlər toplanır")
     kw = params.get("keyword") or title
     sugg = {kw: autocomplete(kw, cfg["lang_code"], cfg["region"])}
@@ -450,6 +455,7 @@ def job_seo(params: dict, progress) -> tuple[dict, dict, list]:
     res, c = _ask(cfg, f"""Video topic / working title: {title}
 Niche: {params.get('niche', '')}
 Context / script summary: {(params.get('context') or '')[:4000]}
+{_channel_seo_rules(ch)}
 Audience language: {content_lang}
 
 DATA: {compact_data([], sugg)}
@@ -469,15 +475,25 @@ Return JSON:
  "seo_notes": "short explanation of the keyword strategy"
 }}""", 6000)
     progress(95, "Limitlər yoxlanılır")
-    return finalize_seo(res), {"suggestions": sugg}, [c]
+    return finalize_seo(res, ch), {"suggestions": sugg}, [c]
 
 
-def finalize_seo(res: dict) -> dict:
+def _channel_seo_rules(ch: dict) -> str:
+    if not ch:
+        return ""
+    k = ch.get("kit", {})
+    return (f"This video is for the channel '{ch.get('name')}' (niche: {ch.get('niche')}; positioning: {k.get('positioning')}). "
+            f"Follow the channel title rules: {k.get('title_rules')}. Thumbnail style: {k.get('thumbnail_style')}. "
+            "Do not include the channel footer in the description, it is appended automatically.")
+
+
+def finalize_seo(res: dict, channel: dict | None = None) -> dict:
     """Enforce YouTube limits: title <=100 chars, description <=5000, tags total <=500 chars.
     YouTube counts commas and the quotes it adds around multi-word tags; exact rules are not documented,
     so we stop at 470 to keep a safety margin."""
+    kit = (channel or {}).get("kit", {})
     tags, total = [], 0
-    for t in res.get("tags", []):
+    for t in list(res.get("tags", [])) + list(kit.get("default_tags", [])):
         t = re.sub(r"[<>]", "", str(t)).strip()
         cost = len(t) + (2 if " " in t else 0) + (1 if tags else 0)  # quotes for multi-word + comma
         if t and t.lower() not in {x.lower() for x in tags} and total + cost <= TAG_BUDGET:
@@ -488,7 +504,11 @@ def finalize_seo(res: dict) -> dict:
     res["tags_chars"] = total
     if res.get("recommended_title"):
         res["recommended_title"] = res["recommended_title"][:100]
-    res["description"] = (res.get("description") or "").replace("<", "").replace(">", "")[:5000]
+    desc = res.get("description") or ""
+    footer = (kit.get("description_footer") or "").strip()
+    if footer and footer not in desc:
+        desc = desc.rstrip() + "\n\n" + footer
+    res["description"] = desc.replace("<", "").replace(">", "")[:5000]
     return res
 
 
@@ -539,3 +559,6 @@ def demo_seo(title: str) -> dict:
             "tags": [title.lower(), "demo", "ai video"], "hashtags": ["#demo"], "thumbnail_text": "DEMO",
             "thumbnail_prompt": "Cinematic realistic close-up, high contrast, empty right side", "pinned_comment": "What do you think?",
             "shorts_hooks": ["DEMO"], "seo_notes": "DEMO"}
+
+
+JOBS = {"niche": job_niche, "ideas": job_ideas, "seo": job_seo}

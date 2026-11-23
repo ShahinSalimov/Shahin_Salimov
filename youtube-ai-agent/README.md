@@ -28,6 +28,41 @@ Hər ideyanın altında **Video yarat** düyməsi var. O, ideyanın bucağını,
 
 Dil, ölkə, neçə günlük videoların təhlil olunacağı və hansı AI modelinin işləyəcəyi **Ayarlar → Araşdırma** tabında seçilir. Strategiya üçün güclü model tövsiyə olunur, məsələn `claude-opus-5-5` və ya `deepseek-reasoner`.
 
+## 0.1 Kanallarım: kanal açıldıqdan sonra
+
+Kanalı YouTube-da açdıqdan sonra iki yolla proqrama əlavə edirsiniz:
+- Niş araşdırmasının nəticəsində **"Kanallarıma əlavə et"** düyməsini basın;
+- və ya **Kanallarım → Mövcud kanalı əl ilə əlavə et**.
+
+İstədiyiniz qədər kanal əlavə edə bilərsiniz. Yeni kanal üçün strategiya funksiyası da olduğu kimi qalır.
+
+Hər kanalın 4 tabı var:
+
+| Tab | Nə edir |
+|---|---|
+| **İdeyalar və ssenarilər** | **Komanda ilə ssenari**: istədiyiniz mövzunu yazırsınız, məs. "Roma legionunun yoxa çıxması haqqında ssenari yaz". Agent onu kanalın nişinə uyğun ideyaya çevirir və tam ssenarini yazır. **Yeni ideyalar**: nişdəki son outlier videolara əsaslanır və əvvəlki ideyaları təkrarlamır. Hər ideya üçün ssenari, Title · Description · Tags, video layihəsi və ya tam avtomatik video düymələri var |
+| **Kanal paketi** | Kanal strategiyasının hamısı burada saxlanılır: niş, pozisiya, auditoriya, About, açar sözlər, **standart tag-lər** (hər videoya əlavə olunur), **description footer** (hər videonun sonuna əlavə olunur), title qaydaları, thumbnail üslubu, sütunlar, plan. Hər şeyi redaktə etmək və ya AI ilə yeniləmək olar |
+| **YouTube və yükləmə** | Kanalı Google ilə bağlamaq. Standart görünmə, kateqoriya, avtomatik yayım saatı, avtomatik yükləmə, thumbnail, "synthetic content" işarəsi |
+| **Avtomatlaşdırma və ayarlar** | Hər gün seçdiyiniz saatda N yeni ideya və ən yaxşılarına ssenari. Kanalın dili və ölkəsi. Kanala **ayarlar profili** bağlamaq (səs, vizual stil, ssenari qaydaları) |
+
+Gündəlik avtomatika yalnız proqram açıq olanda işləyir. Seçilmiş saatda kompüter sönülü olubsa, proqramı həmin gün açanda bir dəfə işləyir.
+
+## 0.2 YouTube-a avtomatik yükləmə: bir dəfəlik quraşdırma (≈15 dəq)
+
+1. console.cloud.google.com → yeni layihə yaradın (strategiya üçün yaratdığınız layihə də olar) → **APIs & Services → Library → YouTube Data API v3 → Enable**.
+2. **OAuth consent screen** (Google Auth Platform): User type **External**. Tətbiqin adı ixtiyaridir. **Test users** bölməsinə kanallarınızın Google hesablarını (e-mail) əlavə edin.
+3. **Credentials → Create credentials → OAuth client ID → Application type: Desktop app**. Client ID və Client secret-i **Ayarlar → API → YouTube-a yükləmə** xanalarına yazın.
+4. **Kanallarım → kanal → YouTube və yükləmə → YouTube-a bağla**. Google-a daxil olun və düzgün kanalı seçin. Bir hesabda bir neçə kanal (brand account) varsa, hər kanalı proqramda ayrıca bağlayın.
+5. Thumbnail yükləmək üçün kanalda telefon təsdiqi lazımdır: youtube.com/verify.
+
+Bundan sonra layihə səhifəsində **YouTube-a yüklə** paneli görünür: kanal, görünmə, planlı yayım və thumbnail seçilir. Kanalda **"Tam avtomatik video hazır olanda YouTube-a özü yükləsin"** aktivdirsə, video montajdan dərhal sonra yüklənir.
+
+**Vacib məhdudiyyətlər (Google qaydaları):**
+- **Təsdiqlənməmiş API layihəsindən** yüklənən videoları YouTube **private** rejimdə kilidləyir. Bu, 28.07.2020-dən sonra yaradılmış layihələrə aiddir. Videoları public etmək üçün Google-a **YouTube API Services audit** müraciəti göndərmək lazımdır (forma: "YouTube API Services - Audit and Quota Extension Form"). Audit keçənə qədər yükləmə işləyir, amma videolar private qalır.
+- OAuth ekranı **Testing** rejimində olanda icazə 7 gündən bir bitir. Bitəndə proqram xəbər verir və kanalı yenidən bağlamaq lazım olur. Bunun qarşısını almaq üçün tətbiqi **In production** rejiminə keçirin.
+- Gündəlik API kvotası 10 000 vahiddir. Bir video yükləmək ≈1600 vahid aparır, yəni bir Google layihəsi ilə gündə təxminən 6 video yükləmək olur. Strategiya araşdırması da eyni kvotadan istifadə edir. Google kvota qiymətlərini dəyişə bilər.
+- Real görünən AI videolar üçün "altered or synthetic content" işarəsi default olaraq qoyulur.
+
 ## 1. Quraşdırma (bir dəfə)
 
 1. **Python 3.10+**: https://www.python.org/downloads/ (Windows-da "Add Python to PATH" seçin)

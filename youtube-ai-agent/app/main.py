@@ -13,7 +13,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import llm, pipeline, research, script, store
+import threading
+
+from fastapi import Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+from . import channels, llm, pipeline, research, script, store, youtube
 
 STATIC = Path(__file__).parent / "static"
 
@@ -24,7 +29,11 @@ async def lifespan(_app):
     store.OUTPUT.mkdir(parents=True, exist_ok=True)
     pipeline.recover_interrupted()
     research.recover_interrupted()
+    stop = threading.Event()
+    if os.environ.get("YTA_SCHEDULER", "1") == "1":
+        threading.Thread(target=channels.scheduler, args=(stop,), daemon=True).start()
     yield
+    stop.set()
 
 
 app = FastAPI(title="YouTube AI Agent", lifespan=lifespan)
@@ -324,8 +333,11 @@ def open_folder(pid: str):
 
 # ---------------- channel strategy agent ----------------
 @app.get("/api/research")
-def research_list():
-    return research.list_all()
+def research_list(channel_id: str = ""):
+    rows = research.list_all()
+    if channel_id:
+        return [r for r in rows if r["channel_id"] == channel_id]
+    return [r for r in rows if r["kind"] in ("niche", "ideas", "seo")]
 
 
 @app.post("/api/research/{kind}")
@@ -374,6 +386,181 @@ def research_to_project(body: IdeaToProject):
     if body.auto:
         _job(p["id"], "full_auto", pipeline.job_full_auto)
     return p
+
+
+# ---------------- my channels ----------------
+def _ch(cid: str) -> dict:
+    try:
+        return channels.get(cid)
+    except KeyError:
+        raise HTTPException(404, "Kanal tapılmadı")
+
+
+def _with_status(c: dict) -> dict:
+    return {**c, "connected": youtube.is_connected(c["id"]), "idea_count": len(channels.ideas(c["id"]))}
+
+
+@app.get("/api/channels")
+def channels_list():
+    return [_with_status(c) for c in channels.list_channels()]
+
+
+@app.post("/api/channels")
+def channels_create(body: dict):
+    if not (body.get("name") or "").strip():
+        raise HTTPException(400, "Kanal adı yazın")
+    body.pop("id", None)
+    c = channels.save(body)
+    if body.get("generate_kit", True):
+        research.start("channel_kit", {"channel_id": c["id"], "title": f"{c['name']}: kanal paketi"})
+    return c
+
+
+@app.post("/api/channels/from-research/{rid}")
+def channels_from_research(rid: str, body: dict):
+    try:
+        c = channels.from_research(rid, body.get("name", ""), body.get("handle", ""))
+    except KeyError:
+        raise HTTPException(404, "Araşdırma tapılmadı")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    research.start("channel_kit", {"channel_id": c["id"], "title": f"{c['name']}: kanal paketi"})
+    return c
+
+
+@app.get("/api/channels/{cid}")
+def channels_get(cid: str):
+    c = _with_status(_ch(cid))
+    c["ideas"] = list(reversed(channels.ideas(cid)))
+    return c
+
+
+@app.put("/api/channels/{cid}")
+def channels_put(cid: str, body: dict):
+    _ch(cid)
+    body = {k: v for k, v in body.items() if k not in ("id", "youtube", "created")}
+    return channels.save({**body, "id": cid})
+
+
+@app.delete("/api/channels/{cid}")
+def channels_delete(cid: str):
+    _ch(cid)
+    youtube.disconnect(cid)
+    channels.delete(cid)
+    return {"ok": True}
+
+
+@app.post("/api/channels/{cid}/{action}")
+def channels_job(cid: str, action: str, body: dict | None = None):
+    c = _ch(cid)
+    body = body or {}
+    if action == "disconnect":  # declared here because this route would otherwise shadow it
+        youtube.disconnect(cid)
+        channels.save({"id": cid, "youtube": {"channel_id": "", "title": "", "connected_at": 0}})
+        return {"ok": True}
+    kinds = {"kit": ("channel_kit", "kanal paketi"), "ideas": ("channel_ideas", "yeni ideyalar"),
+             "command": ("channel_command", "komanda")}
+    if action not in kinds:
+        raise HTTPException(400, "action")
+    kind, label = kinds[action]
+    return research.start(kind, {**body, "channel_id": cid, "title": f"{c['name']}: {label}"})
+
+
+@app.post("/api/channels/{cid}/ideas/{iid}/{action}")
+def idea_action(cid: str, iid: str, action: str, body: dict | None = None):
+    c = _ch(cid)
+    try:
+        idea = channels.get_idea(cid, iid)
+    except KeyError:
+        raise HTTPException(404, "İdeya tapılmadı")
+    body = body or {}
+    if action in ("script", "seo"):
+        return research.start(f"channel_{action}", {**body, "channel_id": cid, "idea_id": iid,
+                                                     "title": f"{c['name']}: {idea['title'][:60]}"})
+    if action == "project":
+        p = channels.idea_to_project(cid, iid)
+        if body.get("auto"):
+            _job(p["id"], "full_auto", pipeline.job_full_auto)
+        return p
+    if action == "save":
+        allowed = {k: v for k, v in body.items() if k in ("script", "title", "status")}
+        channels.patch_idea(cid, iid, **allowed)
+        return {"ok": True}
+    raise HTTPException(400, "action")
+
+
+@app.delete("/api/channels/{cid}/ideas/{iid}")
+def idea_delete(cid: str, iid: str):
+    _ch(cid)
+    channels.update_ideas(cid, lambda items: items.__setitem__(slice(None), [i for i in items if i["id"] != iid]))
+    return {"ok": True}
+
+
+# ---------------- YouTube connection + upload ----------------
+@app.get("/api/youtube/connect/{cid}")
+def yt_connect(cid: str, request: Request):
+    _ch(cid)
+    redirect = str(request.base_url).rstrip("/") + "/api/youtube/callback"
+    try:
+        return RedirectResponse(youtube.auth_url(cid, redirect))
+    except youtube.YouTubeError as e:
+        return HTMLResponse(_page("Bağlanmadı", str(e)), status_code=400)
+
+
+def _page(title: str, msg: str, back: str = "/#/channels") -> str:
+    from html import escape
+    return (f"<!doctype html><meta charset=utf-8><title>{escape(title)}</title><body style='font:16px system-ui;"
+            f"background:#0f1115;color:#e7e9ee;padding:40px'><h2>{escape(title)}</h2><p>{escape(msg)}</p>"
+            f"<p><a style='color:#ff6b6b' href='{back}'>Proqrama qayıt</a></p></body>")
+
+
+@app.get("/api/youtube/callback")
+def yt_callback(code: str = "", state: str = "", error: str = ""):
+    if error:
+        return HTMLResponse(_page("Bağlanmadı", f"Google: {error}"), status_code=400)
+    try:
+        cid, info = youtube.finish_auth(code, state)
+    except youtube.YouTubeError as e:
+        return HTMLResponse(_page("Bağlanmadı", str(e)), status_code=400)
+    channels.save({"id": cid, "youtube": info})
+    return HTMLResponse(_page("Kanal bağlandı", f"YouTube kanalı: {info['title']}. Bu pəncərəni bağlaya bilərsiniz.",
+                              f"/#/channel/{cid}/upload"))
+
+
+@app.post("/api/projects/{pid}/thumbnail")
+def project_thumbnail(pid: str):
+    _proj(pid)
+    return _job(pid, "thumbnail", pipeline.job_thumbnail)
+
+
+@app.get("/api/projects/{pid}/thumb")
+def project_thumb_file(pid: str):
+    p = _proj(pid)
+    f = store.project_dir(pid) / (p.get("thumbnail") or "none")
+    if not p.get("thumbnail") or not f.exists():
+        raise HTTPException(404, "yoxdur")
+    return FileResponse(f)
+
+
+@app.post("/api/projects/{pid}/upload")
+def project_upload(pid: str, body: dict | None = None):
+    p = _proj(pid)
+    body = body or {}
+    cid = body.get("channel_id") or p.get("channel_id")
+    if not cid:
+        raise HTTPException(400, "Kanal seçin")
+    _ch(cid)
+    if not p["settings"].get("demo_mode") and not youtube.is_connected(cid):
+        raise HTTPException(400, "Bu kanal YouTube-a bağlanmayıb (Kanallarım → kanal → YouTube)")
+    if body.get("publish_at"):
+        from datetime import datetime
+        try:  # <input type=datetime-local> has no timezone: treat it as this computer's local time
+            body["publish_at"] = datetime.fromisoformat(body["publish_at"]).astimezone().isoformat(timespec="seconds")
+        except ValueError:
+            raise HTTPException(400, "Yayım vaxtı formatı yanlışdır")
+    if body.get("publish_time") and not body.get("publish_at"):
+        body["publish_at"] = youtube.next_publish_at(body["publish_time"])
+    return _job(pid, "upload", pipeline.job_upload, {**body, "channel_id": cid})
 
 
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")

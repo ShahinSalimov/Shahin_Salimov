@@ -103,7 +103,7 @@ DEFAULT_SETTINGS: dict = {
     },
 }
 
-DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": "", "youtube": ""}
+DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": "", "youtube": "", "yt_client_id": "", "yt_client_secret": ""}
 
 BASE_STYLES = [
     {

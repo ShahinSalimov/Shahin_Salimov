@@ -46,6 +46,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px so
 .scene-list{max-height:520px;overflow:auto;display:flex;flex-direction:column;gap:6px}
 .scene-list div{background:var(--panel2);border-radius:8px;padding:8px 10px;font-size:13px}
 .voice-list button{margin:3px}
+.card a,p a{color:#ff8a8a}
 .pre{white-space:pre-wrap;background:var(--panel2);border-radius:8px;padding:10px;font:13px/1.5 ui-monospace,Consolas,monospace;margin:6px 0;max-height:420px;overflow:auto}
 details.card summary{cursor:pointer}
 @media (max-width:900px){body{flex-direction:column}.side{width:auto;height:auto;position:static}.split{grid-template-columns:1fr}main{padding:16px}}
