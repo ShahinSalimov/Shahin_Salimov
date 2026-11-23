@@ -177,10 +177,55 @@ def animate(image: Path, prompt: str, out: Path, settings: dict, should_stop=lam
 
 
 # ---------------- Kie.ai (market jobs API) ----------------
-# NOTE: written from Kie.ai's public "market" API shape (createTask / recordInfo /
-# base64 file upload); not verified against live docs from this environment.
+# Verified against docs.kie.ai: market/quickstart, market/common/get-task-detail,
+# file-upload-api/quickstart and each model page below.
 KIE_API = "https://api.kie.ai/api/v1"
-KIE_UPLOAD = "https://kieai.redpandaai.co/api/file-base64-upload"
+KIE_UPLOAD = "https://kieai.redpandaai.co/api/file-stream-upload"
+
+# model id -> how its "input" object is built (field names/types from each model page)
+KIE_MODELS = {
+    "bytedance/seedance-2": {"label": "Seedance 2.0", "image": "first_frame_url", "dur": "int", "range": (4, 15),
+                             "extra": {"resolution": "720p", "generate_audio": False}, "aspect": True},
+    "bytedance/seedance-2-fast": {"label": "Seedance 2.0 Fast", "image": "first_frame_url", "dur": "int",
+                                  "range": (4, 15), "extra": {"generate_audio": False}, "aspect": True},
+    "bytedance/v1-pro-image-to-video": {"label": "Bytedance V1 Pro", "image": "image_url", "dur": "str",
+                                        "choices": (5, 10), "extra": {"resolution": "720p"}},
+    "bytedance/v1-lite-image-to-video": {"label": "Bytedance V1 Lite", "image": "image_url", "dur": "str",
+                                         "choices": (5, 10), "extra": {"resolution": "720p"}},
+    "kling-2.6/image-to-video": {"label": "Kling 2.6", "image": "image_urls", "dur": "str", "choices": (5, 10),
+                                 "extra": {"sound": False}},
+    "hailuo/2-3-image-to-video-standard": {"label": "Hailuo 2.3 Standard", "image": "image_url", "dur": "str",
+                                           "choices": (6, 10), "extra": {"resolution": "768P"}},
+    "wan/2-6-image-to-video": {"label": "Wan 2.6", "image": "image_urls", "dur": "str", "choices": (5, 10, 15),
+                               "extra": {"resolution": "720p"}},
+}
+
+
+def kie_input(model: str, prompt: str, image_url: str, seconds: float, aspect: str,
+              custom_field: str = "image_url", extra_json: str = "") -> dict:
+    import json as _json
+
+    spec = KIE_MODELS.get(model)
+    if spec:
+        if spec["dur"] == "int":
+            lo, hi = spec["range"]
+            duration = int(max(lo, min(hi, round(seconds))))
+        else:
+            duration = str(min(spec["choices"], key=lambda c: abs(c - seconds)))
+        field = spec["image"]
+        inp = {"prompt": prompt, **spec["extra"], "duration": duration}
+        if spec.get("aspect"):
+            inp["aspect_ratio"] = aspect
+    else:  # any other Market model: user supplies the image field name and extra params
+        field = (custom_field or "image_url").strip()
+        inp = {"prompt": prompt, "duration": str(int(round(seconds)))}
+    inp[field] = [image_url] if field.endswith("urls") else image_url
+    if extra_json.strip():
+        try:
+            inp.update(_json.loads(extra_json))
+        except ValueError:
+            raise ProviderError("Ayarlar → Hərəkət → 'Kie əlavə parametrlər' düzgün JSON deyil")
+    return inp
 
 
 def _kie_json(r: httpx.Response, what: str) -> dict:
@@ -188,20 +233,21 @@ def _kie_json(r: httpx.Response, what: str) -> dict:
         data = r.json()
     except ValueError:
         raise ProviderError(f"Kie.ai {what}: JSON olmayan cavab ({r.status_code}) {r.text[:200]}")
-    if r.status_code >= 400 or data.get("code") not in (200, None):
+    # Kie returns HTTP 200 with its own "code" field; anything but 200 is an error
+    if r.status_code >= 400 or data.get("code") != 200:
         raise ProviderError(f"Kie.ai {what} xətası {data.get('code', r.status_code)}: {data.get('msg') or r.text[:200]}")
     return data.get("data") or {}
 
 
 def kie_upload(image: Path, key: str) -> str:
-    """Kie models take a public image URL, so the local frame is uploaded first."""
-    b64 = "data:image/png;base64," + base64.b64encode(image.read_bytes()).decode()
-    r = httpx.post(KIE_UPLOAD, headers={"Authorization": f"Bearer {key}"}, timeout=120,
-                   json={"base64Data": b64, "uploadPath": "youtube-ai-agent", "fileName": image.name})
-    data = _kie_json(r, "şəkil yükləmə")
-    url = data.get("downloadUrl") or data.get("fileUrl") or data.get("url")
+    """Kie models take a public image URL, so the local frame is uploaded first (stream upload: best for 1-10 MB)."""
+    with image.open("rb") as f:
+        r = httpx.post(KIE_UPLOAD, headers={"Authorization": f"Bearer {key}"}, timeout=180,
+                       files={"file": (image.name, f, "image/png")},
+                       data={"uploadPath": "youtube-ai-agent", "fileName": image.name})
+    url = _kie_json(r, "şəkil yükləmə").get("downloadUrl")
     if not url:
-        raise ProviderError(f"Kie.ai yükləmə cavabında URL yoxdur: {str(data)[:200]}")
+        raise ProviderError("Kie.ai yükləmə cavabında downloadUrl yoxdur")
     return url
 
 
@@ -214,16 +260,10 @@ def _animate_kie(image: Path, prompt: str, out: Path, settings: dict, should_sto
         raise ProviderError("Kie.ai API açarı daxil edilməyib")
     headers = {"Authorization": f"Bearer {key}"}
     image_url = kie_upload(image, key)
-    field = (m.get("kie_image_field") or "image_url").strip()
-    inp: dict = {"prompt": prompt, "duration": str(m["clip_seconds"])}
-    inp[field] = [image_url] if field.endswith("s") else image_url  # image_urls / input_urls take a list
-    if m.get("kie_extra", "").strip():
-        try:
-            inp.update(_json.loads(m["kie_extra"]))
-        except ValueError:
-            raise ProviderError("Ayarlar → Hərəkət → 'Kie əlavə parametrlər' düzgün JSON deyil")
+    inp = kie_input(m["kie_model"].strip(), prompt, image_url, float(m["clip_seconds"]),
+                    settings["visual"]["aspect"], m.get("kie_image_field", ""), m.get("kie_extra", ""))
     r = httpx.post(f"{KIE_API}/jobs/createTask", headers=headers, timeout=60,
-                   json={"model": m["kie_model"], "input": inp})
+                   json={"model": m["kie_model"].strip(), "input": inp})
     task_id = _kie_json(r, "tapşırıq yaratma").get("taskId")
     if not task_id:
         raise ProviderError("Kie.ai taskId qaytarmadı")
@@ -234,7 +274,7 @@ def _animate_kie(image: Path, prompt: str, out: Path, settings: dict, should_sto
         time.sleep(6)
         info = _kie_json(httpx.get(f"{KIE_API}/jobs/recordInfo", params={"taskId": task_id},
                                    headers=headers, timeout=60), "status")
-        state = info.get("state")
+        state = info.get("state")  # waiting / queuing / generating / success / fail
         if state == "success":
             res = info.get("resultJson") or "{}"
             res = _json.loads(res) if isinstance(res, str) else res

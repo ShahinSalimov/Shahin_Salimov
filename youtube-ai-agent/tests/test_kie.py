@@ -20,8 +20,9 @@ class FakeKie:
     def post(self, url, json=None, headers=None, **kw):
         self.calls.append(("POST", url, json, headers))
         if url == media.KIE_UPLOAD:
-            assert json["base64Data"].startswith("data:image/png;base64,")
-            return httpx.Response(200, json={"code": 200, "data": {"downloadUrl": "https://cdn.example/f.png"}})
+            assert "file" in kw["files"] and kw["data"]["uploadPath"]
+            return httpx.Response(200, json={"success": True, "code": 200,
+                                             "data": {"downloadUrl": "https://cdn.example/f.png"}})
         assert url.endswith("/jobs/createTask")
         return httpx.Response(200, json={"code": 200, "msg": "success", "data": {"taskId": "t1"}})
 
@@ -45,8 +46,8 @@ def setup(monkeypatch, tmp_path):
     img = tmp_path / "f.png"
     img.write_bytes(b"\x89PNG fake")
     st = store.deep_merge(store.DEFAULT_SETTINGS, {"demo_mode": False, "motion": {
-        "animate_provider": "kie", "kie_model": "bytedance/v1-pro-image-to-video",
-        "kie_image_field": "image_url", "kie_extra": '{"resolution": "720p"}', "clip_seconds": 5}})
+        "animate_provider": "kie", "kie_model": "bytedance/seedance-2",
+        "kie_image_field": "", "kie_extra": "", "clip_seconds": 5}})
     return img, tmp_path / "out.mp4", st
 
 
@@ -59,13 +60,15 @@ def test_kie_success(monkeypatch, setup):
     assert out.read_bytes() == b"MP4DATA" and cost["provider"] == "kie"
     create = next(c for c in fake.calls if c[1].endswith("createTask"))
     assert create[3]["Authorization"] == "Bearer kie-key"
-    assert create[2] == {"model": "bytedance/v1-pro-image-to-video", "input": {
-        "prompt": "slow push in", "duration": "5", "image_url": "https://cdn.example/f.png", "resolution": "720p"}}
+    # Seedance 2: first_frame_url + integer duration + aspect ratio, no generated audio
+    assert create[2] == {"model": "bytedance/seedance-2", "input": {
+        "prompt": "slow push in", "resolution": "720p", "generate_audio": False, "duration": 5,
+        "aspect_ratio": "16:9", "first_frame_url": "https://cdn.example/f.png"}}
 
 
 def test_kie_list_field_and_failure(monkeypatch, setup):
     img, out, st = setup
-    st["motion"]["kie_image_field"] = "image_urls"
+    st["motion"]["kie_model"] = "kling-2.6/image-to-video"
     fake = FakeKie(final_state="fail")
     monkeypatch.setattr(media.httpx, "post", fake.post)
     monkeypatch.setattr(media.httpx, "get", fake.get)
@@ -73,3 +76,14 @@ def test_kie_list_field_and_failure(monkeypatch, setup):
         media.animate(img, "p", out, st)
     create = next(c for c in fake.calls if c[1].endswith("createTask"))
     assert create[2]["input"]["image_urls"] == ["https://cdn.example/f.png"]
+
+
+def test_kie_input_presets():
+    # values below are taken from the docs.kie.ai model pages
+    assert media.kie_input("kling-2.6/image-to-video", "p", "u", 7, "16:9") == {
+        "prompt": "p", "sound": False, "duration": "5", "image_urls": ["u"]}
+    assert media.kie_input("hailuo/2-3-image-to-video-standard", "p", "u", 5, "16:9")["duration"] == "6"
+    assert media.kie_input("wan/2-6-image-to-video", "p", "u", 14, "16:9")["duration"] == "15"
+    assert media.kie_input("bytedance/seedance-2", "p", "u", 30, "9:16")["duration"] == 15
+    custom = media.kie_input("some/new-model", "p", "u", 5, "16:9", "input_urls", '{"mode": "pro"}')
+    assert custom == {"prompt": "p", "duration": "5", "input_urls": ["u"], "mode": "pro"}

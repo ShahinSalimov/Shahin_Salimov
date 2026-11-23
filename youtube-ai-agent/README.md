@@ -74,10 +74,22 @@ Hər kanal (dil, mövzu, stil) üçün ayrıca profil yaradın. Sol paneldə bir
 ### Kie.ai qoşmaq
 1. kie.ai saytında qeydiyyatdan keçin, **Billing**-dən balansı artırın ($5 təxminən 1000 kredit edir).
 2. **API Key** bölməsində açar yaradın. Proqramda **Ayarlar → API → Kie.ai** xanasına yazın və **Bağlantını yoxla** basın. Cavabda balansınız görünməlidir.
-3. **Ayarlar → Hərəkət**: servisi `kie` seçin.
-4. **API Market**-də istifadə edəcəyiniz image-to-video modelinin səhifəsini açın (Seedance, Kling, Hailuo və s.). Oradakı **model ID**-ni və şəkil sahəsinin adını (`image_url`, `image_urls` və ya `input_urls`) Ayarlara köçürün. Model əlavə parametr istəyirsə (məs. `resolution`), onları JSON kimi **Kie: əlavə parametrlər** xanasına yazın.
+3. **Ayarlar → Hərəkət**: servisi `kie` seçin və modeli siyahıdan seçin. Default model **Seedance 2.0**-dır (`bytedance/seedance-2`), videoda istifadə olunan da budur.
 
-Qeyd: Kie.ai inteqrasiyası onun "market" API formatı (createTask / recordInfo) əsasında yazılıb. Real açarla hələ yoxlanılmayıb. İlk cəhddə xəta çıxsa, xəta mətni səhnə kartında görünəcək.
+| Model (Ayarlarda) | Klip uzunluğu | Qeyd |
+|---|---|---|
+| `bytedance/seedance-2` | 4–15 san | 720p, kadrın formatı (16:9 / 9:16) avtomatik ötürülür |
+| `bytedance/seedance-2-fast` | 4–15 san | daha tez və ucuz |
+| `bytedance/v1-pro-image-to-video` / `v1-lite` | 5 və ya 10 san | 720p |
+| `kling-2.6/image-to-video` | 5 və ya 10 san | modelin öz səsi söndürülür |
+| `hailuo/2-3-image-to-video-standard` | 6 və ya 10 san | 768P |
+| `wan/2-6-image-to-video` | 5, 10 və ya 15 san | 720p |
+
+Proqram "Klip uzunluğu" ayarını modelin qəbul etdiyi ən yaxın dəyərə uyğunlaşdırır. Bu modellərin modelin öz səsi söndürülür, çünki səsləndirməni Fish Audio edir. Keyfiyyəti dəyişmək üçün **Kie: əlavə parametrlər** xanasına JSON yazın, məsələn `{"resolution": "1080p"}`.
+
+Siyahıda olmayan başqa Market modeli üçün onun ID-sini yazın. Bu halda modelin sənədindəki şəkil sahəsinin adını (`image_url`, `image_urls` və s.) da daxil edin.
+
+İnteqrasiya docs.kie.ai sənədlərinə əsasən yoxlanılıb: tapşırıq yaratma, status sorğusu, fayl yükləmə və yuxarıdakı modellərin hər birinin parametrləri. Real açarla video hələ çəkilməyib.
 4. **Hamısını səsləndir**. 20 saniyədən uzun səhnələr üçün xəbərdarlıq çıxır.
 5. **Montaj et → video yarat**. Hazır MP4 `output/` qovluğuna düşür, yanında `.srt` faylı olur. Proqram YouTube üçün başlıq, təsvir, teqlər və thumbnail prompt-u da yazır.
 

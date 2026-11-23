@@ -143,9 +143,11 @@ const FIELDS = {
   music: [["enabled", "Arxa fon musiqisi", "bool"], ["volume", "Səs səviyyəsi (0.05–0.3)", "number"], ["file", "Fayl", "upload:music"]],
   motion: [["ken_burns", "Ken Burns (avtomatik zoom/pan)", "bool"], ["zoom_percent", "Zoom intensivliyi %", "number"],
     ["animate_provider", "Kadrı hərəkətləndirmə servisi", "select", ["kie", "fal"]],
-    ["kie_model", "Kie.ai model ID (Kie Market-dəki model səhifəsindən kopyalayın)", "text", null, "bytedance/v1-pro-image-to-video"],
-    ["kie_image_field", "Kie: şəkil sahəsinin adı (model sənədinə görə)", "text", null, "image_url · image_urls · input_urls"],
-    ["kie_extra", "Kie: əlavə parametrlər (JSON, könüllü)", "text", null, '{"resolution": "720p"}'],
+    ["kie_model", "Kie.ai modeli (siyahıdan seçin və ya Market-dən istənilən model ID yazın)", "datalist",
+      ["bytedance/seedance-2", "bytedance/seedance-2-fast", "bytedance/v1-pro-image-to-video", "bytedance/v1-lite-image-to-video",
+       "kling-2.6/image-to-video", "hailuo/2-3-image-to-video-standard", "wan/2-6-image-to-video"]],
+    ["kie_image_field", "Kie: şəkil sahəsinin adı (yalnız siyahıda olmayan model üçün)", "text", null, "image_url · image_urls"],
+    ["kie_extra", "Kie: əlavə parametrlər (JSON, könüllü, məs. keyfiyyəti dəyişmək)", "text", null, '{"resolution": "1080p"}'],
     ["fal_model", "Image-to-video modeli (fal.ai)", "text", null, "fal-ai/kling-video/v2.1/standard/image-to-video"],
     ["clip_seconds", "Klip uzunluğu (san)", "number"]],
   transitions: [["mode", "Keçid rejimi", "select", ["crossfade", "fade", "cut"]], ["duration", "Keçid müddəti (san)", "number"],
@@ -200,6 +202,7 @@ function renderFields(el, section, fields, values, lib) {
     if (type === "textarea") return `<div style="grid-column:1/-1"><label>${label}</label><textarea data-k="${k}">${esc(v)}</textarea></div>`;
     if (type === "select") return `<div><label>${label}</label><select data-k="${k}">${opts.map((o) => `<option ${o == v ? "selected" : ""}>${o}</option>`).join("")}</select></div>`;
     if (type === "style") return `<div><label>${label}</label><select data-k="${k}"><option value="">— stil yoxdur —</option>${lib.styles.map((s) => `<option value="${esc(s.id)}" ${s.id === v ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></div>`;
+    if (type === "datalist") return `<div style="grid-column:span 2"><label>${label}</label><input data-k="${k}" list="dl-${k}" value="${esc(v)}"><datalist id="dl-${k}">${opts.map((o) => `<option value="${esc(o)}">`).join("")}</datalist></div>`;
     if (type === "bool") return `<div><label><input type="checkbox" data-k="${k}" ${v ? "checked" : ""}> ${label}</label></div>`;
     if (type === "list") return `<div style="grid-column:1/-1"><label>${label}</label><input data-k="${k}" data-list="1" value="${esc((v || []).join(", "))}" placeholder="${esc(ph || "")}"></div>`;
     if (type.startsWith("upload:")) return `<div><label>${label}</label><div class="muted">${esc(v || "yüklənməyib")}</div><input type="file" data-up="${type.split(":")[1]}"></div>`;
