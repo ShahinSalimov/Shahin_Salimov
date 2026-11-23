@@ -146,6 +146,8 @@ def animate(image: Path, prompt: str, out: Path, settings: dict, should_stop=lam
                      f"zoompan=z='1+0.002*on':x='iw/2-(iw/zoom/2)+on':y='ih/2-(ih/zoom/2)':d=1:s={w}x{h}:fps=30",
               "-c:v", "libx264", "-pix_fmt", "yuv420p", str(out)])
         return {"kind": "animate", "provider": "demo", "usd": 0.0}
+    if m.get("animate_provider") == "kie":
+        return _animate_kie(image, prompt, out, settings, should_stop)
     key = store.get_keys()["fal"]
     if not key:
         raise ProviderError("fal.ai API açarı daxil edilməyib")
@@ -172,6 +174,78 @@ def animate(image: Path, prompt: str, out: Path, settings: dict, should_stop=lam
         if st.get("status") in ("FAILED", "ERROR"):
             raise ProviderError(f"fal.ai tapşırığı uğursuz oldu: {st}")
     raise ProviderError("fal.ai 15 dəqiqə ərzində cavab vermədi")
+
+
+# ---------------- Kie.ai (market jobs API) ----------------
+# NOTE: written from Kie.ai's public "market" API shape (createTask / recordInfo /
+# base64 file upload); not verified against live docs from this environment.
+KIE_API = "https://api.kie.ai/api/v1"
+KIE_UPLOAD = "https://kieai.redpandaai.co/api/file-base64-upload"
+
+
+def _kie_json(r: httpx.Response, what: str) -> dict:
+    try:
+        data = r.json()
+    except ValueError:
+        raise ProviderError(f"Kie.ai {what}: JSON olmayan cavab ({r.status_code}) {r.text[:200]}")
+    if r.status_code >= 400 or data.get("code") not in (200, None):
+        raise ProviderError(f"Kie.ai {what} xətası {data.get('code', r.status_code)}: {data.get('msg') or r.text[:200]}")
+    return data.get("data") or {}
+
+
+def kie_upload(image: Path, key: str) -> str:
+    """Kie models take a public image URL, so the local frame is uploaded first."""
+    b64 = "data:image/png;base64," + base64.b64encode(image.read_bytes()).decode()
+    r = httpx.post(KIE_UPLOAD, headers={"Authorization": f"Bearer {key}"}, timeout=120,
+                   json={"base64Data": b64, "uploadPath": "youtube-ai-agent", "fileName": image.name})
+    data = _kie_json(r, "şəkil yükləmə")
+    url = data.get("downloadUrl") or data.get("fileUrl") or data.get("url")
+    if not url:
+        raise ProviderError(f"Kie.ai yükləmə cavabında URL yoxdur: {str(data)[:200]}")
+    return url
+
+
+def _animate_kie(image: Path, prompt: str, out: Path, settings: dict, should_stop) -> dict:
+    import json as _json
+
+    m = settings["motion"]
+    key = store.get_keys()["kie"]
+    if not key:
+        raise ProviderError("Kie.ai API açarı daxil edilməyib")
+    headers = {"Authorization": f"Bearer {key}"}
+    image_url = kie_upload(image, key)
+    field = (m.get("kie_image_field") or "image_url").strip()
+    inp: dict = {"prompt": prompt, "duration": str(m["clip_seconds"])}
+    inp[field] = [image_url] if field.endswith("s") else image_url  # image_urls / input_urls take a list
+    if m.get("kie_extra", "").strip():
+        try:
+            inp.update(_json.loads(m["kie_extra"]))
+        except ValueError:
+            raise ProviderError("Ayarlar → Hərəkət → 'Kie əlavə parametrlər' düzgün JSON deyil")
+    r = httpx.post(f"{KIE_API}/jobs/createTask", headers=headers, timeout=60,
+                   json={"model": m["kie_model"], "input": inp})
+    task_id = _kie_json(r, "tapşırıq yaratma").get("taskId")
+    if not task_id:
+        raise ProviderError("Kie.ai taskId qaytarmadı")
+    deadline = time.time() + 900
+    while time.time() < deadline:
+        if should_stop():
+            raise ProviderError("Dayandırıldı")
+        time.sleep(6)
+        info = _kie_json(httpx.get(f"{KIE_API}/jobs/recordInfo", params={"taskId": task_id},
+                                   headers=headers, timeout=60), "status")
+        state = info.get("state")
+        if state == "success":
+            res = info.get("resultJson") or "{}"
+            res = _json.loads(res) if isinstance(res, str) else res
+            urls = res.get("resultUrls") or []
+            if not urls:
+                raise ProviderError(f"Kie.ai nəticəsində video yoxdur: {str(res)[:200]}")
+            out.write_bytes(httpx.get(urls[0], timeout=300, follow_redirects=True).content)
+            return {"kind": "animate", "provider": "kie", "usd": settings["costs"]["animate_per_clip"]}
+        if state == "fail":
+            raise ProviderError(f"Kie.ai tapşırığı uğursuz oldu: {info.get('failMsg') or info.get('failCode')}")
+    raise ProviderError("Kie.ai 15 dəqiqə ərzində cavab vermədi")
 
 
 # ---------------- helpers ----------------

@@ -142,6 +142,10 @@ const FIELDS = {
     ["max_lines", "Sətir sayı", "number"], ["chars_per_line", "Sətirdə hərf", "number"], ["font_size", "Şrift ölçüsü", "number"]],
   music: [["enabled", "Arxa fon musiqisi", "bool"], ["volume", "Səs səviyyəsi (0.05–0.3)", "number"], ["file", "Fayl", "upload:music"]],
   motion: [["ken_burns", "Ken Burns (avtomatik zoom/pan)", "bool"], ["zoom_percent", "Zoom intensivliyi %", "number"],
+    ["animate_provider", "Kadrı hərəkətləndirmə servisi", "select", ["kie", "fal"]],
+    ["kie_model", "Kie.ai model ID (Kie Market-dəki model səhifəsindən kopyalayın)", "text", null, "bytedance/v1-pro-image-to-video"],
+    ["kie_image_field", "Kie: şəkil sahəsinin adı (model sənədinə görə)", "text", null, "image_url · image_urls · input_urls"],
+    ["kie_extra", "Kie: əlavə parametrlər (JSON, könüllü)", "text", null, '{"resolution": "720p"}'],
     ["fal_model", "Image-to-video modeli (fal.ai)", "text", null, "fal-ai/kling-video/v2.1/standard/image-to-video"],
     ["clip_seconds", "Klip uzunluğu (san)", "number"]],
   transitions: [["mode", "Keçid rejimi", "select", ["crossfade", "fade", "cut"]], ["duration", "Keçid müddəti (san)", "number"],
@@ -219,7 +223,8 @@ function renderApiTab(el) {
     ["anthropic", "Anthropic / Claude (ssenari üçün alternativ)", "console.anthropic.com → API keys"],
     ["fish", "Fish Audio (səsləndirmə, emosiyalar)", "fish.audio → Developers → API keys"],
     ["elevenlabs", "ElevenLabs (alternativ səs)", "elevenlabs.io → Profile → API key"],
-    ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"]];
+    ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"],
+    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"]];
   el.innerHTML = `<label><input type="checkbox" id="demo" ${state.settings.demo_mode ? "checked" : ""}> <b>Demo rejimi</b> — API-siz test: şəkillər, səs və ssenari süni yaradılır, xərc 0. Real video üçün söndürün.</label>
    ${rows.map(([k, label, hint]) => `<label>${label} <span class="muted">· ${hint}</span></label>
      <div class="row"><input data-key="${k}" placeholder="API açarı" value="${esc(state.keys[k])}" style="flex:1">

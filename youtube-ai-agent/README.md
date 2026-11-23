@@ -4,7 +4,7 @@ Mövzu yazırsınız, proqram hazır YouTube videosu (MP4 + altyazı + başlıq/
 
 ```
 Mövzu → Ssenari (DeepSeek / Claude / OpenAI) → Səhnələrə bölmə → Hər səhnəyə vizual prompt
-      → Şəkillər (OpenAI gpt-image-1, vahid stil) → [istəyə görə] səhnəni hərəkətə gətirmək (fal.ai)
+      → Şəkillər (OpenAI gpt-image-1, vahid stil) → [istəyə görə] səhnəni hərəkətə gətirmək (Kie.ai / fal.ai)
       → Emosiyalı səsləndirmə (Fish Audio / ElevenLabs) → Montaj (Ken Burns, keçidlər, loqo, musiqi, altyazı)
       → MP4 + .srt + YouTube metadata
 ```
@@ -28,7 +28,8 @@ Brauzer avtomatik açılır: http://127.0.0.1:8765
 | DeepSeek | Ssenari, vizual prompt-lar | platform.deepseek.com → API keys | 15 dəq video ≈ $0.01–0.15 |
 | OpenAI | Səhnə şəkilləri (gpt-image-1) | platform.openai.com → API keys | low ≈ $0.016/şəkil, high ≈ $0.25 |
 | Fish Audio | Səsləndirmə + emosiyalar | fish.audio → Developers → API keys (balansı $5–10 artırın) | 1 saat ≈ $1 |
-| fal.ai | Səhnəni hərəkətə gətirmək (könüllü) | fal.ai → Keys | ≈ $0.2–0.7 / klip |
+| Kie.ai | Səhnəni hərəkətə gətirmək (könüllü, ucuz aqreqator) | kie.ai → API Key, balansı Billing-dən artırın | ≈ $0.2–0.7 / klip |
+| fal.ai | Kie.ai-yə alternativ (könüllü) | fal.ai → Keys | ≈ $0.2–0.7 / klip |
 | Anthropic | Ssenarini Claude ilə yazmaq (könüllü) | console.anthropic.com | modeldən asılı |
 | ElevenLabs | Alternativ səs (könüllü) | elevenlabs.io | planından asılı |
 
@@ -68,7 +69,15 @@ Hər kanal (dil, mövzu, stil) üçün ayrıca profil yaradın. Sol paneldə bir
 2. **Ssenari**: ya **AI ilə yaz**, ya da öz mətninizi yapışdırın. Sonra **Səhnələrə böl**. Paraqraflar səhnə sərhədidir: iki paraqrafı birləşdirmək üçün onları eyni abzasa yazın.
 3. **Bütün kadrları hazırla**: şəkillər paralel çəkilir (eyni anda 3 şəkil).
    - Bəyənmədiyiniz səhnədə **Vizual təsvir və final prompt** bölməsini açın, düzəldin, sonra **Şəkli yenidən yarat**.
-   - **Kadrı hərəkətləndir**: proqram səhnəni fal.ai ilə video klipə çevirir (2–5 dəq). Bunu ilk 1–2 səhnədə etmək tövsiyə olunur.
+   - **Kadrı hərəkətləndir**: proqram səhnəni Kie.ai və ya fal.ai ilə video klipə çevirir (2–5 dəq). Bunu ilk 1–2 səhnədə etmək tövsiyə olunur. Servis **Ayarlar → Hərəkət** tabında seçilir.
+
+### Kie.ai qoşmaq
+1. kie.ai saytında qeydiyyatdan keçin, **Billing**-dən balansı artırın ($5 təxminən 1000 kredit edir).
+2. **API Key** bölməsində açar yaradın. Proqramda **Ayarlar → API → Kie.ai** xanasına yazın və **Bağlantını yoxla** basın. Cavabda balansınız görünməlidir.
+3. **Ayarlar → Hərəkət**: servisi `kie` seçin.
+4. **API Market**-də istifadə edəcəyiniz image-to-video modelinin səhifəsini açın (Seedance, Kling, Hailuo və s.). Oradakı **model ID**-ni və şəkil sahəsinin adını (`image_url`, `image_urls` və ya `input_urls`) Ayarlara köçürün. Model əlavə parametr istəyirsə (məs. `resolution`), onları JSON kimi **Kie: əlavə parametrlər** xanasına yazın.
+
+Qeyd: Kie.ai inteqrasiyası onun "market" API formatı (createTask / recordInfo) əsasında yazılıb. Real açarla hələ yoxlanılmayıb. İlk cəhddə xəta çıxsa, xəta mətni səhnə kartında görünəcək.
 4. **Hamısını səsləndir**. 20 saniyədən uzun səhnələr üçün xəbərdarlıq çıxır.
 5. **Montaj et → video yarat**. Hazır MP4 `output/` qovluğuna düşür, yanında `.srt` faylı olur. Proqram YouTube üçün başlıq, təsvir, teqlər və thumbnail prompt-u da yazır.
 

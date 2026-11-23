@@ -70,6 +70,9 @@ DEFAULT_SETTINGS: dict = {
         "zoom_percent": 15,
         "animate_provider": "fal",
         "fal_model": "fal-ai/kling-video/v2.1/standard/image-to-video",
+        "kie_model": "bytedance/v1-pro-image-to-video",
+        "kie_image_field": "image_url",
+        "kie_extra": "",
         "clip_seconds": 5,
     },
     "transitions": {"mode": "crossfade", "duration": 0.5, "types": ["fade", "dissolve", "smoothleft", "smoothright"]},
@@ -90,7 +93,7 @@ DEFAULT_SETTINGS: dict = {
     },
 }
 
-DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": ""}
+DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": ""}
 
 BASE_STYLES = [
     {

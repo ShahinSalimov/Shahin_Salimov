@@ -127,6 +127,7 @@ def test_connection(provider: str) -> str:
                       {"x-api-key": key, "anthropic-version": "2023-06-01"}),
         "fish": ("https://api.fish.audio/model?page_size=1", {"Authorization": f"Bearer {key}"}),
         "elevenlabs": ("https://api.elevenlabs.io/v1/user", {"xi-api-key": key}),
+        "kie": ("https://api.kie.ai/api/v1/chat/credit", {"Authorization": f"Bearer {key}"}),
     }
     if provider == "fal":
         return "Açar yadda saxlanıldı (fal.ai üçün ayrıca yoxlama endpoint-i yoxdur; ilk animasiyada yoxlanılacaq)"
@@ -141,4 +142,9 @@ def test_connection(provider: str) -> str:
         raise ProviderError(f"Açar qəbul edilmədi ({r.status_code})")
     if r.status_code >= 400:
         raise ProviderError(f"Xəta {r.status_code}: {r.text[:200]}")
+    if provider == "kie":  # Kie returns HTTP 200 with its own code field
+        body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+        if body.get("code") not in (200, None):
+            raise ProviderError(f"Açar qəbul edilmədi ({body.get('code')}: {body.get('msg')})")
+        return f"Bağlantı uğurludur · balans: {body.get('data')} kredit"
     return "Bağlantı uğurludur"
