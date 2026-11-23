@@ -85,7 +85,7 @@ Hər kanal (dil, mövzu, stil) üçün ayrıca profil yaradın. Sol paneldə bir
 | `hailuo/2-3-image-to-video-standard` | 6 və ya 10 san | 768P |
 | `wan/2-6-image-to-video` | 5, 10 və ya 15 san | 720p |
 
-Proqram "Klip uzunluğu" ayarını modelin qəbul etdiyi ən yaxın dəyərə uyğunlaşdırır. Bu modellərin modelin öz səsi söndürülür, çünki səsləndirməni Fish Audio edir. Keyfiyyəti dəyişmək üçün **Kie: əlavə parametrlər** xanasına JSON yazın, məsələn `{"resolution": "1080p"}`.
+Proqram "Klip uzunluğu" ayarını modelin qəbul etdiyi ən yaxın dəyərə uyğunlaşdırır. Səs yaradan modellərdə modelin öz səsi söndürülür, çünki səsləndirməni Fish Audio edir. Keyfiyyəti dəyişmək üçün **Kie: əlavə parametrlər** xanasına JSON yazın, məsələn `{"resolution": "1080p"}`.
 
 Siyahıda olmayan başqa Market modeli üçün onun ID-sini yazın. Bu halda modelin sənədindəki şəkil sahəsinin adını (`image_url`, `image_urls` və s.) da daxil edin.
 
