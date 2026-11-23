@@ -8,7 +8,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-from . import config
+from . import channels, config
 
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
@@ -27,8 +27,6 @@ def client_secret_path() -> Path:
     return config.DATA / "client_secret.json"
 
 
-def token_path() -> Path:
-    return config.DATA / "token.json"
 
 
 # ---------------- fake client for tests ----------------
@@ -42,13 +40,14 @@ FAKE = _Fake
 
 
 # ---------------- auth ----------------
-def _credentials():
+def _credentials(channel_id: str):
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
 
-    if not token_path().exists():
+    path = channels.token_path(channel_id)
+    if not path.exists():
         return None
-    creds = Credentials.from_authorized_user_file(str(token_path()), SCOPES)
+    creds = Credentials.from_authorized_user_file(str(path), SCOPES)
     if creds.valid:
         return creds
     if creds.expired and creds.refresh_token:
@@ -56,64 +55,60 @@ def _credentials():
             creds.refresh(Request())
         except Exception:  # noqa: BLE001 - revoked/expired refresh token
             return None
-        token_path().write_text(creds.to_json(), encoding="utf-8")
+        path.write_text(creds.to_json(), encoding="utf-8")
         return creds
     return None
 
 
-def _service():
+def _service(channel_id: str):
     if config.FAKE:
         if not FAKE.connected:
-            raise YouTubeError("YouTube hesabı qoşulmayıb (Ayarlar → YouTube → Kanalı qoş)")
+            raise YouTubeError("YouTube hesabı qoşulmayıb (Ayarlar → Kanallar → Yenidən qoş)")
         return None
-    creds = _credentials()
+    creds = _credentials(channel_id)
     if not creds:
-        raise YouTubeError("YouTube hesabı qoşulmayıb və ya giriş vaxtı bitib (Ayarlar → YouTube → Kanalı qoş)")
+        raise YouTubeError("Kanalın YouTube girişi yoxdur və ya vaxtı bitib (Ayarlar → Kanallar → Yenidən qoş)")
     from googleapiclient.discovery import build
     return build("youtube", "v3", credentials=creds, cache_discovery=False)
 
 
-def connect() -> dict:
-    """Opens the browser for Google sign-in, stores the token, returns the channel."""
+def connect(channel_id: str | None = None) -> dict:
+    """Google sign-in in the browser (Şahin picks the channel there). New channel, or re-login of channel_id."""
     if config.FAKE:
         FAKE.connected = True
-        return {"title": "Fake Channel"}
+        return channels.get(channel_id) if channel_id else channels.add("Fake Channel", "UCfake")
     if not client_secret_path().exists():
         raise YouTubeError("Əvvəlcə Google Cloud-dan yüklədiyiniz client_secret.json faylını əlavə edin")
     from google_auth_oauthlib.flow import InstalledAppFlow
+    from googleapiclient.discovery import build
     flow = InstalledAppFlow.from_client_secrets_file(str(client_secret_path()), SCOPES)
-    creds = flow.run_local_server(port=0, prompt="consent", open_browser=True)
-    token_path().parent.mkdir(parents=True, exist_ok=True)
-    token_path().write_text(creds.to_json(), encoding="utf-8")
-    return channel() or {"title": "?"}
+    creds = flow.run_local_server(port=0, prompt="consent select_account", open_browser=True)
+    items = build("youtube", "v3", credentials=creds, cache_discovery=False).channels() \
+        .list(part="snippet", mine=True).execute().get("items") or []
+    if not items:
+        raise YouTubeError("Bu Google hesabında YouTube kanalı yoxdur. Girişdə kanalın özünü seçin.")
+    ch = channels.get(channel_id) if channel_id else channels.add(items[0]["snippet"]["title"], items[0]["id"])
+    path = channels.token_path(ch["id"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(creds.to_json(), encoding="utf-8")
+    return ch
 
 
-def channel() -> dict | None:
+def is_connected(channel_id: str) -> bool:
     if config.FAKE:
-        return {"title": "Fake Channel"} if FAKE.connected else None
-    try:
-        yt = _service()
-    except YouTubeError:
-        return None
-    items = yt.channels().list(part="snippet", mine=True).execute().get("items") or []
-    return {"title": items[0]["snippet"]["title"], "id": items[0]["id"]} if items else {"title": "(kanal yoxdur)"}
-
-
-def disconnect() -> None:
-    token_path().unlink(missing_ok=True)
-    if config.FAKE:
-        FAKE.connected = False
+        return FAKE.connected
+    return _credentials(channel_id) is not None
 
 
 # ---------------- uploads ----------------
-def video_body(meta: dict, settings: dict) -> dict:
+def video_body(meta: dict, channel: dict) -> dict:
     return {
         "snippet": {
             "title": meta["title"][:100],
             "description": meta.get("description", "")[:4900],
             "tags": meta.get("tags", [])[:30],
-            "categoryId": str(settings["category_id"]),
-            "defaultLanguage": LANG_CODES.get(settings["language"].lower(), "en"),
+            "categoryId": str(channel["category_id"]),
+            "defaultLanguage": LANG_CODES.get(channel["language"].lower(), "en"),
         },
         "status": {
             "privacyStatus": "private",           # Şahin publishes manually from YouTube Studio
@@ -123,11 +118,11 @@ def video_body(meta: dict, settings: dict) -> dict:
     }
 
 
-def upload(video: Path, meta: dict, settings: dict, progress=lambda pct: None) -> str:
-    body = video_body(meta, settings)
-    yt = _service()
+def upload(video: Path, meta: dict, channel: dict, progress=lambda pct: None) -> str:
+    body = video_body(meta, channel)
+    yt = _service(channel["id"])
     if config.FAKE:
-        FAKE.calls.append(("upload", str(video), body))
+        FAKE.calls.append(("upload", str(video), body, channel["id"]))
         return f"fake{len(FAKE.calls)}"
     from googleapiclient.errors import HttpError
     from googleapiclient.http import MediaFileUpload
@@ -159,8 +154,8 @@ def upload(video: Path, meta: dict, settings: dict, progress=lambda pct: None) -
     return response["id"]
 
 
-def set_thumbnail(video_id: str, image: Path) -> None:
-    yt = _service()
+def set_thumbnail(video_id: str, image: Path, channel: dict) -> None:
+    yt = _service(channel["id"])
     if config.FAKE:
         if FAKE.fail_thumbnail:
             raise YouTubeError("The channel is not allowed to upload custom thumbnails")
@@ -175,9 +170,9 @@ def set_thumbnail(video_id: str, image: Path) -> None:
                            "YouTube öz thumbnail-i qoymağa icazə vermir.") from e
 
 
-def upload_captions(video_id: str, srt: Path, settings: dict) -> None:
-    yt = _service()
-    lang = LANG_CODES.get(settings["language"].lower(), "en")
+def upload_captions(video_id: str, srt: Path, channel: dict) -> None:
+    yt = _service(channel["id"])
+    lang = LANG_CODES.get(channel["language"].lower(), "en")
     if config.FAKE:
         FAKE.calls.append(("captions", video_id, lang))
         return

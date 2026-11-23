@@ -2,7 +2,7 @@
 
 ## Intent
 
-A personal video factory for one YouTube channel. Şahin pastes a finished script; the agent does everything
+A personal video factory for Şahin's YouTube channels (one or several). Şahin pastes a finished script; the agent does everything
 else without questions — visuals, motion, voice, edit, a long video and a Short, metadata, thumbnail — and
 uploads both to the channel as **private**. Şahin reviews in YouTube Studio and makes them public himself.
 
@@ -24,7 +24,7 @@ v1 (`youtube-ai-agent/`) was a copy of a course's app: script writing, profiles,
 ## Non-goals
 
 - Writing scripts (Şahin writes them).
-- Multiple channels/profiles, character/style libraries, per-scene editing UI, demo mode in the UI.
+- Settings profiles, character/style libraries, per-scene editing UI, demo mode in the UI.
 - Other platforms (Instagram, TikTok), other providers (ElevenLabs, fal.ai, Claude/OpenAI as script writer).
 - Publishing publicly or scheduling.
 
@@ -104,3 +104,11 @@ File layout, exact prompts, thumbnail typography, Short caption style, retry/bac
 ## Status
 
 Approved by Şahin on 2026-11-23 (with Kie.ai made optional).
+
+## Change 2026-11-23: several channels (requested by Şahin)
+
+- Settings → **Channels**: "Add channel" runs the Google sign-in; Şahin picks the channel (own or brand
+  account). Each channel stores its own OAuth token and: name, voice ID, language, category.
+- Studio: a channel dropdown per job; the job uses that channel's voice, language, category and token.
+- Shared: API keys, Google Cloud project (client_secret.json), budget cap, Fish model, max animated scenes.
+- The daily upload quota (100 videos.insert) belongs to the Cloud project and is shared by all channels.

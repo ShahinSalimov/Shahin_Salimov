@@ -1,10 +1,9 @@
-"""FastAPI server + static UI."""
+"""Local web app: Studio (scripts + queue) and Settings (keys, channels)."""
 from __future__ import annotations
 
 import os
 import subprocess
 import sys
-import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -13,302 +12,177 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import llm, pipeline, script, store
+from . import channels, config, jobs, providers, youtube
 
 STATIC = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
 async def lifespan(_app):
-    store.DATA.mkdir(parents=True, exist_ok=True)
-    store.OUTPUT.mkdir(parents=True, exist_ok=True)
-    pipeline.recover_interrupted()
+    config.DATA.mkdir(parents=True, exist_ok=True)
+    config.OUTPUT.mkdir(parents=True, exist_ok=True)
+    jobs.recover()
+    if os.environ.get("YTA_NO_WORKER") != "1":
+        jobs.start_worker()
     yield
 
 
-app = FastAPI(title="YouTube AI Agent", lifespan=lifespan)
+app = FastAPI(title="YouTube Agent", lifespan=lifespan)
 
 
-def _proj(pid: str) -> dict:
-    try:
-        return store.get_project(pid)
-    except (KeyError, ValueError):
-        raise HTTPException(404, "Layihə tapılmadı")
+def _err(e: Exception, code: int = 400):
+    raise HTTPException(code, str(e))
 
 
-def _job(pid: str, name: str, fn, *args):
-    try:
-        pipeline.start(pid, name, fn, *args)
-    except pipeline.Busy as e:
-        raise HTTPException(409, str(e))
-    return {"ok": True}
-
-
-# ---------------- settings / keys / profiles ----------------
+# ---------------- settings & keys ----------------
 @app.get("/api/settings")
-def get_settings():
-    return {"settings": store.get_settings(), "keys": store.masked_keys(),
-            "profiles": [{"id": p["id"], "name": p["name"]} for p in store.list_profiles()],
-            "active_profile": store.active_profile_id()}
+def settings():
+    return {"settings": config.get_settings(), "keys": config.masked_keys(),
+            "client_secret": youtube.client_secret_path().exists(),
+            "kie_enabled": providers.kie_enabled()}
 
 
 @app.put("/api/settings")
 def put_settings(body: dict):
-    return {"settings": store.save_settings(body), "saved_at": time.strftime("%H:%M:%S")}
+    try:
+        return {"settings": config.save_settings(body)}
+    except (TypeError, ValueError) as e:
+        _err(e)
 
 
 @app.put("/api/keys")
 def put_keys(body: dict):
-    store.save_keys(body)
-    return {"keys": store.masked_keys()}
+    config.save_keys(body)
+    return {"keys": config.masked_keys()}
 
 
-@app.post("/api/keys/{provider}/test")
-def test_key(provider: str):
+@app.post("/api/keys/{name}/test")
+def test_key(name: str):
+    if name not in config.KEY_NAMES:
+        _err(ValueError("Naməlum servis"))
     try:
-        return {"ok": True, "message": llm.test_connection(provider)}
-    except llm.ProviderError as e:
+        return {"ok": True, "message": providers.test_key(name)}
+    except providers.ProviderError as e:
         return {"ok": False, "message": str(e)}
 
 
-class ProfileIn(BaseModel):
-    name: str = ""
-    id: str | None = None
-
-
-@app.post("/api/profiles")
-def save_profile(body: ProfileIn):
+# ---------------- channels ----------------
+@app.post("/api/youtube/client-secret")
+async def client_secret(file: UploadFile = File(...)):
+    raw = await file.read()
+    import json
     try:
-        p = store.save_profile(body.name or "Profil", body.id)
-    except KeyError:
-        raise HTTPException(404, "Profil tapılmadı")
-    if not body.id:
-        store.apply_profile(p["id"])
-    return {"id": p["id"], "name": p["name"]}
+        data = json.loads(raw)
+        assert "installed" in data
+    except (ValueError, AssertionError):
+        _err(ValueError("Bu fayl Desktop app tipli OAuth client_secret.json deyil"))
+    youtube.client_secret_path().parent.mkdir(parents=True, exist_ok=True)
+    youtube.client_secret_path().write_bytes(raw)
+    return {"ok": True}
 
 
-@app.post("/api/profiles/{profile_id}/apply")
-def apply_profile(profile_id: str):
+@app.get("/api/channels")
+def list_channels():
+    return [{**c, "connected": youtube.is_connected(c["id"])} for c in channels.list_channels()]
+
+
+@app.post("/api/channels/connect")
+def connect_channel(body: dict | None = None):
+    """Opens Google sign-in in the browser; blocks until Şahin finishes there."""
     try:
-        return {"settings": store.apply_profile(profile_id)}
+        return youtube.connect((body or {}).get("channel_id"))
+    except (youtube.YouTubeError, channels.ChannelError) as e:
+        _err(e)
+
+
+@app.put("/api/channels/{cid}")
+def update_channel(cid: str, body: dict):
+    try:
+        return channels.update(cid, body)
+    except channels.ChannelError as e:
+        _err(e, 404)
+
+
+@app.delete("/api/channels/{cid}")
+def delete_channel(cid: str):
+    channels.remove(cid)
+    return {"ok": True}
+
+
+# ---------------- jobs ----------------
+class JobIn(BaseModel):
+    script: str
+    channel_id: str
+    title_hint: str = ""
+    make_long: bool = True
+    make_short: bool = True
+
+
+def _public(j: dict) -> dict:
+    """List view without the heavy plan/scene data."""
+    keep = ("id", "created", "updated", "title_hint", "channel_id", "status", "step", "progress", "message",
+            "error", "warnings", "cost", "estimate", "long", "short", "make_long", "make_short")
+    out = {k: j.get(k) for k in keep}
+    out["title"] = ((j.get("plan") or {}).get("long_meta") or {}).get("title") or j["title_hint"] \
+        or j["script"][:60]
+    out["scenes"] = len(j.get("scenes") or [])
+    return out
+
+
+@app.get("/api/jobs")
+def list_jobs():
+    return [_public(j) for j in reversed(jobs.list_jobs())]
+
+
+@app.post("/api/jobs")
+def add_job(body: JobIn):
+    try:
+        return _public(jobs.add_job(body.script, body.channel_id, body.title_hint, body.make_long, body.make_short))
+    except jobs.JobError as e:
+        _err(e)
+
+
+@app.post("/api/jobs/{jid}/retry")
+def retry(jid: str):
+    try:
+        return _public(jobs.retry(jid))
+    except (KeyError, jobs.JobError) as e:
+        _err(e)
+
+
+@app.post("/api/jobs/{jid}/stop")
+def stop(jid: str):
+    try:
+        jobs.stop(jid)
+    except KeyError as e:
+        _err(e, 404)
+    return {"ok": True}
+
+
+@app.delete("/api/jobs/{jid}")
+def delete(jid: str):
+    try:
+        jobs.delete(jid)
+    except (KeyError, jobs.JobError) as e:
+        _err(e)
+    return {"ok": True}
+
+
+@app.get("/api/jobs/{jid}/file/{kind}")
+def job_file(jid: str, kind: str):
+    try:
+        j = jobs.get_job(jid)
     except KeyError:
-        raise HTTPException(404, "Profil tapılmadı")
+        _err(KeyError("İş tapılmadı"), 404)
+    path = {"long": j["long"].get("path"), "short": j["short"].get("path"), "thumb": j.get("thumb")}.get(kind)
+    if not path or not Path(path).exists():
+        _err(FileNotFoundError("Fayl yoxdur"), 404)
+    return FileResponse(path, filename=Path(path).name)
 
 
-@app.delete("/api/profiles/{profile_id}")
-def delete_profile(profile_id: str):
-    store.delete_profile(profile_id)
-    return {"ok": True}
-
-
-# ---------------- library ----------------
-@app.get("/api/library")
-def library():
-    return store.get_library()
-
-
-@app.post("/api/library/{kind}")
-def upsert_library(kind: str, item: dict):
-    if kind not in ("styles", "characters"):
-        raise HTTPException(400, "kind")
-    return store.upsert_library_item(kind, item)
-
-
-@app.delete("/api/library/{kind}/{item_id}")
-def del_library(kind: str, item_id: str):
-    store.delete_library_item(kind, item_id)
-    return {"ok": True}
-
-
-# ---------------- uploads (logo, music) ----------------
-@app.post("/api/upload/{kind}")
-async def upload(kind: str, file: UploadFile = File(...)):
-    if kind not in ("logo", "music"):
-        raise HTTPException(400, "kind")
-    allowed = {"logo": (".png", ".webp"), "music": (".mp3", ".wav", ".m4a", ".aac")}[kind]
-    ext = Path(file.filename or "").suffix.lower()
-    if ext not in allowed:
-        raise HTTPException(400, f"İcazə verilən formatlar: {', '.join(allowed)}")
-    dest = store.DATA / "assets" / f"{kind}{ext}"
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(await file.read())
-    section = "branding" if kind == "logo" else "music"
-    field = "logo" if kind == "logo" else "file"
-    store.save_settings({section: {field: str(dest)}})
-    return {"path": str(dest)}
-
-
-# ---------------- projects ----------------
-class NewProject(BaseModel):
-    title: str
-    brief: str = ""
-    auto: bool = False
-
-
-@app.get("/api/projects")
-def projects():
-    return store.list_projects()
-
-
-@app.post("/api/projects")
-def new_project(body: NewProject):
-    p = store.create_project(body.title, body.brief)
-    if body.auto:
-        _job(p["id"], "full_auto", pipeline.job_full_auto)
-    return p
-
-
-@app.get("/api/projects/{pid}")
-def get_project(pid: str):
-    p = _proj(pid)
-    p["running"] = pipeline.is_running(pid)
-    p["total_cost"] = round(sum(c["usd"] for c in p["costs"]), 4)
-    return p
-
-
-@app.delete("/api/projects/{pid}")
-def delete_project(pid: str):
-    if pipeline.is_running(pid):
-        raise HTTPException(409, "Proses gedərkən silmək olmaz")
-    store.delete_project(pid)
-    return {"ok": True}
-
-
-@app.post("/api/projects/{pid}/refresh-settings")
-def refresh_settings(pid: str):
-    """Copy the current global settings (after a profile switch) into the project."""
-    _proj(pid)
-    return store.update_project(pid, lambda p: p.update(settings=store.get_settings()))
-
-
-@app.put("/api/projects/{pid}/script")
-def put_script(pid: str, body: dict):
-    _proj(pid)
-    return store.update_project(pid, lambda p: p.update(script=body.get("script", "")))
-
-
-@app.post("/api/projects/{pid}/write-script")
-def write_script(pid: str):
-    _proj(pid)
-    return _job(pid, "script", pipeline.job_write_script)
-
-
-@app.post("/api/projects/{pid}/split")
-def split(pid: str):
-    p = _proj(pid)
-    if not p["script"].strip():
-        raise HTTPException(400, "Ssenari boşdur")
-    scenes = script.split_scenes(p["script"], p["settings"]["script"])
-    return store.update_project(pid, lambda x: x.update(scenes=scenes, stage="storyboard"))
-
-
-@app.post("/api/projects/{pid}/reset-scenes")
-def reset_scenes(pid: str):
-    _proj(pid)
-    if pipeline.is_running(pid):
-        raise HTTPException(409, "Proses gedir")
-    return store.update_project(pid, lambda p: p.update(scenes=[], stage="script", output="", metadata=None))
-
-
-@app.put("/api/projects/{pid}/scenes/{sid}")
-def edit_scene(pid: str, sid: str, body: dict):
-    _proj(pid)
-    allowed = {"text", "visual", "prompt", "animate"}
-
-    def upd(p):
-        for s in p["scenes"]:
-            if s["id"] == sid:
-                for k, v in body.items():
-                    if k in allowed:
-                        s[k] = v
-                if "text" in body:
-                    s["audio"] = ""  # voice must be regenerated
-                if "prompt" in body:
-                    s["prompt_locked"] = bool(body["prompt"].strip())
-                if "visual" in body:
-                    s["prompt_locked"] = False
-    return store.update_project(pid, upd)
-
-
-@app.delete("/api/projects/{pid}/scenes/{sid}")
-def delete_scene(pid: str, sid: str):
-    _proj(pid)
-    return store.update_project(pid, lambda p: p.update(scenes=[s for s in p["scenes"] if s["id"] != sid]))
-
-
-@app.post("/api/projects/{pid}/scenes/{sid}/clear-video")
-def clear_video(pid: str, sid: str):
-    _proj(pid)
-    return store.update_project(pid, lambda p: [s.update(video="") for s in p["scenes"] if s["id"] == sid])
-
-
-@app.post("/api/projects/{pid}/frames")
-def frames(pid: str, body: dict | None = None):
-    _proj(pid)
-    body = body or {}
-    return _job(pid, "frames", pipeline.job_frames, body.get("scene_ids"), bool(body.get("force")))
-
-
-@app.post("/api/projects/{pid}/scenes/{sid}/animate")
-def animate(pid: str, sid: str):
-    _proj(pid)
-    return _job(pid, "animate", pipeline.job_animate, sid)
-
-
-@app.post("/api/projects/{pid}/voice")
-def voice(pid: str, body: dict | None = None):
-    _proj(pid)
-    body = body or {}
-    return _job(pid, "voice", pipeline.job_voice, body.get("scene_ids"), bool(body.get("force")))
-
-
-@app.post("/api/projects/{pid}/render")
-def do_render(pid: str):
-    _proj(pid)
-    return _job(pid, "render", pipeline.job_render)
-
-
-@app.post("/api/projects/{pid}/metadata")
-def metadata(pid: str):
-    _proj(pid)
-    return _job(pid, "metadata", pipeline.job_metadata)
-
-
-@app.post("/api/projects/{pid}/auto")
-def auto(pid: str):
-    _proj(pid)
-    return _job(pid, "full_auto", pipeline.job_full_auto)
-
-
-@app.post("/api/projects/{pid}/stop")
-def stop(pid: str):
-    pipeline.stop(pid)
-    return {"ok": True}
-
-
-@app.get("/api/projects/{pid}/file/{sub}/{name}")
-def project_file(pid: str, sub: str, name: str):
-    if sub not in ("images", "audio", "videos") or "/" in name or ".." in name:
-        raise HTTPException(400, "path")
-    f = store.project_dir(pid) / sub / name
-    if not f.exists():
-        raise HTTPException(404, "yoxdur")
-    return FileResponse(f)
-
-
-@app.get("/api/projects/{pid}/output")
-def output(pid: str, srt: bool = False):
-    p = _proj(pid)
-    f = Path(p["srt"] if srt else p["output"] or "")
-    if not p["output"] or not f.exists():
-        raise HTTPException(404, "Video hələ hazır deyil")
-    return FileResponse(f, filename=f.name)
-
-
-@app.post("/api/projects/{pid}/open-folder")
-def open_folder(pid: str):
-    p = _proj(pid)
-    folder = str(Path(p["output"]).parent if p.get("output") else store.OUTPUT)
+@app.post("/api/open-output")
+def open_output():
+    folder = str(config.OUTPUT)
     try:
         if sys.platform.startswith("win"):
             os.startfile(folder)  # type: ignore[attr-defined]

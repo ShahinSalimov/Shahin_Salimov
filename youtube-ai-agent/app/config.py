@@ -14,11 +14,8 @@ FAKE = os.environ.get("YTA_FAKE") == "1"  # tests only: fake providers and YouTu
 _lock = threading.RLock()
 
 DEFAULT_SETTINGS = {
-    "voice_id": "",
     "fish_model": "s2.1-pro-free",
     "voice_speed": 1.0,
-    "language": "English",
-    "category_id": "2",          # Autos & Vehicles
     "max_animated": 4,
     "budget_cap": 6.0,
     "image_quality": "low",

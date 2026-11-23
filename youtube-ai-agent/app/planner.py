@@ -43,7 +43,7 @@ def _system(language: str) -> str:
     )
 
 
-def make_plan(script: str, title_hint: str, settings: dict) -> tuple[dict, float]:
+def make_plan(script: str, title_hint: str, settings: dict, language: str = "English") -> tuple[dict, float]:
     scenes = split_scenes(script)
     if not scenes:
         raise providers.ProviderError("Ssenari boşdur")
@@ -57,7 +57,7 @@ def make_plan(script: str, title_hint: str, settings: dict) -> tuple[dict, float
                 + "\n".join(f"{s['id']}: {s['text']}" for s in batch))
         if b == 0:  # the first call also sees the whole script for Short/metadata choices
             user += "\n\nFULL SCRIPT (for short_start, metadata and thumbnail):\n" + script[:12000]
-        data, c = providers.deepseek_json(_system(settings["language"]), user)
+        data, c = providers.deepseek_json(_system(language), user)
         cost += c
         if b == 0:
             first = data if isinstance(data, dict) else {}

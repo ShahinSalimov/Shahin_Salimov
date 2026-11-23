@@ -1,4 +1,4 @@
-"""Start the YouTube AI Agent: python run.py  →  http://127.0.0.1:8765"""
+"""Start the YouTube Agent: python run.py  →  http://127.0.0.1:8765"""
 import os
 import shutil
 import sys

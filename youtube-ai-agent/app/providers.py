@@ -138,7 +138,7 @@ def _fake_image(text: str, out: Path, portrait: bool) -> None:
 
 
 # ---------------- Fish Audio ----------------
-def tts(text: str, out: Path) -> float:
+def tts(text: str, out: Path, voice_id: str = "") -> float:
     s = config.get_settings()
     if config.FAKE:
         seconds = max(1.0, len(text) / 15)
@@ -146,11 +146,11 @@ def tts(text: str, out: Path) -> float:
                  "-ar", "44100", "-ac", "2", "-b:a", "128k", str(out)])
         return 0.0
     key = _key("fish", "Fish Audio")
-    if not s["voice_id"]:
-        raise ProviderError("Səs seçilməyib (Ayarlar → Voice ID)")
+    if not voice_id:
+        raise ProviderError("Kanalın səsi seçilməyib (Ayarlar → Kanallar → Voice ID)")
     r = _post("https://api.fish.audio/v1/tts", "Fish Audio", timeout=300,
               headers={"Authorization": f"Bearer {key}", "model": s["fish_model"]},
-              json={"text": text, "reference_id": s["voice_id"], "format": "mp3",
+              json={"text": text, "reference_id": voice_id, "format": "mp3",
                     "prosody": {"speed": float(s["voice_speed"])}})
     out.write_bytes(r.content)
     free = "free" in s["fish_model"]

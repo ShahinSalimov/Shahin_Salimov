@@ -2,7 +2,7 @@ import pytest
 
 from app import config, youtube
 
-S = config.DEFAULT_SETTINGS
+S = {"id": "0123456789", "language": "English", "category_id": "2"}
 
 
 def test_upload_without_connection_fails_clearly(tmp_path):
@@ -24,6 +24,6 @@ def test_upload_body():
 
 def test_real_credentials_absent_means_not_connected(monkeypatch):
     monkeypatch.setattr(config, "FAKE", False)
-    assert youtube._credentials() is None
-    with pytest.raises(youtube.YouTubeError, match="qoşulmayıb"):
-        youtube._service()
+    assert youtube._credentials("0123456789") is None
+    with pytest.raises(youtube.YouTubeError, match="girişi yoxdur"):
+        youtube._service("0123456789")
