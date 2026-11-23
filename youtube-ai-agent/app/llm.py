@@ -129,6 +129,12 @@ def test_connection(provider: str) -> str:
         "elevenlabs": ("https://api.elevenlabs.io/v1/user", {"xi-api-key": key}),
         "kie": ("https://api.kie.ai/api/v1/chat/credit", {"Authorization": f"Bearer {key}"}),
     }
+    if provider == "youtube":
+        from . import trends
+        try:
+            return trends.test_key(key)
+        except trends.TrendError as e:
+            raise ProviderError(str(e)) from e
     if provider == "fal":
         return "Açar yadda saxlanıldı (fal.ai üçün ayrıca yoxlama endpoint-i yoxdur; ilk animasiyada yoxlanılacaq)"
     if provider not in urls:

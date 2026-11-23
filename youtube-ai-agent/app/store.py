@@ -93,7 +93,7 @@ DEFAULT_SETTINGS: dict = {
     },
 }
 
-DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": ""}
+DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": "", "youtube": ""}
 
 BASE_STYLES = [
     {
@@ -331,3 +331,13 @@ def list_projects() -> list[dict]:
 def delete_project(pid: str) -> None:
     import shutil
     shutil.rmtree(project_dir(pid), ignore_errors=True)
+
+
+# ---------- trend channels ----------
+def get_trends() -> dict:
+    return _read(DATA / "trends.json", {})
+
+
+def save_trends(data: dict) -> None:
+    with _lock:
+        _write(DATA / "trends.json", data)

@@ -9,11 +9,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import llm, pipeline, script, store
+from . import llm, pipeline, script, store, trends
 
 STATIC = Path(__file__).parent / "static"
 
@@ -319,6 +319,48 @@ def open_folder(pid: str):
     except OSError:
         pass
     return {"folder": folder}
+
+
+# ---------------- trend channels ----------------
+class TrendSearch(BaseModel):
+    keywords: list[str] = []
+    months: float = 6
+    mode: str = "new"
+    min_subs: int = 10000
+    region: str = ""
+    language: str = ""
+    duration: str = ""
+    limit: int = 50
+
+
+@app.get("/api/trends")
+def get_trends():
+    return store.get_trends()
+
+
+@app.post("/api/trends/search")
+def search_trends(body: TrendSearch):
+    try:
+        return trends.run(body.model_dump())
+    except trends.TrendError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/trends/ideas")
+def trend_ideas(body: dict | None = None):
+    try:
+        return trends.ideas(int((body or {}).get("count") or 8))
+    except (trends.TrendError, llm.ProviderError) as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/api/trends/export")
+def export_trends():
+    res = store.get_trends()
+    if not res.get("channels"):
+        raise HTTPException(404, "Nəticə yoxdur")
+    return Response(trends.to_csv(res), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=trend_channels.csv"})
 
 
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="static")

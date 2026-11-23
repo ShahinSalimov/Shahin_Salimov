@@ -32,6 +32,7 @@ Brauzer avtomatik açılır: http://127.0.0.1:8765
 | fal.ai | Kie.ai-yə alternativ (könüllü) | fal.ai → Keys | ≈ $0.2–0.7 / klip |
 | Anthropic | Ssenarini Claude ilə yazmaq (könüllü) | console.anthropic.com | modeldən asılı |
 | ElevenLabs | Alternativ səs (könüllü) | elevenlabs.io | planından asılı |
+| YouTube Data API v3 | Trend kanallar (könüllü) | console.cloud.google.com → YouTube Data API v3 → Enable → Credentials → API key | pulsuz (gündə 10 000 kvota) |
 
 Hər açardan sonra **Yadda saxla**, sonra **Bağlantını yoxla** düyməsini basın. Real video üçün **Demo rejimi**ni söndürün. Demo rejimi API-siz işləyir: şəkillərin, səsin və ssenarinin yerinə süni nümunələr yaranır, xərc $0 olur. Proqramı sınamaq üçün nəzərdə tutulub.
 
@@ -97,7 +98,21 @@ Siyahıda olmayan başqa Market modeli üçün onun ID-sini yazın. Bu halda mod
 
 Yarım saatlıq video üçün hədəfi ~35 dəqiqə qoyun. Nəticə adətən hədəfin ±20%-i olur.
 
-## 5. YouTube monetizasiya qaydaları haqqında
+## 5. Trend kanallar (son 6 ayın uğurlu kanalları)
+
+Sol menyuda **Trend kanallar** tabı son aylarda sürətlə böyüyən kanalları tapır və onlardan video ideyası çıxarır.
+
+1. Açarı **Ayarlar → API → YouTube** xanasına yazın, **Bağlantını yoxla** basın.
+2. Açar sözləri yazın (boş qalsa AI, biznes və faceless nişləri axtarılır). Dövrü (default 6 ay), rejimi və minimum abunəçini seçin.
+   - **Yalnız bu dövrdə yaradılan kanallar**: sıfırdan sürətlə böyüyənlər. Ən dəqiq rejim budur, çünki bütün abunəçiləri bu dövrdə qazanılıb.
+   - **Bu dövrdə viral olan bütün kanallar**: köhnə kanallar da daxildir.
+   - **Video növü → Qısa** yalnız Shorts tipli videoları axtarır.
+3. **Kanalları tap**: cədvəldə abunəçi, gündəlik abunəçi artımı, video başına baxış, bal və ən çox baxılan videolar görünür. **CSV yüklə** ilə Excel-ə ixrac edin.
+4. **AI ilə video ideyaları çıxar**: ssenari üçün seçdiyiniz LLM trend kanallara baxıb orijinal ideyalar yazır. **Bu ideya ilə video yarat** başlığı və təsviri **Video yarat** formasına doldurur.
+
+Bal: `2×log(abunə/gün) + 1.5×log(baxış/gün) + 1×log(baxış/video)`. Hər açar söz ≈ 100 kvota vahidi, gündə ≈ 90 açar söz. YouTube API abunəçi tarixçəsini vermir, ona görə köhnə kanallar üçün bal ömür boyu göstəricilərə əsaslanır.
+
+## 6. YouTube monetizasiya qaydaları haqqında
 
 YouTube AI alətləri ilə hazırlanan kontentə icazə verir. Monetizasiya isə **orijinal və dəyər daşıyan** kontentə verilir. Mənasız, təkrarlanan "AI slop" videolar monetizasiyadan kənarda qalır. Dəyərli video belə olur: mövzunu siz seçirsiniz, ssenari məntiqli bir xətt üzrə gedir, səhnələr danışılan mətnə uyğundur və stil ardıcıldır. YouTube Studio-da real görünən sintetik məzmun üçün "altered or synthetic content" işarəsini qoymağı unutmayın.
 

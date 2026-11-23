@@ -40,6 +40,7 @@ function route() {
   clearInterval(pollTimer);
   const [, page, id] = location.hash.split("/");
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.nav === (page || "new")));
+  if (page === "trends") return viewTrends();
   if (page === "history") return viewHistory();
   if (page === "settings") return viewSettings(id || "api");
   if (page === "library") return viewLibrary();
@@ -79,8 +80,87 @@ function viewNew() {
     const p = await api("/projects", { method: "POST", body: { title, brief: $("#nBrief").value, auto } });
     location.hash = `#/project/${p.id}`;
   };
+  if (state.prefill) { $("#nTitle").value = state.prefill.title || ""; $("#nBrief").value = state.prefill.brief || ""; state.prefill = null; }
   $("#nCreate").onclick = () => go(false).catch((e) => toast(e.message, "err"));
   $("#nAuto").onclick = () => go(true).catch((e) => toast(e.message, "err"));
+}
+
+// ---------------- trend channels ----------------
+const num = (x) => Number(x || 0).toLocaleString("en-US");
+async function viewTrends() {
+  const last = await api("/trends");
+  const o = last.options || {};
+  view.innerHTML = `<h1>Trend kanallar</h1>
+  <div class="card">
+    <p class="muted">Son aylarda sürətlə böyüyən YouTube kanallarını tapır (YouTube Data API v3). Hər açar söz ≈ 100 kvota vahidi, gündəlik limit 10 000 (≈ 90 açar söz).</p>
+    <label>Açar sözlər / nişlər (vergüllə; boş qalsa AI, biznes, faceless nişləri)</label>
+    <input id="tKw" value="${esc((o.keywords || []).join(", "))}" placeholder="AI tools, AI video, faceless channel, side hustle">
+    <div class="grid">
+      <div><label>Dövr (ay)</label><input id="tMonths" type="number" min="1" max="24" value="${esc(o.months || 6)}"></div>
+      <div><label>Rejim</label><select id="tMode">
+        <option value="new" ${o.mode !== "active" ? "selected" : ""}>Yalnız bu dövrdə yaradılan kanallar</option>
+        <option value="active" ${o.mode === "active" ? "selected" : ""}>Bu dövrdə viral olan bütün kanallar</option></select></div>
+      <div><label>Min. abunəçi</label><input id="tMin" type="number" value="${esc(o.min_subs ?? 10000)}"></div>
+      <div><label>Video növü</label><select id="tDur">${[["", "Hamısı"], ["short", "Qısa / Shorts (&lt;4 dəq)"], ["medium", "4–20 dəq"], ["long", "20 dəq+"]]
+        .map(([v, l]) => `<option value="${v}" ${o.duration === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+      <div><label>Ölkə kodu (könüllü)</label><input id="tRegion" value="${esc(o.region || "")}" placeholder="US, TR, GB"></div>
+      <div><label>Dil kodu (könüllü)</label><input id="tLang" value="${esc(o.language || "")}" placeholder="en, tr, ru"></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button class="primary" id="tGo">Kanalları tap</button>
+      <span id="tStatus" class="muted"></span></div>
+  </div>
+  <div id="tIdeas"></div>
+  <div id="tRes"></div>`;
+  renderTrendResults(last);
+  $("#tGo").onclick = async () => {
+    const btn = $("#tGo"); btn.disabled = true; $("#tStatus").textContent = "Axtarılır... (açar söz sayından asılı olaraq 10–60 san)";
+    try {
+      const res = await api("/trends/search", { method: "POST", body: {
+        keywords: $("#tKw").value.split(",").map((x) => x.trim()).filter(Boolean),
+        months: parseFloat($("#tMonths").value) || 6, mode: $("#tMode").value, min_subs: parseInt($("#tMin").value) || 0,
+        duration: $("#tDur").value, region: $("#tRegion").value.trim(), language: $("#tLang").value.trim() } });
+      $("#tStatus").textContent = ""; renderTrendResults(res);
+    } catch (e) { $("#tStatus").textContent = ""; toast(e.message, "err"); }
+    btn.disabled = false;
+  };
+}
+
+function renderTrendResults(res) {
+  const ch = res.channels || [];
+  if (!ch.length) { $("#tRes").innerHTML = res.created ? `<div class="card muted">Şərtlərə uyğun kanal tapılmadı. Min. abunəçini azaldın və ya "bütün kanallar" rejimini seçin.</div>` : ""; renderIdeas(res); return; }
+  $("#tRes").innerHTML = `<div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h3 style="margin:0">${ch.length} kanal · ${esc(res.scanned)} kanal yoxlanıldı · ${new Date(res.created * 1000).toLocaleString()}</h3>
+      <div class="row"><button id="tIdeasBtn">AI ilə video ideyaları çıxar</button><a href="/api/trends/export"><button>CSV yüklə</button></a></div>
+    </div>
+    ${(res.warnings || []).map((w) => `<p class="warn">${esc(w)}</p>`).join("")}
+    <div style="overflow-x:auto"><table>
+      <tr><th>#</th><th>Kanal</th><th>Yaradılıb</th><th>Abunəçi</th><th>Abunə/gün</th><th>Video</th><th>Baxış/video</th><th>Bal</th><th>Ən çox baxılan video</th></tr>
+      ${ch.map((c, i) => `<tr><td>${i + 1}</td>
+        <td><a href="${esc(c.url)}" target="_blank" rel="noopener"><b>${esc(c.title)}</b></a><div class="muted">${esc(c.keywords.join(", "))}${c.country ? " · " + esc(c.country) : ""}</div></td>
+        <td>${esc(c.created)}<div class="muted">${c.age_days} gün</div></td><td>${num(c.subscribers)}</td><td>${num(c.subs_per_day)}</td>
+        <td>${num(c.videos)}</td><td>${num(c.views_per_video)}</td><td><b>${c.score}</b></td>
+        <td>${(c.top_videos || []).slice(0, 2).map((v) => `<div><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a></div>`).join("")}</td></tr>`).join("")}
+    </table></div></div>`;
+  $("#tIdeasBtn").onclick = async () => {
+    const b = $("#tIdeasBtn"); b.disabled = true; b.textContent = "Yazılır...";
+    try { const r = await api("/trends/ideas", { method: "POST", body: { count: 8 } }); renderIdeas({ ideas: r.ideas }); if (r.usd) toast(`İdeyalar hazırdır · ${money(r.usd)}`, "ok"); }
+    catch (e) { toast(e.message, "err"); }
+    b.disabled = false; b.textContent = "AI ilə video ideyaları çıxar";
+  };
+  renderIdeas(res);
+}
+
+function renderIdeas(res) {
+  const ideas = res.ideas || [];
+  if (!ideas.length) { $("#tIdeas").innerHTML = ""; return; }
+  $("#tIdeas").innerHTML = `<div class="card"><h3>Video ideyaları (trend kanallara əsasən)</h3><table>
+    ${ideas.map((d, i) => `<tr><td><b>${esc(d.title)}</b><div>${esc(d.brief)}</div><div class="muted">${esc(d.why || "")}</div></td>
+      <td class="row"><button class="small" data-idea="${i}">Bu ideya ilə video yarat</button></td></tr>`).join("")}
+  </table></div>`;
+  $("#tIdeas").querySelectorAll("[data-idea]").forEach((b) => b.onclick = () => {
+    const d = ideas[+b.dataset.idea]; state.prefill = { title: d.title, brief: d.brief }; location.hash = "#/new";
+  });
 }
 
 // ---------------- history ----------------
@@ -227,7 +307,8 @@ function renderApiTab(el) {
     ["fish", "Fish Audio (səsləndirmə, emosiyalar)", "fish.audio → Developers → API keys"],
     ["elevenlabs", "ElevenLabs (alternativ səs)", "elevenlabs.io → Profile → API key"],
     ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"],
-    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"]];
+    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"],
+    ["youtube", "YouTube Data API v3 (Trend kanallar, pulsuz)", "console.cloud.google.com → YouTube Data API v3 → Enable → Credentials → API key"]];
   el.innerHTML = `<label><input type="checkbox" id="demo" ${state.settings.demo_mode ? "checked" : ""}> <b>Demo rejimi</b> — API-siz test: şəkillər, səs və ssenari süni yaradılır, xərc 0. Real video üçün söndürün.</label>
    ${rows.map(([k, label, hint]) => `<label>${label} <span class="muted">· ${hint}</span></label>
      <div class="row"><input data-key="${k}" placeholder="API açarı" value="${esc(state.keys[k])}" style="flex:1">
