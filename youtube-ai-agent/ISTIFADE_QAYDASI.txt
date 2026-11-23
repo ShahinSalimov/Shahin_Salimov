@@ -1,0 +1,525 @@
+================================================================
+  YOUTUBE AI AGENT — ÜMUMİ İSTİFADƏ QAYDASI
+================================================================
+
+MÜNDƏRİCAT
+  1. Sistem nədir
+  2. Kompüterə quraşdırma
+  3. Proqramı açmaq, bağlamaq, yeniləmək
+  4. API açarları
+  5. İlk ayarlar
+  6. Kanal strategiyası (yeni kanal açmazdan əvvəl)
+  7. Kanallarım (kanal açıldıqdan sonra)
+  8. Video yaratmaq
+  9. YouTube-a avtomatik yükləmə
+ 10. Gündəlik iş ardıcıllığı
+ 11. Bir neçə kanal idarə etmək
+ 12. Xərclər
+ 13. YouTube və Google qaydaları
+ 14. Problemlər və həllər
+ 15. Fayllar və təhlükəsizlik
+
+
+================================================================
+1. SİSTEM NƏDİR
+================================================================
+
+Proqram sizin kompüterinizdə işləyir, interfeysi brauzerdə açılır
+(http://127.0.0.1:8765). 3 əsas hissədən ibarətdir:
+
+  KANAL STRATEGİYASI
+    Hansı nişdə kanal açmalı, kanalın adı nə olsun, hansı
+    videolar çəkilsin. YouTube-dan real rəqəmləri yığır.
+
+  KANALLARIM
+    Açdığınız hər kanalın öz strategiya paketi saxlanılır.
+    Hər gün yeni ideyalar, komanda ilə ssenari, title,
+    description və tag-lər bu paketə əsasən yazılır.
+
+  VİDEO YARAT
+    Mövzu → ssenari → səhnələr → şəkillər → səs → montaj →
+    hazır MP4 → YouTube-a yükləmə.
+
+Ümumi yol:
+  Kanal strategiyası → YouTube-da kanalı açırsınız →
+  "Kanallarıma əlavə et" → hər gün ideyalar və ssenarilər →
+  video → YouTube-a avtomatik yükləmə
+
+
+================================================================
+2. KOMPÜTERƏ QURAŞDIRMA (bir dəfə, Windows)
+================================================================
+
+1) Start → "PowerShell" yazın → Windows PowerShell-i açın.
+
+2) Aşağıdakı bloku bütöv kopyalayıb yapışdırın və Enter basın.
+   5–15 dəqiqə çəkir. Sonda brauzer özü açılır.
+
+----------------------------------------------------------------
+winget install --id Python.Python.3.12 -e --accept-source-agreements --accept-package-agreements
+winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements
+winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+$env:Path = [Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [Environment]::GetEnvironmentVariable("Path","User")
+
+cd $HOME
+if (Test-Path "$HOME\YouTubeAgent") { git -C "$HOME\YouTubeAgent" pull }
+else { git clone -b ccr-a48939b0-5tetk3 https://github.com/ShahinSalimov/Shahin_Salimov.git "$HOME\YouTubeAgent" }
+
+$d = "$HOME\YouTubeAgent\youtube-ai-agent"
+cd $d
+if (-not (Test-Path "$d\.venv")) { python -m venv .venv }
+& "$d\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+
+$desk = [Environment]::GetFolderPath("Desktop")
+$s = (New-Object -ComObject WScript.Shell).CreateShortcut("$desk\YouTube AI Agent.lnk")
+$s.TargetPath = "$d\.venv\Scripts\python.exe"
+$s.Arguments = "run.py"
+$s.WorkingDirectory = $d
+$s.Save()
+
+& "$d\.venv\Scripts\python.exe" run.py
+----------------------------------------------------------------
+
+Qeydlər:
+  - winget "already installed" yazırsa, bu xəta deyil.
+  - Repo private-dirsə, brauzerdə GitHub girişi açılacaq: daxil olun.
+  - "pip new release" bildirişi zərərsizdir.
+
+
+================================================================
+3. PROQRAMI AÇMAQ, BAĞLAMAQ, YENİLƏMƏK
+================================================================
+
+AÇMAQ
+  İş masasındakı "YouTube AI Agent" ikonuna iki dəfə klik.
+  Və ya PowerShell-də:
+    cd $HOME\YouTubeAgent\youtube-ai-agent
+    .\.venv\Scripts\python.exe run.py
+
+  Brauzer açılmasa: http://127.0.0.1:8765 ünvanını əl ilə yazın.
+
+İŞLƏYƏRKƏN
+  Qara pəncərəni BAĞLAMAYIN. Proqram onun içində işləyir.
+  Pəncərəni kiçildə bilərsiniz.
+
+BAĞLAMAQ
+  Qara pəncərədə Ctrl + C basın və ya pəncərəni bağlayın.
+
+YENİLƏMƏK (kodda dəyişiklik olanda)
+  Proqramı bağlayın, PowerShell-də:
+    git -C "$HOME\YouTubeAgent" pull
+    cd $HOME\YouTubeAgent\youtube-ai-agent
+    .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+  Sonra proqramı yenidən açın.
+  Açarlarınız, kanallarınız, videolarınız (data və output
+  qovluqları) yeniləmədə silinmir.
+
+
+================================================================
+4. API AÇARLARI
+================================================================
+
+Hamısı: Ayarlar → API → açarı yazın → "Yadda saxla" →
+"Bağlantını yoxla" (yaşıl "Bağlantı uğurludur" çıxmalıdır).
+
+STRATEGİYA ÜÇÜN (ilk lazım olanlar)
+  Anthropic (Claude)    console.anthropic.com → API Keys
+                        Ssenari, strategiya, ideyalar. Balans: $5–10.
+  YouTube Data API v3   console.cloud.google.com → yeni layihə →
+                        APIs & Services → Library →
+                        "YouTube Data API v3" → Enable →
+                        Credentials → Create credentials → API key.
+                        Real baxış/abunəçi rəqəmləri. Pulsuz.
+
+VİDEO İSTEHSALI ÜÇÜN
+  OpenAI        platform.openai.com → API keys
+                Səhnə şəkilləri və thumbnail.
+  Fish Audio    fish.audio → Developers → API keys
+                Səsləndirmə (balans $5–10).
+  Kie.ai        kie.ai → API Key (könüllü)
+                Səhnələri hərəkətə gətirmək (video klip).
+  DeepSeek      platform.deepseek.com (könüllü, ucuz ssenari)
+  ElevenLabs    elevenlabs.io (könüllü, alternativ səs)
+  fal.ai        fal.ai (könüllü, Kie.ai-yə alternativ)
+
+YOUTUBE-A YÜKLƏMƏ ÜÇÜN
+  Google OAuth Client ID və Client secret
+  (necə alınır: bölmə 9).
+
+
+================================================================
+5. İLK AYARLAR
+================================================================
+
+1) DEMO REJİMİ
+   Proqram Demo rejimində açılır (sol paneldə sarı "DEMO").
+   Demo-da hər şey pulsuzdur, amma nəticələr nümunədir.
+   Əvvəl Demo-da düymələri tanıyın, sonra:
+   Ayarlar → API → "Demo rejimi" işarəsini götürün.
+
+2) Ayarlar → SKRİPT
+   Ssenari AI: anthropic, Model: claude-opus-5-5
+   (ucuz variant: deepseek / deepseek-reasoner)
+   Dil, danışıq tərzi, hədəf uzunluq, Hook & CTA, qaydalar.
+
+3) Ayarlar → ARAŞDIRMA
+   Auditoriya dili (məs. English), dil kodu (en), ölkə (US).
+
+4) Ayarlar → VİZUAL
+   Format 16:9, keyfiyyət (low ucuz, high bahalı), vizual stil.
+   Öz stilinizi Kitabxana → Vizual stillər bölməsində yaradın.
+
+5) Ayarlar → SƏSLƏNDİRMƏ
+   Fish Audio → Discovery → səsi seçin → ⋯ → Copy model ID →
+   proqramda Voice ID əlavə edin.
+
+6) Ayarlar → BRENDİNQ / MUSİQİ / ALTYAZI (könüllü)
+   Loqo (şəffaf PNG), arxa fon musiqisi, altyazı.
+
+7) PROFİL
+   Ayarların aşağısında "Yeni profil yarat" (məs. "Mysteries EN").
+   Profil = bir kanalın video ayarları (səs, stil, dil, qaydalar).
+   Hər kanal üçün ayrıca profil yaradın.
+   Dəyişiklikdən sonra "Profili yenilə" basın.
+
+
+================================================================
+6. KANAL STRATEGİYASI (yeni kanal açmazdan əvvəl)
+================================================================
+
+Sol menyu → Kanal strategiyası. 3 addım:
+
+ADDIM 1: NİŞ VƏ KANAL ADI
+  Maraqlarınızı yazın (və ya boş saxlayın: agent özü axtarır),
+  format, həftədə neçə video, üslub → "Araşdırmanı başlat".
+  1–4 dəqiqə çəkir. Nəticə:
+    - Tövsiyə olunan niş və səbəbi (rəqəmlərlə)
+    - 10 kanal adı + @handle statusu
+      ("ehtimal ki boşdur" / "tutulub" — yalnız ipucudur)
+    - Kanal təsviri (About), kanal açar sözləri
+    - Avatar və banner prompt-ları
+    - Kontent sütunları, video uzunluğu, yükləmə planı
+    - İlk 10 video
+    - Pul qazanma planı, 90 günlük KPI-lar, nədən qaçmalı
+    - 8 nişin müqayisəsi: tələb, rəqabət, RPM, AI uyğunluğu,
+      evergreen (hər biri 1–10)
+
+ADDIM 2: VİDEO İDEYALARI
+  Niş yazın → agent "outlier" videoları tapır (kiçik kanalda
+  böyük baxış = sübut olunmuş mövzu) → ideyalar:
+  title, alternativ title-lar, hook (ilk 15 san), struktur,
+  thumbnail konsepti, bal (1–10), niyə işləyəcək.
+
+ADDIM 3: TITLE · DESCRIPTION · TAGS
+  Bir video üçün: 5 title variantı, description (chapters və
+  hashtag-lərlə), tag-lər (YouTube limitinə uyğun), thumbnail
+  mətni və prompt-u, pinned comment, Shorts ideyaları.
+
+Hər nəticədə "Kopyala" düymələri var.
+Bütün araşdırmalar "Araşdırmalar" siyahısında saxlanılır.
+
+KANALI AÇMAQ
+  1) YouTube-da kanalı nəticədəki adla açın.
+  2) Avatar və banneri prompt-larla yaradın, About mətnini qoyun.
+  3) Nəticə səhifəsində kanal adını və @handle-i yazın →
+     "Kanallarıma əlavə et".
+
+
+================================================================
+7. KANALLARIM (kanal açıldıqdan sonra)
+================================================================
+
+Sol menyu → Kanallarım. Kanal əlavə etməyin 2 yolu:
+  - Niş araşdırmasının nəticəsində "Kanallarıma əlavə et"
+  - "Mövcud kanalı əl ilə əlavə et" (ad, handle, niş, dil)
+
+Hər kanalın 4 tabı var:
+
+TAB 1: İDEYALAR VƏ SSENARİLƏR
+  KOMANDA İLƏ SSENARİ
+    İstədiyiniz mövzunu yazın, məsələn:
+    "Roma legionunun izsiz yoxa çıxması haqqında ssenari yaz,
+     sonu gözlənilməz olsun"
+    İstəsəniz dəqiqə yazın → "Ssenari yaz".
+    Agent onu kanalın nişinə uyğun ideyaya çevirir və tam
+    ssenarini yazır.
+
+  YENİ İDEYALAR
+    Say seçin → "İdeyaları yarat". Agent nişdəki son outlier
+    videolara baxır və əvvəlki ideyaları təkrarlamır.
+    "ən yaxşısına ssenari də yaz" işarələnsə, ən yüksək
+    ballı ideyaya dərhal ssenari yazılır.
+
+  HƏR İDEYANIN DÜYMƏLƏRİ
+    Ssenari yaz / yenidən yaz
+    Title · Description · Tags (kanal tag-ləri və footer ilə)
+    Video layihəsi yarat (ssenari və SEO ilə birlikdə)
+    Tam avtomatik video (mövzudan hazır MP4-ə qədər)
+    Sil
+  Ssenarini ideyanın içində redaktə edib "Dəyişikliyi saxla".
+
+  STATUSLAR: yeni → ssenari hazır → video layihəsi → yüklənib
+
+TAB 2: KANAL PAKETİ
+  Kanalın bütün strategiyası burada saxlanılır:
+    niş, pozisiya, auditoriya, About, kanal açar sözləri,
+    STANDART TAG-LƏR (hər videoya avtomatik əlavə olunur),
+    DESCRIPTION FOOTER (hər videonun description-una əlavə olunur),
+    title qaydaları, thumbnail üslubu, kontent sütunları,
+    video uzunluğu, yükləmə planı, nədən qaçmalı,
+    pul qazanma, KPI-lar, avatar və banner prompt-ları.
+  Hər sahəni dəyişib "Yadda saxla". "AI ilə tamamla / yenilə"
+  boş sahələri doldurur və zəif yerləri yaxşılaşdırır.
+  Paket nə qədər dəqiq olsa, ideyalar o qədər yaxşı olur.
+
+TAB 3: YOUTUBE VƏ YÜKLƏMƏ
+  Bölmə 9-a baxın.
+
+TAB 4: AVTOMATLAŞDIRMA VƏ AYARLAR
+  GÜNDƏLİK İDEYALAR
+    "Hər gün yeni ideyalar yaratsın" → saat, ideya sayı,
+    neçəsinə ssenari yazılsın.
+    VACİB: yalnız proqram açıq olanda işləyir. Həmin saatda
+    kompüter sönülü idisə, proqramı o gün açanda bir dəfə işləyir.
+  KANAL AYARLARI
+    Auditoriya dili, dil kodu, ölkə, @handle.
+    "Video ayarları profili": bu kanalın videoları həmişə
+    seçilmiş profilin səsi və stili ilə hazırlanır.
+  Kanalı sil (YouTube-dakı kanala toxunulmur).
+
+
+================================================================
+8. VİDEO YARATMAQ
+================================================================
+
+Video layihəsi 3 yolla yaranır:
+  - Kanallarım → ideya → "Video layihəsi yarat"
+  - Strategiya nəticəsi → "Video yarat"
+  - Sol menyu → Video yarat (başlıq + qısa təsvir)
+
+LAYİHƏNİN ADDIMLARI
+  1) SSENARİ: "AI ilə yaz" və ya öz mətninizi yapışdırın →
+     "Səhnələrə böl". Boş sətir = yeni səhnə.
+  2) "Bütün kadrları hazırla": hər səhnəyə şəkil.
+     Bəyənmədiyiniz səhnədə prompt-u düzəldib
+     "Şəkli yenidən yarat".
+     "Kadrı hərəkətləndir": səhnəni video klipə çevirir
+     (Kie.ai / fal.ai, 2–5 dəq). İlk 1–2 səhnədə tövsiyə olunur.
+  3) "Hamısını səsləndir".
+  4) "Montaj et → video yarat": MP4 + .srt hazır olur,
+     output qovluğuna düşür.
+  5) YouTube üçün title, description, tag-lər yazılır.
+
+"Tam avtomatik" / "Qalanını avtomatik et" bütün addımları
+dayanmadan icra edir.
+
+Məsləhət: yarım saatlıq video üçün hədəfi ~35 dəqiqə qoyun.
+Nəticə adətən hədəfin ±20%-i olur.
+
+
+================================================================
+9. YOUTUBE-A AVTOMATİK YÜKLƏMƏ
+================================================================
+
+BİR DƏFƏLİK QURAŞDIRMA (≈15 dəq)
+  1) console.cloud.google.com → layihə → APIs & Services →
+     Library → "YouTube Data API v3" → Enable.
+  2) OAuth consent screen (Google Auth Platform):
+     User type: External. Test users bölməsinə kanallarınızın
+     Google hesablarının e-mail-lərini əlavə edin.
+  3) Credentials → Create credentials → OAuth client ID →
+     Application type: DESKTOP APP.
+     Client ID və secret-i proqramda yazın:
+     Ayarlar → API → "YouTube-a yükləmə" xanaları.
+  4) Kanallarım → kanal → YouTube və yükləmə →
+     "YouTube-a bağla" → Google-a daxil olun → DÜZGÜN KANALI
+     seçin. Bir hesabda bir neçə kanal varsa, hər kanalı
+     proqramda ayrıca bağlayın.
+  5) Thumbnail üçün kanalda telefon təsdiqi:
+     youtube.com/verify
+
+KANALIN YÜKLƏMƏ AYARLARI (YouTube və yükləmə tabı)
+  - Standart görünmə: private / unlisted / public
+  - Kateqoriya
+  - Avtomatik yayım saatı (boş = dərhal). Saat seçilsə, video
+    private yüklənir və növbəti həmin saatda özü açılır.
+  - "Tam avtomatik video hazır olanda YouTube-a özü yükləsin"
+  - Thumbnail yaratsın və qoysun
+  - "Altered or synthetic content" işarəsi (real görünən AI
+    video üçün tələb olunur, açıq saxlayın)
+  - Uşaqlar üçündür
+
+ƏL İLƏ YÜKLƏMƏ
+  Layihə səhifəsi → video hazır olandan sonra
+  "YouTube-a yüklə" paneli → kanal, görünmə, planlı yayım →
+  "YouTube-a yüklə". Yüklənəndən sonra link görünür.
+  Title, description, tag-lər layihənin "YouTube üçün"
+  blokundan götürülür + kanalın standart tag-ləri və footer-i.
+
+TAM AVTOMATİK REJİM
+  Kanalda "avtomatik yükləsin" + yayım saatı aktivdirsə:
+  ideya → "Tam avtomatik video" → ssenari → şəkillər → səs →
+  montaj → thumbnail → YouTube (planlı yayım).
+
+
+================================================================
+10. GÜNDƏLİK İŞ ARDICILLIĞI (tövsiyə)
+================================================================
+
+Səhər:
+  1) Proqramı açın (gündəlik ideyalar avtomatik yaranır).
+  2) Kanallarım → kanal → İdeyalar: yeni ideyalara baxın,
+     ən yaxşı 1–2-sini seçin.
+  3) "Ssenari yaz" → ssenarini oxuyun, lazım olsa düzəldin.
+  4) "Title · Description · Tags".
+  5) "Video layihəsi yarat" → şəkilləri yoxlayın →
+     "Qalanını avtomatik et".
+  6) Video hazır → baxın → "YouTube-a yüklə"
+     (və ya avtomatik yükləmə).
+Həftədə bir:
+  - Kanal paketini yeniləyin (hansı videolar yaxşı getdi,
+    title qaydalarına əlavə edin).
+  - Hər 1–2 ayda Kanal strategiyası → Video ideyaları ilə
+    nişdə yeni trendləri yoxlayın.
+
+Keyfiyyət qaydası: ssenarini HƏMİŞƏ oxuyun. Faktları yoxlayın.
+Yalnız AI-ın yazdığını yoxlamadan yükləmək kanalı riskə atır.
+
+
+================================================================
+11. BİR NEÇƏ KANAL İDARƏ ETMƏK
+================================================================
+
+Hər yeni kanal üçün:
+  1) Kanal strategiyası → yeni niş araşdırması.
+  2) YouTube-da kanalı açın → "Kanallarıma əlavə et".
+  3) Ayarlar-da kanal üçün səs, stil, dil qurun →
+     "Yeni profil yarat".
+  4) Kanal → Avtomatlaşdırma və ayarlar → profili bağlayın.
+  5) Kanal → YouTube və yükləmə → "YouTube-a bağla".
+  6) Gündəlik ideyaları aktiv edin.
+
+Kanallar sayca məhdud deyil. Hər kanalın öz paketi, öz
+ideyaları, öz profili və öz YouTube bağlantısı var.
+Sol paneldəki "Aktiv profil" əl ilə "Video yarat" üçündür.
+Kanaldan yaradılan layihələr kanala bağlanmış profili özü
+götürür (profil bağlanmayıbsa, aktiv ayarlar istifadə olunur).
+
+
+================================================================
+12. XƏRCLƏR (təxminidir, servislər qiymətləri dəyişə bilər)
+================================================================
+
+  Strategiya/ideyalar (Claude)  bir araşdırma: bir neçə sent – $0.5
+  YouTube Data API              pulsuz
+  Şəkil (OpenAI, low)           ≈ $0.016 / şəkil (high ≈ $0.25)
+  Səs (Fish Audio)              1 saat ≈ $1
+  Hərəkət (Kie.ai)              ≈ $0.2–0.7 / klip
+  15 dəqiqəlik video (≈150 səhnə, low): ≈ $2.7
+
+Hər layihənin və araşdırmanın real xərci proqramda göstərilir.
+Qiymətləri Ayarlar → Qiymətlər tabında yeniləyə bilərsiniz.
+
+
+================================================================
+13. YOUTUBE VƏ GOOGLE QAYDALARI
+================================================================
+
+MONETİZASİYA
+  - Tam reklam gəliri: 1 000 abunəçi + 12 ayda 4 000 saat
+    (və ya 90 gündə 10M Shorts baxışı).
+  - "Inauthentic content": eyni şablonla kütləvi, dəyərsiz
+    AI videolar monetizasiyadan çıxarılır. Hər videonun real
+    mövzusu, araşdırması, hekayəsi olmalıdır.
+  - Real görünən AI kontent "synthetic content" kimi
+    işarələnməlidir (proqram default olaraq işarələyir).
+  - Uzun videolar (8+ dəq) Shorts-dan çox qazandırır.
+
+YÜKLƏMƏ MƏHDUDİYYƏTLƏRİ
+  - Təsdiqlənməmiş Google API layihəsindən yüklənən videolar
+    PRIVATE kilidlənir. Public etmək üçün Google-a
+    "YouTube API Services - Audit and Quota Extension Form"
+    müraciəti lazımdır. Audit keçənə qədər videolar private
+    qalır; onları əl ilə YouTube Studio-dan da yükləyə
+    bilərsiniz (title/description/tag-ləri proqramdan kopyalayın).
+  - Gündəlik kvota 10 000 vahid: bir yükləmə ≈1600 vahid
+    (gündə ≈6 video), strategiya araşdırması da bu kvotadan
+    istifadə edir.
+  - OAuth ekranı "Testing" rejimindədirsə, icazə 7 gündən bir
+    bitir → kanalı yenidən bağlayın və ya tətbiqi
+    "In production" rejiminə keçirin.
+
+
+================================================================
+14. PROBLEMLƏR VƏ HƏLLƏR
+================================================================
+
+python yazanda Microsoft Store açılır
+  Settings → Apps → Advanced app settings → App execution
+  aliases → python.exe və python3.exe → Off.
+
+"python / git / ffmpeg is not recognized"
+  PowerShell-i bağlayıb yenidən açın. Kömək etməsə,
+  kompüteri yenidən başladın.
+
+start.bat işləmir ("cannot find the file specified")
+  start.bat-ı istifadə etməyin:
+    cd $HOME\YouTubeAgent\youtube-ai-agent
+    .\.venv\Scripts\python.exe run.py
+
+Qısayol yaradılmadı (DirectoryNotFoundException)
+  İş masası OneDrive-dadır. Bölmə 2-dəki blokda
+  [Environment]::GetFolderPath("Desktop") istifadə olunur.
+
+Brauzer açılmır
+  http://127.0.0.1:8765 ünvanını əl ilə yazın.
+  Port məşğuldursa:
+    $env:YTA_PORT = "8780"; .\.venv\Scripts\python.exe run.py
+  və http://127.0.0.1:8780 açın.
+
+"API açarı daxil edilməyib" / "Açar qəbul edilmədi"
+  Ayarlar → API → açarı yenidən yazın → Yadda saxla →
+  Bağlantını yoxla. Servisdə balansı yoxlayın.
+
+Nəticələr "DEMO" yazır
+  Ayarlar → API → Demo rejimi işarəsini götürün.
+
+"YouTube API gündəlik kvotası bitib"
+  Ertəsi gün davam edin (kvota Sakit okean vaxtı ilə gecə
+  yarısı yenilənir).
+
+"Google icazəsi etibarsızdır, kanalı yenidən bağlayın"
+  Kanal → YouTube və yükləmə → Bağlantını kəs →
+  YouTube-a bağla.
+
+"Thumbnail qoyulmadı 403"
+  youtube.com/verify — kanalı telefonla təsdiqləyin.
+
+Gündəlik ideyalar yaranmadı
+  Proqram həmin gün açıq olmalıdır. Kanal → Avtomatlaşdırma
+  tabında "Son işləmə" tarixinə baxın.
+
+Başqa xəta
+  Xəta mətninin (qırmızı yazının) son 10 sətrini və ya ekran
+  şəklini göndərin.
+
+
+================================================================
+15. FAYLLAR VƏ TƏHLÜKƏSİZLİK
+================================================================
+
+Proqram qovluğu: C:\Users\<ad>\YouTubeAgent\youtube-ai-agent
+
+  data\                 bütün məlumatlar (ayarlar, kanallar,
+                        ideyalar, layihələr, araşdırmalar)
+  data\keys.json        API açarları — HEÇ KİMƏ GÖNDƏRMƏYİN
+  data\youtube_tokens.json  YouTube bağlantıları — GÖNDƏRMƏYİN
+  output\               hazır MP4 və .srt faylları
+  README.md             texniki təlimat
+
+Ehtiyat nüsxə: data və output qovluqlarını vaxtaşırı başqa
+diskə və ya flash-a kopyalayın.
+Başqa kompüterə köçürmək: proqramı bölmə 2 ilə quraşdırın,
+köhnə data qovluğunu yeni qovluğa kopyalayın.
+
+================================================================
