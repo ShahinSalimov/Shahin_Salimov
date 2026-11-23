@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YouTube AI Agent</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<aside class="side">
+  <div class="brand">YouTube<br><b>AI Agent</b></div>
+  <nav>
+    <a href="#/new" data-nav="new">Video yarat</a>
+    <a href="#/history" data-nav="history">Tarixçə</a>
+    <a href="#/settings" data-nav="settings">Ayarlar</a>
+    <a href="#/library" data-nav="library">Kitabxana</a>
+  </nav>
+  <div class="profile-box">
+    <label>Aktiv profil (kanal)</label>
+    <select id="profileSelect"></select>
+    <div id="demoBadge" class="badge hidden">DEMO rejimi</div>
+  </div>
+</aside>
+<main id="view"></main>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
