@@ -46,6 +46,10 @@ def test_profiles_switch():
     de = client.post("/api/profiles", json={"name": "German"}).json()
     assert client.post(f"/api/profiles/{fr['id']}/apply").json()["settings"]["script"]["language"] == "French"
     assert client.post(f"/api/profiles/{de['id']}/apply").json()["settings"]["script"]["language"] == "German"
+    # a profile saved in demo mode must not switch demo back on
+    client.put("/api/settings", json={"demo_mode": False})
+    assert client.post(f"/api/profiles/{fr['id']}/apply").json()["settings"]["demo_mode"] is False
+    client.put("/api/settings", json={"demo_mode": True})
 
 
 def test_keys_are_masked():

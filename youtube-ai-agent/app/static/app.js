@@ -313,9 +313,12 @@ async function viewLibrary() {
 
 // ---------------- project ----------------
 let lastJobSig = "";
+const onProject = (pid) => location.hash.split("/")[2] === pid;
 async function viewProject(pid) {
+  clearInterval(pollTimer); // a re-render must not leave the previous poll loop running
   let p;
   try { p = await api(`/projects/${pid}`); } catch (e) { view.innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  if (!onProject(pid)) return; // user navigated away while loading
   lastJobSig = jobSig(p);
   const stage = p.output ? 3 : p.scenes.length ? (p.scenes.every((s) => s.image) ? 2 : 1) : 0;
   const steps = ["Ssenari", "Görüntülər", "Səs & montaj", "Hazır video"];
@@ -324,13 +327,16 @@ async function viewProject(pid) {
    <div id="jobbar"></div><div id="pbody"></div>`;
   renderJob(p);
   if (!p.scenes.length) renderScriptStage(p); else renderStoryboard(p);
-  pollTimer = setInterval(async () => {
+  clearInterval(pollTimer);
+  const timer = setInterval(async () => {
+    if (!onProject(pid)) { clearInterval(timer); return; }
     const q = await api(`/projects/${pid}`).catch(() => null);
-    if (!q) return;
+    if (!q || !onProject(pid) || timer !== pollTimer) return;
     renderJob(q);
     const sig = jobSig(q);
     if (sig !== lastJobSig) { lastJobSig = sig; if (!q.running || q.job?.name === "frames" || q.job?.name === "voice") rerender(q); }
   }, 2000);
+  pollTimer = timer;
 }
 const jobSig = (p) => JSON.stringify([p.running, p.job?.status, p.script.length, p.scenes.map((s) => s.image + s.audio + s.video + s.error), p.output]);
 function rerender(p) {

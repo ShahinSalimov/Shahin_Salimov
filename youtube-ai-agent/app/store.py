@@ -208,6 +208,8 @@ def apply_profile(profile_id: str) -> dict:
         for p in list_profiles():
             if p["id"] == profile_id:
                 settings = deep_merge(DEFAULT_SETTINGS, p["settings"])
+                # demo mode is a global switch like the API keys, never part of a channel profile
+                settings["demo_mode"] = get_settings()["demo_mode"]
                 _write(DATA / "settings.json", settings)
                 _write(DATA / "active_profile.json", {"id": profile_id})
                 return settings
