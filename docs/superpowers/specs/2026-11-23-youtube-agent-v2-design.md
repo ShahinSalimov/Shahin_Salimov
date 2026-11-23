@@ -62,7 +62,7 @@ v1 (`youtube-ai-agent/`) was a copy of a course's app: script writing, profiles,
 **Screens (2):**
 - *Studio*: script box + optional title hint + format toggles (Long ✔ Short ✔) + **Start**; below it the
   queue: each job shows step, progress, cost, links (MP4, YouTube Studio) and **Retry** on failure.
-- *Settings* (one page): API keys (DeepSeek, OpenAI, Fish Audio, Kie.ai) with "test"; voice ID + Fish model;
+- *Settings* (one page): API keys (DeepSeek, OpenAI, Fish Audio; Kie.ai optional) with "test"; voice ID + Fish model;
   YouTube: upload `client_secret.json`, **Connect channel**, connected channel name; defaults: video language
   (English), category (Autos & Vehicles = 2), max animated scenes (4), budget cap per video ($6).
 
@@ -73,7 +73,8 @@ v1 (`youtube-ai-agent/`) was a copy of a course's app: script writing, profiles,
    metadata for long + Short; thumbnail text (2–4 words) and thumbnail image prompt.
 3. Cost estimate; stop with an error if above the budget cap.
 4. Images 16:9 (gpt-image-1, low, 3 in parallel).
-5. Animate chosen scenes (Kie Seedance 2, 5 s, 720p).
+5. Animate chosen scenes (Kie Seedance 2, 5 s, 720p) — **only if a Kie.ai key is set**; otherwise skipped
+   and those scenes use Ken Burns like the rest (Şahin has no Kie account yet).
 6. Voice per scene (Fish Audio; script text passed as written).
 7. Render long video (Ken Burns, crossfades, .srt).
 8. Short: new 9:16 images for its scenes, reuse their audio, burned-in captions, render.
@@ -95,6 +96,11 @@ File layout, exact prompts, thumbnail typography, Short caption style, retry/bac
 ## Calls I made (Şahin can override)
 
 - Short = cut from the long script, with its own vertical images.
-- Animation: first 2 scenes + up to 2 dramatic ones, Seedance 2, ≈$2–3/video.
+- Animation: first 2 scenes + up to 2 dramatic ones, Seedance 2, ≈$1–3/video; optional (no key → skipped).
+- Expected cost without animation ≈ $1.3–1.5 for an 8-minute video; the cap is a safety limit, editable.
 - Captions on the long video as a YouTube caption track; burned-in only on the Short.
 - Budget cap $6/video; category Autos & Vehicles; metadata in English.
+
+## Status
+
+Approved by Şahin on 2026-11-23 (with Kie.ai made optional).
