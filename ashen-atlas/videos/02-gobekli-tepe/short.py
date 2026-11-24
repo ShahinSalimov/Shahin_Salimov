@@ -24,6 +24,9 @@ SEGS = [  # narration, on-screen title, image prompts
   ["limestone pillar carved with a vulture with spread wings and a scorpion, flickering torchlight, night"]),
  ("The full story is on the channel.", "FULL DOCUMENTARY ↑", []),
 ]
+TT_MODE = os.environ.get("TT") == "1"
+if TT_MODE:
+    SEGS = SEGS[:-1] + [("Follow for more lost worlds. The full documentary is on YouTube.", "FOLLOW FOR MORE", [])]
 def full(p): return G.full("ai", p) + ", vertical composition"
 
 if STEP == "img":
@@ -109,7 +112,7 @@ for i, a in enumerate(act):
 music = music * np.interp(np.arange(N), np.arange(len(g)) * hop, g)
 music = np.tanh(music * 1.2); music *= .3 / np.abs(music).max()
 mix = v + music; mix /= max(1, np.abs(mix).max() / .97)
-sf.write(f"{OUT}/mix.wav", mix.astype(np.float32), MSR)
+sf.write(f"{OUT}/mix" + ("_tt" if TT_MODE else "") + ".wav", mix.astype(np.float32), MSR)
 
 # ---------- captions (word chunks timed by characters) ----------
 caps = []
@@ -197,9 +200,9 @@ def frame(t):
     if t < .3: f *= t / .3
     if t > TOTAL - .6: f *= max(0, (TOTAL - t) / .6)
     return np.clip(f, 0, 255).astype(np.uint8)
-mp4 = f"{S}/deliver/Short_Gobekli-Tepe_9x16.mp4"
+mp4 = f"{S}/deliver/Short_Gobekli-Tepe_9x16" + ("_TikTok" if TT_MODE else "") + ".mp4"
 cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-       "-i", f"{OUT}/mix.wav", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+       "-i", f"{OUT}/mix" + ("_tt" if TT_MODE else "") + ".wav", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
        "-c:a", "aac", "-ar", "48000", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mp4]
 p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 for n in range(int(TOTAL * FPS)): p.stdin.write(frame(n / FPS).tobytes())

@@ -44,3 +44,10 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 - Keep the title and the thumbnail on the same promise.
 - The first Short (44 s) averaged 52% viewed. Shorts are now 25-35 s with no slow explanation in the middle.
 - Files over ~440 MiB failed to send. Re-encode at ~1.6 Mb/s (about 250 MB for 20 min).
+
+## Shorts formula (from data)
+
+- First second: big close-up FACE (statue, relief, person) + a question hook ("Priest or King?"). Priest-King Short: 268 views in 4 h vs 126 in 48 h for the earlier drains Short.
+- 25-30 s, no slow middle.
+- TikTok versions: run any Short script with `TT=1` → ending "Follow for more lost worlds. The full documentary is on YouTube.", output `*_TikTok.mp4`. Captions and posting plan in `tiktok/`.
+- Long-video thumbnails use the same formula: face on the right, 2-4 word question on the left (`thumbs2.py`, `thumbs_m.py`).

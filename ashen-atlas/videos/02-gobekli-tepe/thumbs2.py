@@ -1,0 +1,58 @@
+import sys, os, numpy as np
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gen as G
+from shots import SHOTS
+S=sys.argv[1]; OUT=f"{S}/deliver/thumbnails"; os.makedirs(OUT,exist_ok=True)
+XB="/usr/share/fonts/opentype/inter/Inter-Black.otf"; B="/usr/share/fonts/opentype/inter/Inter-Bold.otf"
+CREAM=(250,243,228); GOLD=(214,175,110)
+logo=Image.open(f"{S}/img/i-001.png").convert("RGBA")
+m=Image.new("L",(800,800),0); ImageDraw.Draw(m).ellipse((62,62,738,738),fill=255); logo.putalpha(m)
+def grade(im, tint, sat=1.15, con=1.15):
+    im=ImageEnhance.Contrast(ImageEnhance.Color(im).enhance(sat)).enhance(con)
+    a=np.asarray(im,np.float32)/255; lum=a.mean(2,keepdims=True)
+    a=a*(1-.35)+lum*np.array(tint,np.float32)/255*.35*1.8
+    return Image.fromarray(np.clip(a*255,0,255).astype(np.uint8))
+def shade(im, side="left", strength=.85):
+    w,h=im.size; a=np.asarray(im,np.float32)
+    if side=="left": g=np.clip(1-np.linspace(1,0,w)*1.6,0,1)[None,:,None]; g=1-strength*(1-g)
+    else: g=np.clip(1-np.linspace(1,0,h)*1.7,0,1)[:,None,None]; g=1-strength*(1-g)
+    return Image.fromarray(np.clip(a*g,0,255).astype(np.uint8))
+def txt(d,xy,t,f,fill,stroke=6):
+    d.text((xy[0]+5,xy[1]+6),t,font=f,fill=(0,0,0,180),stroke_width=stroke,stroke_fill=(0,0,0,180))
+    d.text(xy,t,font=f,fill=fill,stroke_width=stroke,stroke_fill=(15,10,8))
+def fit(d,t,path,size,maxw):
+    while d.textlength(t,font=ImageFont.truetype(path,size))>maxw: size-=4
+    return ImageFont.truetype(path,size)
+def duotone(im, stops, glow):
+    a=np.asarray(im.convert("L"),np.float32)/255; a=np.clip(a*1.9,0,1)**0.8
+    h,w=a.shape; yy,xx=np.mgrid[0:h,0:w]; gx,gy,gr=glow
+    a=np.clip(a+0.75*np.exp(-(((xx-gx)/gr)**2+((yy-gy)/(gr*.7))**2)),0,1)
+    xs=np.linspace(0,1,len(stops)); out=np.stack([np.interp(a,xs,[c[i] for c in stops]) for i in range(3)],2)
+    rng=np.random.default_rng(3)
+    img=Image.fromarray(out.astype(np.uint8)); d=ImageDraw.Draw(img)
+    for _ in range(260):
+        x,y=rng.integers(0,w),rng.integers(0,int(h*.8)); r=rng.choice([1,1,2,2,3]); c=(255,int(rng.integers(120,200)),60)
+        d.ellipse((x-r,y-r,x+r,y+r),fill=c)
+    return img
+def thumb(name, bg, lines, sub, tint, mode=None):
+    im=Image.open(bg).convert("RGB").resize((1280,720),Image.LANCZOS)
+    if mode=="duo": im=duotone(im,[(8,4,3),(70,25,10),(200,85,25),(255,175,80)],(930,330,260)); im=shade(im,"left",.7)
+    elif mode=="bright": im=shade(ImageEnhance.Brightness(grade(im,tint)).enhance(1.6),"left",.65)
+    else: im=shade(grade(im,tint),"left",.55)
+    im=im.convert("RGBA"); d=ImageDraw.Draw(im)
+    y=56
+    for t,col,size in lines:
+        f=fit(d,t,XB,size,760); txt(d,(52,y),t,f,col); y+=int(f.size*1.08)
+    if sub:
+        f=ImageFont.truetype(B,34); tw=d.textlength(sub,font=f)
+        d.rounded_rectangle((52,y+18,52+tw+40,y+18+62),12,fill=(10,8,6,215)); d.text((72,y+28),sub,font=f,fill=GOLD)
+    im.alpha_composite(logo.resize((104,104),Image.LANCZOS),(1150,590))
+    im.convert("RGB").save(f"{OUT}/{name}.jpg",quality=92); im.convert("RGB").save(f"{OUT}/{name}.png")
+ORANGE=(240,120,45); AMBER=(255,195,80)
+def img(k,i):
+    p=f"{S}/gen/{G.key(G.full(SHOTS[k][i][0],SHOTS[k][i][1]))}.png"; o=f"{S}/thumb/flip_{k[0]}_{k[1]}.png"
+    os.makedirs(f"{S}/thumb",exist_ok=True); Image.open(p).transpose(Image.FLIP_LEFT_RIGHT).save(o); return o
+thumb("T4_IT_HAS_HANDS", img((6,2),0), [("11,500 YEARS OLD",CREAM,96),("IT HAS",CREAM,150),("HANDS?",AMBER,180)], "Göbekli Tepe", (255,160,70))
+thumb("T5_WHO_CARVED_THIS_FACE", img((4,6),0), [("WHO",CREAM,150),("CARVED",CREAM,150),("THIS?",ORANGE,180)], "11,500 years ago", (255,150,60))
+print("ok")
