@@ -7,7 +7,13 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 - Long documentaries: 12-18 min, never longer than 20 min (user rule, 26 Nov 2026). Each ships with 3 Shorts (25-30 s, hook in the first second).
 - Production and publishing every other day from 26 Nov 2026, start 01:25 Baku time.
 - Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov).
-- Queue: Bronze Age Collapse, Çatalhöyük, Minoans/Thera, Petra, Cahokia, Rapa Nui, Great Zimbabwe.
+- Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (in production), then
+  Ötzi the Iceman (who killed him?), The Egtved Girl (a Bronze Age teenager who travelled across Europe),
+  Pompeii's last day through the lives of its people, Çatalhöyük (a family in a 9,000-year-old town),
+  Tutankhamun (the boy king's short life), The Tollund Man, The Lady of Cao, Puabi the Queen of Ur.
+- Human-centred rule (from Shorts data: Priest-King, Dancing Girl and Gravestones Shorts led): every video and Short
+  is told through a person: a face, a name or a life (who were they, how did they live, how did they die).
+  Open on a human face + question, follow one character through the story, end on what their life tells us.
 
 ## Pipeline (per video folder)
 
