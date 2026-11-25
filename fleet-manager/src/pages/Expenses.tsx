@@ -3,7 +3,7 @@ import { Plus, Pencil } from 'lucide-react';
 import { update, useDB } from '../lib/store';
 import { fmtDate, money, monthKey, monthName, today, uid } from '../lib/format';
 import type { DB, Expense } from '../lib/types';
-import { Badge, Button, Card, DataList, Field, Input, Modal, PageHeader, Select, Tabs, toast } from '../components/ui';
+import { Badge, Button, Card, DataList, Field, Input, Modal, PageHeader, Select, Tabs, toast, ask } from '../components/ui';
 import { expenseLabel } from './Cars';
 
 export const bizName = (db: DB, id: string) => db.businesses.find((b) => b.id === id)?.name ?? id;
@@ -44,7 +44,7 @@ export default function Expenses() {
         columns={[
           { head: 'Tarix', cell: (e) => fmtDate(e.date) },
           { head: 'Kateqoriya', cell: (e) => <div className="flex gap-1.5"><Badge>{catName(e.category)}</Badge><Badge tone="blue">{bizName(db, e.business)}</Badge></div> },
-          { head: 'Maşın', cell: (e) => (e.carId ? <span className="font-mono">{cars.get(e.carId)?.plate}</span> : '—') },
+          { head: 'Maşın', cell: (e) => (e.carId ? <span className="whitespace-nowrap font-mono">{cars.get(e.carId)?.plate}</span> : '—') },
           { head: 'Qeyd', cell: (e) => <span className="text-slate-500">{e.note ?? ''}</span> },
           { head: 'Məbləğ', cell: (e) => <span className="tabular font-semibold">{money(e.amount)}</span>, className: 'text-right' },
           { head: '', cell: () => <Pencil className="size-4 text-slate-300" /> },
@@ -75,13 +75,13 @@ function ExpenseForm({ expense, onClose }: { expense: Expense | null; onClose: (
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
-    if (!expense || !confirm('Xərc silinsin?')) return;
+  const remove = async () => {
+    if (!expense || !await ask('Xərc silinsin?')) return;
     update(`Xərc silindi: ${catName(expense.category)} ${money(expense.amount)}`, (d) => ({ ...d, expenses: d.expenses.filter((x) => x.id !== expense.id) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={expense ? 'Xərci redaktə et' : 'Yeni xərc'} footer={<>{expense && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={expense ? 'Xərci redaktə et' : 'Yeni xərc'} footer={<>{expense && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Biznes"><Select value={f.business} onChange={(e) => set('business', e.target.value)}>{db.businesses.filter((b) => b.builtin).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</Select></Field>
         <Field label="Kateqoriya"><Select value={f.category} onChange={(e) => set('category', e.target.value)}>{Object.entries(expenseLabel).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</Select></Field>

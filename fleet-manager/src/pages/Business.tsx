@@ -3,7 +3,7 @@ import { Plus, Pencil, Settings2, X } from 'lucide-react';
 import { update, useDB } from '../lib/store';
 import { fmtDate, money, monthKey, monthName, today, uid } from '../lib/format';
 import type { BizEntry, BusinessDef, PayMethod } from '../lib/types';
-import { Badge, Button, DataList, Empty, Field, Input, Modal, PageHeader, Select, Stat, Tabs, toast } from '../components/ui';
+import { Badge, Button, DataList, Empty, Field, Input, Modal, PageHeader, Select, Stat, Tabs, toast, ask } from '../components/ui';
 
 export const bizColors = ['#8b5cf6', '#ec4899', '#10b981', '#f97316', '#06b6d4', '#ef4444', '#84cc16', '#6366f1'];
 
@@ -88,13 +88,13 @@ function EntryForm({ biz, entry, kind, onClose }: { biz: BusinessDef; entry: Biz
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
-    if (!entry || !confirm('Qeyd silinsin?')) return;
+  const remove = async () => {
+    if (!entry || !await ask('Qeyd silinsin?')) return;
     update(`${biz.name}: qeyd silindi — ${entry.category} ${money(entry.amount)}`, (d) => ({ ...d, entries: d.entries.filter((x) => x.id !== entry.id) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={`${entry ? 'Redaktə' : f.kind === 'income' ? 'Yeni gəlir' : 'Yeni xərc'} — ${biz.name}`} footer={<>{entry && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={`${entry ? 'Redaktə' : f.kind === 'income' ? 'Yeni gəlir' : 'Yeni xərc'} — ${biz.name}`} footer={<>{entry && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Növ"><Select value={f.kind} onChange={(e) => set('kind', e.target.value as BizEntry['kind'])}><option value="income">Gəlir</option><option value="expense">Xərc</option></Select></Field>
         <Field label="Kateqoriya">
@@ -126,10 +126,10 @@ export function BusinessForm({ biz, onClose }: { biz: BusinessDef | null; onClos
     onClose();
     if (!biz) location.hash = `#/biz/${f.id}`;
   };
-  const remove = () => {
+  const remove = async () => {
     if (!biz || biz.builtin) return;
     const n = db.entries.filter((e) => e.businessId === biz.id).length;
-    if (!confirm(`«${biz.name}» silinsin?${n ? ` ${n} qeyd də silinəcək.` : ''}`)) return;
+    if (!await ask(`«${biz.name}» silinsin?${n ? ` ${n} qeyd də silinəcək.` : ''}`)) return;
     update(`Biznes silindi: ${biz.name}`, (d) => ({ ...d, businesses: d.businesses.filter((x) => x.id !== biz.id), entries: d.entries.filter((e) => e.businessId !== biz.id) }));
     location.hash = '#/settings';
     onClose();
@@ -144,7 +144,7 @@ export function BusinessForm({ biz, onClose }: { biz: BusinessDef | null; onClos
     </div>
   );
   return (
-    <Modal open onClose={onClose} title={biz ? `Biznes: ${biz.name}` : 'Yeni biznes əlavə et'} footer={<>{biz && !biz.builtin && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={biz ? `Biznes: ${biz.name}` : 'Yeni biznes əlavə et'} footer={<>{biz && !biz.builtin && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="space-y-4">
         <Field label="Biznesin adı"><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="məs. Avtoyuma, Kafe, Ehtiyat hissələri" autoFocus /></Field>
         <Field label="Rəng">

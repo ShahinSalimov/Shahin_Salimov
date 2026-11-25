@@ -4,7 +4,7 @@ import { update, useDB } from '../lib/store';
 import { currentAssignments, driverBalances, driverRatings, ratingLabel, waLink, type Rating } from '../lib/calc';
 import { fmtDate, money, today, uid } from '../lib/format';
 import type { Driver, LedgerEntry, LedgerType, PayMethod } from '../lib/types';
-import { Badge, Button, Card, DataList, Empty, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast } from '../components/ui';
+import { Badge, Button, Card, DataList, Empty, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast, ask, canPrint } from '../components/ui';
 import { CustomPayment } from './Payments';
 import { AssignModal } from './Cars';
 
@@ -101,10 +101,10 @@ export function DriverDetail({ id }: { id: string }) {
   const finesCount = db.fines.filter((f) => f.driverId === d.id).length;
   const msg = `Salam ${d.name.split(' ')[0]}, ${db.settings.companyName}. ${fmtDate(today())} tarixinə borcunuz: ${money(Math.max(0, balance))}. Zəhmət olmasa ödənişi edin.`;
 
-  const useDeposit = () => {
+  const useDeposit = async () => {
     const amt = Math.min(d.deposit, Math.max(0, balance));
     if (amt <= 0) return toast('Depozitdən çıxılacaq borc yoxdur');
-    if (!confirm(`Depozitdən ${money(amt)} borca silinsin?`)) return;
+    if (!await ask(`Depozitdən ${money(amt)} borca silinsin?`)) return;
     update(`${d.name} — depozitdən ${money(amt)} borca silindi`, (x) => ({
       ...x,
       drivers: x.drivers.map((y) => (y.id === d.id ? { ...y, deposit: y.deposit - amt } : y)),
@@ -121,7 +121,7 @@ export function DriverDetail({ id }: { id: string }) {
         actions={<div className="no-print flex flex-wrap gap-2">
           <a href={`tel:${d.phone}`} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm"><Phone className="size-4" /> Zəng</a>
           <a href={waLink(d.phone, msg)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-sm text-emerald-700"><MessageCircle className="size-4" /> WhatsApp</a>
-          <Button onClick={() => window.print()}><Printer className="size-4" /> Çap</Button>
+          {canPrint && <Button onClick={() => window.print()}><Printer className="size-4" /> Çap</Button>}
           <Button onClick={() => setEdit(true)}><Pencil className="size-4" /> Redaktə</Button>
         </div>}
       />
@@ -192,8 +192,8 @@ function EntryEdit({ entry, onClose }: { entry: LedgerEntry; onClose: () => void
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
-    if (!confirm(`${ledgerLabel[entry.type]} qeydi silinsin?`)) return;
+  const remove = async () => {
+    if (!await ask(`${ledgerLabel[entry.type]} qeydi silinsin?`)) return;
     update(`Hesab qeydi silindi: ${ledgerLabel[entry.type]} ${money(Math.abs(entry.amount))} (${fmtDate(entry.date)})`, (d) => ({
       ...d,
       ledger: d.ledger.filter((l) => l.id !== entry.id),
@@ -202,7 +202,7 @@ function EntryEdit({ entry, onClose }: { entry: LedgerEntry; onClose: () => void
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={`${ledgerLabel[entry.type]} — redaktə`} footer={<><Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button><Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={`${ledgerLabel[entry.type]} — redaktə`} footer={<><Button variant="dangerGhost" onClick={remove}>Sil</Button><Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="space-y-4">
         {linked && <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Bu qeyd cərimə ilə bağlıdır. Tam redaktə üçün «Cərimələr» bölməsindən istifadə edin.</div>}
         <Field label="Məbləğ (₼)"><Input type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
@@ -248,16 +248,16 @@ function DriverForm({ driver, onClose }: { driver: Driver | null; onClose: () =>
     onClose();
   };
   const db = useDB();
-  const remove = () => {
+  const remove = async () => {
     if (!driver) return;
     if (db.ledger.some((l) => l.driverId === driver.id) || db.assignments.some((a) => a.driverId === driver.id)) return toast('Sürücünün əməliyyat tarixçəsi var. Silmək əvəzinə statusu «Passiv» edin.');
-    if (!confirm(`${driver.name} silinsin?`)) return;
+    if (!await ask(`${driver.name} silinsin?`)) return;
     update(`Sürücü silindi: ${driver.name}`, (d) => ({ ...d, drivers: d.drivers.filter((x) => x.id !== driver.id) }));
     location.hash = '#/drivers';
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={driver ? 'Sürücünü redaktə et' : 'Yeni sürücü'} footer={<>{driver && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={driver ? 'Sürücünü redaktə et' : 'Yeni sürücü'} footer={<>{driver && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2"><Field label="Ad, soyad"><Input value={f.name} onChange={(e) => set('name', e.target.value)} autoFocus /></Field></div>
         <Field label="Telefon"><Input type="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} /></Field>

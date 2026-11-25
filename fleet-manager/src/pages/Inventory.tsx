@@ -3,7 +3,7 @@ import { Plus, PackagePlus, Trash2 } from 'lucide-react';
 import { update, useDB } from '../lib/store';
 import { fmtDate, money, num, today, uid } from '../lib/format';
 import type { Product, ProductCategory, Purchase } from '../lib/types';
-import { Badge, Button, Card, DataList, Field, Input, Modal, PageHeader, SearchBox, Select, Stat, Tabs, toast } from '../components/ui';
+import { Badge, Button, Card, DataList, Field, Input, Modal, PageHeader, SearchBox, Select, Stat, Tabs, toast, ask } from '../components/ui';
 
 export const productName = (p: Product) => `${p.brand === 'Generic' ? '' : p.brand + ' '}${p.model}${p.variant ? ' · ' + p.variant : ''}`;
 
@@ -101,8 +101,8 @@ function PurchaseEdit({ purchase, onClose }: { purchase: Purchase; onClose: () =
     update(`Mal qəbulu redaktə edildi: ${supplier}`, (d) => ({ ...d, purchases: d.purchases.map((x) => (x.id === purchase.id ? { ...x, supplier, date } : x)) }));
     onClose();
   };
-  const remove = () => {
-    if (!confirm('Mal qəbulu silinsin? Mallar anbardan çıxılacaq.')) return;
+  const remove = async () => {
+    if (!await ask('Mal qəbulu silinsin? Mallar anbardan çıxılacaq.')) return;
     update(`Mal qəbulu silindi: ${purchase.supplier} ${money(purchase.total)}`, (d) => ({
       ...d,
       purchases: d.purchases.filter((x) => x.id !== purchase.id),
@@ -115,7 +115,7 @@ function PurchaseEdit({ purchase, onClose }: { purchase: Purchase; onClose: () =
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title="Mal qəbulu" footer={<><Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button><Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title="Mal qəbulu" footer={<><Button variant="dangerGhost" onClick={remove}>Sil</Button><Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="space-y-4">
         <Field label="Təchizatçı"><Input value={supplier} onChange={(e) => setSupplier(e.target.value)} /></Field>
         <Field label="Tarix"><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
@@ -142,15 +142,15 @@ function ProductForm({ product, onClose }: { product: Product | null; onClose: (
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
+  const remove = async () => {
     if (!product) return;
     if (db.sales.some((s) => s.items.some((i) => i.productId === product.id))) return toast('Bu məhsul satışlarda istifadə olunub — silmək olmaz. Qalığı 0 edin.');
-    if (!confirm(`${productName(product)} silinsin?`)) return;
+    if (!await ask(`${productName(product)} silinsin?`)) return;
     update(`Məhsul silindi: ${productName(product)}`, (d) => ({ ...d, products: d.products.filter((x) => x.id !== product.id) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={product ? 'Məhsulu redaktə et' : 'Yeni məhsul'} footer={<>{product && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={product ? 'Məhsulu redaktə et' : 'Yeni məhsul'} footer={<>{product && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Növ"><Select value={f.category} onChange={(e) => set('category', e.target.value as ProductCategory)}><option value="phone">Telefon</option><option value="accessory">Aksesuar</option></Select></Field>
         <Field label="Marka"><Input value={f.brand} onChange={(e) => set('brand', e.target.value)} placeholder="Apple, Samsung..." /></Field>

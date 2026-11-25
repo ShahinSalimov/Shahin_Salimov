@@ -4,7 +4,7 @@ import { update, useDB } from '../lib/store';
 import { driverAt } from '../lib/calc';
 import { fmtDate, money, today, uid } from '../lib/format';
 import type { Fine } from '../lib/types';
-import { Badge, Button, DataList, Field, Input, Modal, PageHeader, Select, Tabs, toast } from '../components/ui';
+import { Badge, Button, DataList, Field, Input, Modal, PageHeader, Select, Tabs, toast, ask } from '../components/ui';
 
 export default function Fines() {
   const db = useDB();
@@ -34,7 +34,7 @@ export default function Fines() {
         onRow={(f) => setOpen(f)}
         columns={[
           { head: 'Tarix', cell: (f) => <span className="whitespace-nowrap">{fmtDate(f.datetime)} <span className="text-slate-400">{f.datetime.slice(11)}</span></span> },
-          { head: 'Maşın', cell: (f) => <span className="font-mono font-semibold">{cars.get(f.carId)?.plate}</span> },
+          { head: 'Maşın', cell: (f) => <span className="whitespace-nowrap font-mono font-semibold">{cars.get(f.carId)?.plate}</span> },
           { head: 'Sürücü', cell: (f) => (f.driverId ? <a className="hover:underline" href={`#/drivers/${f.driverId}`}>{drivers.get(f.driverId)?.name}</a> : <span className="text-slate-400">təyin olunmayıb</span>) },
           { head: 'Səbəb', cell: (f) => f.reason },
           { head: 'Məbləğ', cell: (f) => <span className="tabular font-semibold">{money(f.amount)}</span>, className: 'text-right' },
@@ -87,13 +87,13 @@ function FineForm({ fine, onClose }: { fine: Fine | null; onClose: () => void })
     toast(fine ? 'Yadda saxlanıldı' : driver && charge ? `Cərimə ${driver.name} hesabına yazıldı` : 'Cərimə əlavə edildi');
     onClose();
   };
-  const remove = () => {
-    if (!fine || !confirm('Cərimə silinsin? Sürücüyə yazılan borc da silinəcək.')) return;
+  const remove = async () => {
+    if (!fine || !await ask('Cərimə silinsin? Sürücüyə yazılan borc da silinəcək.')) return;
     update(`Cərimə silindi: ${money(fine.amount)}`, (d) => ({ ...d, fines: d.fines.filter((x) => x.id !== fine.id), ledger: d.ledger.filter((l) => !(l.type === 'fine' && l.refId === fine.id)) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={fine ? 'Cəriməni redaktə et' : 'Yeni cərimə'} footer={<>{fine && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={fine ? 'Cəriməni redaktə et' : 'Yeni cərimə'} footer={<>{fine && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="space-y-4">
         <Field label="Avtomobil">
           <Select value={carId} onChange={(e) => setCarId(e.target.value)}>

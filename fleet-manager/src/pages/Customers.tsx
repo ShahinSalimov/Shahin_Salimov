@@ -4,7 +4,7 @@ import { update, useDB } from '../lib/store';
 import { customerDebts, saleProfit, waLink } from '../lib/calc';
 import { fmtDate, money, today, uid } from '../lib/format';
 import type { Customer, CustomerPayment, PayMethod, Sale } from '../lib/types';
-import { Badge, Button, DataList, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast } from '../components/ui';
+import { Badge, Button, DataList, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast, ask } from '../components/ui';
 import { Invoice } from './Sales';
 
 export default function Customers() {
@@ -113,13 +113,13 @@ function PaymentForm({ customer, payment, debt, onClose }: { customer: Customer;
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
-    if (!payment || !confirm('Ödəniş silinsin?')) return;
+  const remove = async () => {
+    if (!payment || !await ask('Ödəniş silinsin?')) return;
     update(`Müştəri ödənişi silindi: ${customer.shop} ${money(payment.amount)}`, (d) => ({ ...d, customerPayments: d.customerPayments.filter((x) => x.id !== payment.id) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={payment ? 'Ödənişi redaktə et' : `Ödəniş — ${customer.shop}`} footer={<>{payment && <Button variant="ghost" className="text-rose-600" onClick={remove}><Trash2 className="size-4" /> Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={payment ? 'Ödənişi redaktə et' : `Ödəniş — ${customer.shop}`} footer={<>{payment && <Button variant="dangerGhost" onClick={remove}><Trash2 className="size-4" /> Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="space-y-4">
         <Field label="Məbləğ (₼)"><Input type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus /></Field>
         <Field label="Üsul"><Select value={method} onChange={(e) => setMethod(e.target.value as PayMethod)}><option value="cash">Nağd</option><option value="card">Kart / köçürmə</option></Select></Field>
@@ -139,15 +139,15 @@ function CustomerForm({ customer, onClose }: { customer: Customer | null; onClos
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
+  const remove = async () => {
     if (!customer) return;
     if (db.sales.some((s) => s.customerId === customer.id)) return toast('Bu müştərinin fakturaları var — əvvəlcə onları silin');
-    if (!confirm(`${customer.shop} silinsin?`)) return;
+    if (!await ask(`${customer.shop} silinsin?`)) return;
     update(`Müştəri silindi: ${customer.shop}`, (d) => ({ ...d, customers: d.customers.filter((x) => x.id !== customer.id), customerPayments: d.customerPayments.filter((p) => p.customerId !== customer.id) }));
     onClose();
   };
   return (
-    <Modal open onClose={onClose} title={customer ? 'Müştərini redaktə et' : 'Yeni müştəri'} footer={<>{customer && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open onClose={onClose} title={customer ? 'Müştərini redaktə et' : 'Yeni müştəri'} footer={<>{customer && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Mağaza adı"><Input value={f.shop} onChange={(e) => set('shop', e.target.value)} autoFocus /></Field>
         <Field label="Əlaqədar şəxs"><Input value={f.name} onChange={(e) => set('name', e.target.value)} /></Field>

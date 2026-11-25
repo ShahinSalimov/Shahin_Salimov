@@ -10,13 +10,14 @@ export function Card({ children, className, onClick }: { children: ReactNode; cl
   );
 }
 
-type BtnVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'dark';
+type BtnVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerGhost' | 'success' | 'dark';
 const btnStyles: Record<BtnVariant, string> = {
   primary: 'bg-brand-400 text-ink hover:bg-brand-300 font-semibold',
   dark: 'bg-ink text-white hover:bg-slate-800',
   secondary: 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50',
   ghost: 'text-slate-600 hover:bg-slate-100',
   danger: 'bg-rose-600 text-white hover:bg-rose-500',
+  dangerGhost: 'text-rose-600 hover:bg-rose-50',
   success: 'bg-emerald-600 text-white hover:bg-emerald-500',
 };
 
@@ -221,3 +222,47 @@ export function toast(msg: string) {
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(() => el && (el.style.opacity = '0'), 2200);
 }
+
+/**
+ * Tətbiqin öz təsdiq/daxiletmə pəncərəsi (brauzerin confirm/prompt əvəzinə —
+ * bəzi mühitlərdə, məs. iframe-də, onlar işləmir).
+ */
+function dialog(message: string, withInput?: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'fixed inset-0 z-[70] flex items-end justify-center bg-slate-900/50 p-0 anim-fade md:items-center md:p-6';
+    wrap.innerHTML = `
+      <div class="anim-sheet w-full rounded-t-3xl bg-white p-5 shadow-2xl md:max-w-sm md:rounded-2xl">
+        <p class="text-[15px] font-medium leading-relaxed text-slate-800"></p>
+        ${withInput !== undefined ? '<input class="mt-3 h-11 w-full rounded-xl border border-slate-300 px-3 text-[15px] outline-none focus:border-yellow-500" inputmode="decimal" />' : ''}
+        <div class="safe-bottom mt-5 flex gap-2">
+          <button data-no class="h-11 flex-1 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700">Ləğv</button>
+          <button data-yes class="h-11 flex-1 rounded-xl bg-yellow-400 text-sm font-semibold text-slate-900">Təsdiq</button>
+        </div>
+      </div>`;
+    wrap.querySelector('p')!.textContent = message;
+    const input = wrap.querySelector('input');
+    if (input) input.value = withInput ?? '';
+    const done = (v: string | null) => {
+      wrap.remove();
+      document.removeEventListener('keydown', onKey, true);
+      resolve(v);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); done(null); }
+      if (e.key === 'Enter') done(input ? input.value : 'ok');
+    };
+    document.addEventListener('keydown', onKey, true);
+    wrap.addEventListener('click', (e) => e.target === wrap && done(null));
+    wrap.querySelector('[data-no]')!.addEventListener('click', () => done(null));
+    wrap.querySelector('[data-yes]')!.addEventListener('click', () => done(input ? input.value : 'ok'));
+    document.body.appendChild(wrap);
+    (input ?? (wrap.querySelector('[data-yes]') as HTMLElement)).focus();
+  });
+}
+
+export const ask = async (message: string) => (await dialog(message)) !== null;
+export const askValue = (message: string, def = '') => dialog(message, def);
+
+/** iframe daxilində (məs. demo linkdə) çap işləmir — düyməni gizlətmək üçün */
+export const canPrint = typeof window !== 'undefined' && window.self === window.top;

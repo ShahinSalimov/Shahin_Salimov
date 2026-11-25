@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Download, Upload, RotateCcw, Trash2, Plus, Pencil, ImagePlus } from 'lucide-react';
 import { clearAll, getDB, replaceDB, resetDemo, update, useDB } from '../lib/store';
 import type { BusinessDef, DB, Settings as S } from '../lib/types';
-import { Button, Card, Field, Input, PageHeader, Select, toast } from '../components/ui';
+import { Button, Card, Field, Input, PageHeader, Select, toast, ask } from '../components/ui';
 import { BusinessForm } from './Business';
 
 export default function Settings({ query }: { query: URLSearchParams }) {
@@ -40,11 +40,11 @@ export default function Settings({ query }: { query: URLSearchParams }) {
   const importJSON = (file?: File) => {
     if (!file) return;
     const r = new FileReader();
-    r.onload = () => {
+    r.onload = async () => {
       try {
         const parsed = JSON.parse(String(r.result)) as DB;
         if (!parsed.cars || !parsed.drivers) throw new Error();
-        if (!confirm('Bütün cari məlumatlar backup faylı ilə əvəz olunsun?')) return;
+        if (!await ask('Bütün cari məlumatlar backup faylı ilə əvəz olunsun?')) return;
         replaceDB(parsed, 'Backup faylından bərpa edildi');
         setF(parsed.settings);
         toast('Bərpa edildi');
@@ -108,8 +108,8 @@ export default function Settings({ query }: { query: URLSearchParams }) {
               <Button onClick={exportJSON}><Download className="size-4" /> Backup yüklə</Button>
               <Button onClick={() => fileRef.current?.click()}><Upload className="size-4" /> Backup-dan bərpa</Button>
               <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => importJSON(e.target.files?.[0])} />
-              <Button onClick={() => confirm('Demo məlumatları yenidən yüklənsin? Cari məlumatlar silinəcək.') && (resetDemo(), setF(useDBSnapshot()))}><RotateCcw className="size-4" /> Demo məlumatları</Button>
-              <Button variant="danger" onClick={() => confirm('BÜTÜN məlumatlar silinsin və sistem təmiz başlasın?') && confirm('Əminsiniz? Bu geri qaytarılmır (backup yükləməmisinizsə).') && (clearAll(), setF(useDBSnapshot()))}><Trash2 className="size-4" /> Təmiz başla</Button>
+              <Button onClick={async () => { if (await ask('Demo məlumatları yenidən yüklənsin? Cari məlumatlar silinəcək.')) { resetDemo(); setF(useDBSnapshot()); } }}><RotateCcw className="size-4" /> Demo məlumatları</Button>
+              <Button variant="danger" onClick={async () => { if ((await ask('BÜTÜN məlumatlar silinsin və sistem təmiz başlasın?')) && (await ask('Əminsiniz? Backup yükləməmisinizsə, bu geri qaytarılmır.'))) { clearAll(); setF(useDBSnapshot()); } }}><Trash2 className="size-4" /> Təmiz başla</Button>
             </div>
             <p className="mt-3 text-xs text-slate-400">Bu versiyada məlumatlar bu cihazın brauzerində saxlanılır. Mütəmadi backup yükləyin. Bulud verilənlər bazası (bütün cihazlarda sinxron) növbəti mərhələdədir.</p>
           </Card>

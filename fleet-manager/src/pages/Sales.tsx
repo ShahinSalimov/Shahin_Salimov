@@ -4,7 +4,7 @@ import { update, useDB } from '../lib/store';
 import { saleProfit, waLink } from '../lib/calc';
 import { fmtDate, money, monthKey, monthName, today, uid } from '../lib/format';
 import type { Sale, SaleItem } from '../lib/types';
-import { Badge, Button, DataList, Field, Input, Modal, PageHeader, Select, Stat, toast } from '../components/ui';
+import { Badge, Button, DataList, Field, Input, Modal, PageHeader, Select, Stat, toast, ask, canPrint } from '../components/ui';
 import { productName } from './Inventory';
 
 export default function Sales() {
@@ -155,8 +155,8 @@ function SaleForm({ sale, onClose, onSaved }: { sale: Sale | null; onClose: () =
 
 export function Invoice({ sale, onClose, onEdit }: { sale: Sale; onClose: () => void; onEdit?: () => void }) {
   const db = useDB();
-  const remove = () => {
-    if (!confirm(`Faktura #${sale.no} silinsin? Mallar anbara qaytarılacaq.`)) return;
+  const remove = async () => {
+    if (!await ask(`Faktura #${sale.no} silinsin? Mallar anbara qaytarılacaq.`)) return;
     update(`Faktura #${sale.no} silindi (${money(sale.total)})`, (d) => ({
       ...d,
       sales: d.sales.filter((x) => x.id !== sale.id),
@@ -183,10 +183,10 @@ export function Invoice({ sale, onClose, onEdit }: { sale: Sale; onClose: () => 
   ].filter((x, i, a) => x !== '' || a[i - 1] !== '').join('\n');
   return (
     <Modal open wide onClose={onClose} title={`Faktura #${sale.no}`} footer={<>
-      {onEdit && <Button variant="ghost" className="text-rose-600" onClick={remove}><Trash2 className="size-4" /> Sil</Button>}
+      {onEdit && <Button variant="dangerGhost" onClick={remove}><Trash2 className="size-4" /> Sil</Button>}
       {onEdit && <Button onClick={onEdit}><Pencil className="size-4" /> Redaktə</Button>}
       {c && <a href={waLink(c.phone, text)} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-700"><MessageCircle className="size-4" /> WhatsApp</a>}
-      <Button variant="dark" onClick={() => window.print()}><Printer className="size-4" /> Çap / PDF</Button>
+      {canPrint && <Button variant="dark" onClick={() => window.print()}><Printer className="size-4" /> Çap / PDF</Button>}
     </>}>
       <div id="print-area">
         <div className="flex items-start justify-between">

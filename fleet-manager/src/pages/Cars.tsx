@@ -4,7 +4,7 @@ import { update, useDB } from '../lib/store';
 import { carProfit, currentAssignments, driverBalances } from '../lib/calc';
 import { daysBetween, fmtDate, money, num, today, uid, addDays } from '../lib/format';
 import type { Car, CarStatus } from '../lib/types';
-import { Badge, Button, Card, DataList, Empty, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast } from '../components/ui';
+import { Badge, Button, Card, DataList, Empty, Field, Input, Modal, PageHeader, SearchBox, Select, Tabs, toast, ask, askValue } from '../components/ui';
 
 export const statusLabel: Record<CarStatus, string> = { active: 'Xəttdə', service: 'Servisdə', idle: 'Boş' };
 const statusTone = { active: 'green', service: 'amber', idle: 'slate' } as const;
@@ -49,7 +49,7 @@ export default function Cars() {
         limit={150}
         onRow={(c) => (location.hash = `#/cars/${c.id}`)}
         columns={[
-          { head: 'Nömrə', cell: (c) => <span className="font-mono font-semibold">{c.plate}</span> },
+          { head: 'Nömrə', cell: (c) => <span className="whitespace-nowrap font-mono font-semibold">{c.plate}</span> },
           { head: 'Model', cell: (c) => <>{c.make} {c.model} <span className="text-slate-400">· {c.year}</span></> },
           { head: 'Sürücü', cell: (c) => drivers.get(byCar.get(c.id) ?? '')?.name ?? <span className="text-slate-400">—</span> },
           { head: 'Status', cell: (c) => <Badge tone={statusTone[c.status]}>{statusLabel[c.status]}</Badge> },
@@ -88,8 +88,8 @@ export function CarDetail({ id }: { id: string }) {
   const oilLeft = car.oilIntervalKm - (car.mileage - car.lastOilKm);
 
   const setStatus = (status: CarStatus) => update(`${car.plate} statusu: ${statusLabel[status]}`, (d) => ({ ...d, cars: d.cars.map((c) => (c.id === car.id ? { ...c, status } : c)) }));
-  const unassign = () => {
-    if (!driver || !confirm(`${driver.name} maşından ayrılsın?`)) return;
+  const unassign = async () => {
+    if (!driver || !await ask(`${driver.name} maşından ayrılsın?`)) return;
     const t = today();
     update(`${car.plate} — ${driver.name} maşından ayrıldı`, (d) => ({
       ...d,
@@ -97,8 +97,8 @@ export function CarDetail({ id }: { id: string }) {
       cars: d.cars.map((c) => (c.id === car.id ? { ...c, status: 'idle' } : c)),
     }));
   };
-  const oilChange = () => {
-    const cost = prompt('Yağ dəyişmə xərci (₼):', '75');
+  const oilChange = async () => {
+    const cost = await askValue('Yağ dəyişmə xərci (₼):', '75');
     if (cost === null) return;
     update(`${car.plate} — yağ dəyişdirildi (${num(car.mileage)} km)`, (d) => ({
       ...d,
@@ -293,16 +293,16 @@ function CarForm({ car, onClose }: { car: Car | null; onClose: () => void }) {
     toast('Yadda saxlanıldı');
     onClose();
   };
-  const remove = () => {
+  const remove = async () => {
     if (!car) return;
     if (db.assignments.some((a) => a.carId === car.id) || db.expenses.some((e) => e.carId === car.id) || db.fines.some((x) => x.carId === car.id)) return toast('Maşının tarixçəsi var. Silmək əvəzinə statusu «Boş» edin.');
-    if (!confirm(`${car.plate} silinsin?`)) return;
+    if (!await ask(`${car.plate} silinsin?`)) return;
     update(`Avtomobil silindi: ${car.plate}`, (d) => ({ ...d, cars: d.cars.filter((x) => x.id !== car.id) }));
     location.hash = '#/cars';
     onClose();
   };
   return (
-    <Modal open wide onClose={onClose} title={car ? 'Avtomobili redaktə et' : 'Yeni avtomobil'} footer={<>{car && <Button variant="ghost" className="text-rose-600" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
+    <Modal open wide onClose={onClose} title={car ? 'Avtomobili redaktə et' : 'Yeni avtomobil'} footer={<>{car && <Button variant="dangerGhost" onClick={remove}>Sil</Button>}<Button onClick={onClose}>Ləğv</Button><Button variant="primary" onClick={save}>Yadda saxla</Button></>}>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Dövlət nömrəsi"><Input value={f.plate} onChange={(e) => set('plate', e.target.value)} placeholder="10-AB-123" /></Field>
         <Field label="Gündəlik icarə (₼)"><Input type="number" value={f.dailyRate} onChange={(e) => set('dailyRate', Number(e.target.value))} /></Field>
