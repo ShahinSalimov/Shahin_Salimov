@@ -19,7 +19,7 @@ def pt(sec, p):  # absolute time of paragraph start
 # ---- mood cues (time, mood) ----
 CUES = [(0, "tension"), (off[2] - 2, "swell"), (off[2], "epic"), (off[3], "warm"), (pt(3, 3), "day"), (pt(3, 5), "reflect"),
         (off[4], "voyage"), (pt(4, 4), "warm"), (off[5], "hook"), (off[6], "mystery"), (pt(6, 1), "tension"), (pt(6, 3), "storm"),
-        (pt(6, 5), "decline"), (off[7], "hook"), (pt(7, 1), "tension"), (pt(7, 5), "storm"), (pt(7, 7), "migration"), (pt(7, 9), "mystery"),
+        (pt(6, 5), "decline"), (off[7], "hook"), (pt(7, 1), "tension"), (pt(7, 5), "storm"), (pt(7, 7), "migration"), (pt(7, 8), "mystery"),
         (off[8], "reflect"), (pt(8, 1), "drought"), (pt(8, 3), "tension"), (pt(8, 5), "decline"), (off[9], "storm"), (pt(9, 3), "reflect"),
         (off[10], "decline"), (pt(10, 1), "hope"), (pt(10, 4), "epic"), (off[11], "reflect"), (off[12], "hope"), (TOTAL - 21, "end")]
 # per mood: layer gains (drone, pluck, pad, melody, perc, wind), progression, scale, melody density

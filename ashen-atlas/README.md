@@ -6,8 +6,8 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 
 - Long documentaries: 12-18 min, never longer than 20 min (user rule, 26 Nov 2026). Each ships with 3 Shorts (25-30 s, hook in the first second).
 - Production and publishing every other day from 26 Nov 2026, start 01:25 Baku time.
-- Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov).
-- Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (in production), then
+- Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov). Delivered: #3 Bronze Age Collapse (26 Nov, 14:27).
+- Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (delivered 26 Nov), next:
   Ötzi the Iceman (who killed him?), The Egtved Girl (a Bronze Age teenager who travelled across Europe),
   Pompeii's last day through the lives of its people, Çatalhöyük (a family in a 9,000-year-old town),
   Tutankhamun (the boy king's short life), The Tollund Man, The Lady of Cao, Puabi the Queen of Ur.
@@ -49,6 +49,8 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 - Always review contact sheets before the final render.
 - Keep the title and the thumbnail on the same promise.
 - The first Short (44 s) averaged 52% viewed. Shorts are now 25-35 s with no slow explanation in the middle.
+- Never run two SDXL pipelines at once: 16 GB RAM, the second one is OOM-killed.
+- SDXL anachronisms seen on Video #3: galleons/marinas for 'ship' (ask for 'long low wooden galley with oars, one short mast'), Roman arches for 'ruins', Corinthian helmets for any helmet, guitars for 'lyre', Latin letters on tablets (use extreme shallow depth of field).
 - Files over ~440 MiB failed to send. Re-encode at ~1.6 Mb/s (about 250 MB for 20 min).
 
 ## Shorts formula (from data)
