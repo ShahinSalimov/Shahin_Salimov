@@ -4,8 +4,8 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 
 ## Publishing plan
 
-- About 3 long documentaries per week, each with 3 Shorts (25-35 s, hook in the first second).
-- Production and publishing every other day from 27 Nov 2026.
+- Long documentaries: 12-18 min, never longer than 20 min (user rule, 26 Nov 2026). Each ships with 3 Shorts (25-30 s, hook in the first second).
+- Production and publishing every other day from 26 Nov 2026, start 01:25 Baku time.
 - Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov).
 - Queue: Bronze Age Collapse, Çatalhöyük, Minoans/Thera, Petra, Cahokia, Rapa Nui, Great Zimbabwe.
 
