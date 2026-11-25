@@ -1,0 +1,16 @@
+<!doctype html><html lang="az"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{height:100vh;background:radial-gradient(ellipse at 70% 20%,#1e293b 0,#0f172a 55%,#0b1120 100%);font-family:Inter,system-ui,sans-serif;color:#fff;display:grid;place-items:center;overflow:hidden}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(250,204,21,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(250,204,21,.06) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at center,#000 20%,transparent 75%)}
+.wrap{position:relative;text-align:center}
+img{width:150px;height:150px;border-radius:36px;box-shadow:0 30px 80px rgba(250,204,21,.25);opacity:0;transform:scale(.7);animation:pop .9s .2s cubic-bezier(.2,.9,.3,1.2) forwards}
+h1{font-size:118px;font-weight:900;letter-spacing:-4px;margin-top:34px;opacity:0;transform:translateY(30px);animation:up .9s .6s ease-out forwards}
+h1 span{color:#facc15}
+p{font-size:34px;color:#94a3b8;margin-top:10px;font-weight:500;opacity:0;animation:up .8s 1s ease-out forwards}
+.chips{display:flex;gap:16px;justify-content:center;margin-top:46px}
+.chip{border:1px solid rgba(250,204,21,.35);background:rgba(250,204,21,.08);color:#fde047;padding:14px 26px;border-radius:999px;font-size:24px;font-weight:600;opacity:0;transform:translateY(20px)}
+.chip:nth-child(1){animation:up .6s 1.5s forwards}.chip:nth-child(2){animation:up .6s 1.75s forwards}.chip:nth-child(3){animation:up .6s 2s forwards}
+@keyframes pop{to{opacity:1;transform:scale(1)}}@keyframes up{to{opacity:1;transform:none}}
+</style></head><body><div class="grid"></div><div class="wrap"><img src="icon.svg" alt=""><h1>Park <span>Pro</span></h1><p>Biznes idarəetmə sistemi</p>
+<div class="chips"><div class="chip">Taksi parkı</div><div class="chip">Telefon topdan</div><div class="chip">Yeni bizneslər</div></div></div></body></html>

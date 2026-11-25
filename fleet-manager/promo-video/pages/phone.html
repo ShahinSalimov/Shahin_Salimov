@@ -1,0 +1,16 @@
+<!doctype html><html lang="az"><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{height:100vh;background:radial-gradient(ellipse at 50% 30%,#1e293b 0,#0f172a 60%,#0b1120 100%);font-family:Inter,system-ui,sans-serif;color:#fff;display:flex;align-items:center;justify-content:center;gap:110px;overflow:hidden}
+.phone{width:414px;height:860px;border-radius:64px;background:#020617;padding:14px;box-shadow:0 0 0 2px #334155,0 50px 120px rgba(0,0,0,.6),0 0 80px rgba(250,204,21,.12);position:relative;opacity:0;transform:translateY(60px);animation:up 1s .1s cubic-bezier(.2,.9,.3,1) forwards}
+.phone:before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#020617;border-radius:20px;z-index:2}
+iframe{width:386px;height:832px;border:0;border-radius:52px;background:#f1f5f9}
+.txt{max-width:560px;opacity:0;animation:up .9s .5s forwards;transform:translateY(30px)}
+.txt h2{font-size:72px;font-weight:900;letter-spacing:-2px;line-height:1.05}.txt h2 span{color:#facc15}
+.txt p{font-size:28px;color:#94a3b8;margin-top:22px;line-height:1.45}
+.pill{display:inline-block;margin-top:30px;border:1px solid rgba(250,204,21,.35);background:rgba(250,204,21,.08);color:#fde047;padding:12px 22px;border-radius:999px;font-size:22px;font-weight:600}
+@keyframes up{to{opacity:1;transform:none}}
+</style></head><body>
+<div class="phone"><iframe id="app" src="index.html#/"></iframe></div>
+<div class="txt"><h2>Telefonda da <span>tam işləyir</span></h2><p>Ödəniş qəbulu, satış, borclar və hesabatlar — cibinizdə. Ana ekrana tətbiq kimi əlavə olunur.</p><div class="pill">iPhone · Android · Kompüter</div></div>
+</body></html>
