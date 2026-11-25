@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Layout } from './components/Layout';
+import { DemoGate } from './components/DemoGate';
 import Dashboard from './pages/Dashboard';
 import Payments from './pages/Payments';
 import Cars, { CarDetail } from './pages/Cars';
@@ -55,5 +56,5 @@ export default function App() {
     case 'more': page = <More />; break;
     default: page = <Dashboard />;
   }
-  return <Layout route={route}>{page}</Layout>;
+  return <DemoGate><Layout route={route}>{page}</Layout></DemoGate>;
 }

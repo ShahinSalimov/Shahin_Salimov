@@ -80,7 +80,7 @@ export function Layout({ route, children }: { route: string; children: ReactNode
   const nav = buildNav(db);
   return (
     <div className="min-h-full md:flex">
-      <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col bg-ink px-3 py-5 md:flex">
+      <aside className="no-print sticky top-[var(--demo-h,0px)] hidden h-[calc(100vh-var(--demo-h,0px))] w-64 shrink-0 flex-col bg-ink px-3 py-5 md:flex">
         <div className="px-2 pb-6"><Logo dark /></div>
         <nav className="flex-1 space-y-5 overflow-y-auto">
           {nav.map((g) => (
@@ -105,7 +105,7 @@ export function Layout({ route, children }: { route: string; children: ReactNode
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="no-print sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur md:hidden">
+        <header className="no-print sticky top-[var(--demo-h,0px)] z-30 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur md:hidden">
           <Logo />
           <a href="#/settings" className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{settings.currentUser}</a>
         </header>
