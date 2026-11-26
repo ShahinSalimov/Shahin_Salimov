@@ -13,7 +13,7 @@ Bütün seçilmiş şəkillər bir lövhədə: `reference_board.jpg`
 
 
 | # | Zaman | Səhnə | Şəkil |
-|---|---|---|---|---|
+|---|---|---|---|
 | 1 | 0–6 | Boş sahə, gündoğan | Göndərilən 1-ci şəkil |
 | 2 | 6–12 | Beton təməl | 3-cü şəkil |
 | 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil |
