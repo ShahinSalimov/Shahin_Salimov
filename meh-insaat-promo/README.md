@@ -18,7 +18,7 @@ Bütün seçilmiş şəkillər bir lövhədə: `reference_board.jpg`
 | 2 | 6–11 | Beton təməl | 3-cü şəkil |
 | 3 | 11–17 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil |
 | 4 | 17–23 | Asfalt | 7-ci şəkil |
-| 4A | 23–27 | İşıq dirəyinin sıfırdan quraşdırılması | **yaradılmalı** |
+| 4A | 23–27 | İşıq dirəyinin sıfırdan quraşdırılması | `scenes/04A_pole_installation.jpg` |
 | 4B | 27–31 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` |
 | 5 | 31–36 | Elektrik | 9-cu şəkil |
 | 6 | 36–41 | Havalandırma | 12-ci şəkil |
