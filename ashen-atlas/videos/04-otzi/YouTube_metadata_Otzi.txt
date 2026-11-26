@@ -1,0 +1,89 @@
+=== FULL VIDEO (draft metadata, written before render; update CHAPTERS timestamps from timeline.json) ===
+
+TITLE (main):
+Who Killed Ötzi? The 5,300-Year-Old Murder in the Alps
+
+A/B TITLES (Test & Compare):
+1) Ötzi the Iceman: The Oldest Cold Case in History
+2) He Was Shot in the Back 5,300 Years Ago. We Still Don't Know Why
+
+THUMBNAILS (Test & Compare): T1_WHO_KILLED_HIM (main), T2_SHOT_IN_THE_BACK, T3_5300_YEARS_IN_ICE
+
+DESCRIPTION:
+In September 1991, two hikers in the Ötztal Alps found a body melting out of the ice. They thought it was a lost climber. He had been dead for 5,300 years.
+
+Ötzi the Iceman lived around 3300 BCE, in the Copper Age. He was about 45 years old, around 1.60 m (5'3") tall, with 61 tattoos, a copper axe, a bow he never finished and a stomach still full of his last meal. Ten years after his discovery, an X-ray revealed a stone arrowhead lodged in his left shoulder. Someone had shot him from behind.
+
+Who was he? Why was he high in the mountains? And who wanted him dead? In this documentary we follow Ötzi through his final days, using the evidence of his body, his clothes, his tools and his DNA.
+
+CHAPTERS (approximate; replace with final timestamps)
+00:00 Cold open: a body in the ice
+00:45 Introduction
+01:05 The discovery, 1991
+02:45 Who was Ötzi?
+04:30 His clothes, his tools, his copper axe
+06:15 61 tattoos
+07:30 The last meal
+09:00 The arrowhead
+10:45 The suspects
+12:30 What his DNA tells us
+13:45 What we know vs. what we don't
+14:30 Outro
+
+Watch next: The Bronze Age Collapse: Who Destroyed the First Global World?
+
+Historical scenes in this video are AI-generated reconstructions based on archaeological evidence. Ötzi's appearance follows published reconstructions and genome studies; details are approximate. Maps and diagrams are simplified illustrations.
+
+SOURCES
+- Spindler, K. (1994). The Man in the Ice. Weidenfeld & Nicolson.
+- Fowler, B. (2000). Iceman: Uncovering the Life and Times of a Prehistoric Man Found in an Alpine Glacier. Random House.
+- Gostner, P., Egarter Vigl, E. (2002). Report of radiological-forensic findings on the Iceman. Journal of Archaeological Science 29.
+- Samadelli, M. et al. (2015). Complete mapping of the tattoos of the 5300-year-old Tyrolean Iceman. Journal of Cultural Heritage 16.
+- Artioli, G. et al. (2017). Long-distance connections in the Copper Age: new evidence from the Alpine Iceman's copper axe. PLoS ONE 12(7).
+- Maixner, F. et al. (2018). The Iceman's last meal consisted of fat, wild meat, and cereals. Current Biology 28.
+- Wang, K. et al. (2023). High-coverage genome of the Tyrolean Iceman reveals unusually high Anatolian farmer ancestry. Cell Genomics 3.
+- South Tyrol Museum of Archaeology, Bolzano (iceman.it).
+
+#Otzi #AncientHistory #Documentary
+
+TAGS (comma-separated, under 500 characters):
+otzi, ötzi the iceman, otzi the iceman, iceman, who killed otzi, tyrolean iceman, copper age, ancient murder, oldest murder mystery, cold case, ancient history documentary, archaeology, prehistoric europe, mummy, glacier mummy, ötztal alps, ancient dna, ancient tattoos, history documentary, ashen atlas
+
+PINNED COMMENT:
+Ötzi was shot in the back, high in the Alps, and his killer left the copper axe behind. Was it robbery, revenge or a fight that went wrong? Tell us your theory below.
+
+SCHEDULE (Baku time, aimed at US/EU audience):
+Full video: Sat 29 Nov, 02:00 (Fri 23:00 CET / 17:00 ET)
+
+
+=== SHORT 1: The arrowhead ===
+TITLE: He Was Shot in the Back 5,300 Years Ago #shorts
+DESCRIPTION:
+In 2001, an X-ray of Ötzi the Iceman showed a stone arrowhead in his left shoulder. He was murdered high in the Alps around 3300 BCE. Full documentary on the channel.
+AI-generated reconstructions.
+#shorts #Otzi #Iceman #AncientHistory
+TAGS: otzi, ötzi the iceman, ancient murder, cold case, shorts, archaeology, copper age, mummy
+COVER: Cover_OTZI_Arrow.jpg
+SCHEDULE: Sat 29 Nov, 22:00 Baku
+
+=== SHORT 2: The last meal ===
+TITLE: His Last Meal Was Still in His Stomach #shorts
+DESCRIPTION:
+Scientists studied the stomach of Ötzi the Iceman and found his last meal: ibex meat, fat and einkorn wheat, eaten shortly before he died 5,300 years ago. Full documentary on the channel.
+AI-generated reconstructions.
+#shorts #Otzi #Iceman #Archaeology
+TAGS: otzi, ötzi the iceman, last meal, ancient food, shorts, archaeology, mummy, prehistoric
+COVER: Cover_OTZI_Meal.jpg
+SCHEDULE: Sun 30 Nov, 22:00 Baku
+
+=== SHORT 3: The tattoos ===
+TITLE: This Man Had 61 Tattoos 5,300 Years Ago #shorts
+DESCRIPTION:
+Ötzi the Iceman carries the oldest known tattoos on a human body: 61 lines and crosses, made with charcoal, many over his joints. Full documentary on the channel.
+AI-generated reconstructions.
+#shorts #Otzi #AncientTattoos #AncientHistory
+TAGS: otzi, ancient tattoos, oldest tattoos, ötzi the iceman, shorts, archaeology, mummy, copper age
+COVER: Cover_OTZI_Tattoos.jpg
+SCHEDULE: Mon 1 Dec, 22:00 Baku
+
+RELATED VIDEO for all 3 Shorts: the full Ötzi documentary.
