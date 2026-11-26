@@ -1,6 +1,14 @@
-# Ashen Atlas: documentary production pipeline
+# Ashen Chronicles: documentary production pipeline
 
-Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Shorts, thumbnails, Short covers, SRT subtitles and metadata. Videos, images and models are not stored here (too large). Everything is regenerated from these scripts.
+Code for the Ashen Chronicles YouTube channel (renamed from Ashen Atlas on 26 Nov 2026, because other channels share the old name). Each long documentary ships with 3 Shorts, thumbnails, Short covers, SRT subtitles and metadata. Videos, images and models are not stored here (too large). Everything is regenerated from these scripts.
+
+## Brand (from Video #4)
+
+- Name: Ashen Chronicles. Handle: @AshenChronicles (fallback @AshenChroniclesHistory). Tagline: Real people · Lost worlds · Forgotten stories.
+- Logo: assets/logo.png (= assets/branding/logo_1_green_king.png, swap if the user picks variant 2 or 3). Old compass logo: assets/logo_atlas_compass_old.png.
+- Banners and logo variants: assets/branding/. Fonts: Cinzel (OFL).
+- On-screen name, outro line and metadata tags use "Ashen Chronicles". Videos #1-#3 keep the old name.
+- Template for new videos: videos/04-otzi/ (brand strings already updated).
 
 ## Publishing plan
 

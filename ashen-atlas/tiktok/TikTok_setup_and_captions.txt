@@ -1,7 +1,7 @@
-ASHEN ATLAS – TIKTOK
+ASHEN CHRONICLES – TIKTOK
 
 === PROFILE ===
-Name: Ashen Atlas
+Name: Ashen Chronicles
 Username: ashenatlasdocs   (fallback: ashenatlas)
 Profile photo: AshenAtlas_profile_720.png
 Bio (max 80 chars):

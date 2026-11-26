@@ -47,7 +47,7 @@ SOURCES
 #Otzi #AncientHistory #Documentary
 
 TAGS (comma-separated, under 500 characters):
-otzi, ötzi the iceman, otzi the iceman, iceman, who killed otzi, tyrolean iceman, copper age, ancient murder, oldest murder mystery, cold case, ancient history documentary, archaeology, prehistoric europe, mummy, glacier mummy, ötztal alps, ancient dna, ancient tattoos, history documentary, ashen atlas
+otzi, ötzi the iceman, otzi the iceman, iceman, who killed otzi, tyrolean iceman, copper age, ancient murder, oldest murder mystery, cold case, ancient history documentary, archaeology, prehistoric europe, mummy, glacier mummy, ötztal alps, ancient dna, ancient tattoos, history documentary, ashen chronicles
 
 PINNED COMMENT:
 Ötzi was shot in the back, high in the Alps, and his killer left the copper axe behind. Was it robbery, revenge or a fight that went wrong? Tell us your theory below.
