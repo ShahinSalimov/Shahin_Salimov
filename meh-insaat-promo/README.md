@@ -15,7 +15,7 @@ Qaydalar (bütün layihə üçün):
 | 2 | 6–12 | Beton təməl | 3-cü şəkil | Möhkəm təməl — etibarlı gələcək. |
 | 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil | MEH-İnşaat — evinizi sıfırdan tikirik. |
 | 4 | 18–24 | Asfalt | 7-ci şəkil | Yol və asfalt işləri. |
-| 4B | 24–29 | Küçə və park işıqlandırması | **yaradılmalı** | Küçə və park işıqlandırması. |
+| 4B | 24–29 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` | Küçə və park işıqlandırması. |
 | 5 | 29–34 | Elektrik | 9-cu şəkil | Elektrik təchizatı — tam təhlükəsizliklə. |
 | 6 | 34–39 | Havalandırma | 12-ci şəkil | Havalandırma sistemləri... |
 | 7 | 39–44 | Kondisioner | 13-cü şəkil | ...və kondisionerlərin quraşdırılması. |
