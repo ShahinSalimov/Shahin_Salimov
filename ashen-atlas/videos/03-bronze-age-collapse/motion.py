@@ -161,8 +161,9 @@ def apply_fx(f, fx, t, idx):
         glow = cv2.GaussianBlur(layer, (0, 0), 2.5)
         layer = cv2.resize(layer * 0.8 + glow * 1.6, (W, H), interpolation=cv2.INTER_LINEAR)
         f = f + layer * (0.55 if fx == {"dust"} else 0.8)
-    g = cv2.resize(_GRAIN[int(t * 25) % len(_GRAIN)], (W, H), interpolation=cv2.INTER_NEAREST)
-    return f + g[..., None] * 3.5
+    # light grain, refreshed ~6x/s: per-frame noise triples the file size and turns to blocks at upload bitrates
+    g = cv2.resize(_GRAIN[int(t * 6) % len(_GRAIN)], (W, H), interpolation=cv2.INTER_LINEAR)
+    return f + g[..., None] * 1.6
 
 def frame(path, prompt, u, t, idx, vig=None):
     f = camera(path, u, idx)
