@@ -4,27 +4,30 @@ Qaydalar (bütün layihə üçün):
 - Logo (işarə, ad, yazılar, rənglər, şrift) **heç vaxt dəyişdirilmir**. Logo olan kadrlarda AI yalnız fonu yaradır, logo orijinal fayldan montajda qoyulur.
 - Kadrlarda **yalnız kişilər**.
 - Əsas fokus: 1–3 mərtəbəli fərdi evlər və mənzillər. Hündür bina yalnız qısa 10B kadrında.
-- Səssiz, alt yazısız. Voiceover ElevenLabs-də ayrıca.
+- Səssiz, alt yazısız. Voiceover prompt-ları video hazır olandan sonra, real saniyələrə görə yazılacaq.
 - Əlaqə: **070 711 22 54**
 
 ## Ssenari və təsdiqlənmiş şəkillər
 
-| # | Zaman | Səhnə | Şəkil | Voiceover |
+Bütün seçilmiş şəkillər bir lövhədə: `reference_board.jpg`
+
+
+| # | Zaman | Səhnə | Şəkil |
 |---|---|---|---|---|
-| 1 | 0–6 | Boş sahə, gündoğan | Göndərilən 1-ci şəkil | Hər böyük layihə boş bir torpaqdan başlayır. |
-| 2 | 6–12 | Beton təməl | 3-cü şəkil | Möhkəm təməl — etibarlı gələcək. |
-| 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil | MEH-İnşaat — evinizi sıfırdan tikirik. |
-| 4 | 18–24 | Asfalt | 7-ci şəkil | Yol və asfalt işləri. |
-| 4B | 24–29 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` | Küçə və park işıqlandırması. |
-| 5 | 29–34 | Elektrik | 9-cu şəkil | Elektrik təchizatı — tam təhlükəsizliklə. |
-| 6 | 34–39 | Havalandırma | 12-ci şəkil | Havalandırma sistemləri... |
-| 7 | 39–44 | Kondisioner | 13-cü şəkil | ...və kondisionerlərin quraşdırılması. |
-| 8 | 44–50 | Daxili təmir | 16-cı şəkil | Daxili təmir — hər detalda keyfiyyət. |
-| 9 | 50–55 | Hazır interyer | 17-ci şəkil | Nəticə — arzuladığınız məkan. |
-| 9B | 55–58 | Ofis divarında logo | **hazırdır**: `scenes/09B_office_logo_3s.mp4` | (musiqi) |
-| 10 | 58–64 | Komanda (yalnız kişilər) fərdi evin qarşısında | `scenes/10_team.jpg` | Bir, iki və üç mərtəbəli evlər — açar təhvil. |
-| 10B | 64–67 | Böyük bina, qısa | `scenes/10B_building.jpg` | Daha böyük layihələr də bizə etibar olunur. |
-| 11 | 67–77 | Logo outro + nömrə | **hazırdır**: `outro/MEH_Insaat_logo_outro_9x16_10s.mp4` | MEH-İnşaat MMC. Təmir və tikinti xidmətləri. Zəng edin: sıfır yetmiş, yeddi yüz on bir, iyirmi iki, əlli dörd. |
+| 1 | 0–6 | Boş sahə, gündoğan | Göndərilən 1-ci şəkil |
+| 2 | 6–12 | Beton təməl | 3-cü şəkil |
+| 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil |
+| 4 | 18–24 | Asfalt | 7-ci şəkil |
+| 4B | 24–29 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` |
+| 5 | 29–34 | Elektrik | 9-cu şəkil |
+| 6 | 34–39 | Havalandırma | 12-ci şəkil |
+| 7 | 39–44 | Kondisioner | 13-cü şəkil |
+| 8 | 44–50 | Daxili təmir | 16-cı şəkil |
+| 9 | 50–55 | Hazır interyer | 17-ci şəkil |
+| 9B | 55–58 | Ofis divarında logo | **hazırdır**: `scenes/09B_office_logo_3s.mp4` |
+| 10 | 58–64 | Komanda (yalnız kişilər) fərdi evin qarşısında | `scenes/10_team.jpg` |
+| 10B | 64–67 | Böyük bina, qısa | `scenes/10B_building.jpg` |
+| 11 | 67–77 | Logo outro + nömrə | **hazırdır**: `outro/MEH_Insaat_logo_outro_9x16_10s.mp4` |
 
 ### Scene 4B — küçə və park işıqlandırması
 ```
