@@ -1,6 +1,8 @@
 # 11 — YouTube Upload Checklist (hər video üçün)
 
 ## Export (CapCut)
+Uzun video (L01/L02): 1920x1080 və ya 3840x2160, 16:9, thumbnail 1280x720. Short-lar üçün aşağıdakı qaydalar.
+
 - [ ] 1080x1920, 30 fps (və ya 60 fps), H.264, bitrate "Higher"
 - [ ] Müddət 30 san və ya az (Shorts limiti 3 dəqiqədir, amma bu kanalın formatı 20–30 san)
 - [ ] İlk kadrda hərəkət var, qara ekranla başlamır
@@ -17,7 +19,7 @@
 7. [ ] **Tags**: epizod faylındakı teqlər
 8. [ ] **Category**: Autos & Vehicles
 9. [ ] **Comments**: On, "Hold potentially inappropriate comments"
-10. [ ] **Visibility → Schedule**: yayım tarixi, **19:00 (GMT+4 Baku)**
+10. [ ] **Visibility → Schedule**: tarix və saat `08_Yayim_Teqvimi.md`-dən (UTC + 4 = Bakı vaxtı). Audit gəldikdən sonra bu addımları `16_Uploader` avtomatik edir
 
 ## Yayımdan dərhal sonra
 - [ ] Pinned comment yaz (epizod faylında hazırdır) və **Pin** et
@@ -25,6 +27,8 @@
 - [ ] İlk 1 saatda gələn hər şərhə cavab ver
 
 ## Kanal bir dəfəlik quraşdırma (ilk videodan əvvəl)
+Tam və yenilənmiş versiya: `12_Branding/Kanal_Qurasdirma.md` (Avropa/Amerika üçün EN + DE/ES/FR). Aşağıdakı qısa versiyadır.
+
 - [ ] Handle: @salimofffgarage
 - [ ] Banner + avatar: SALIMOFFF loqosu, mat qara fon (loqonu dəyişmədən istifadə et)
 - [ ] Kanal təsviri:

@@ -1,5 +1,5 @@
 # EP007 — Evolution Loop: BMW Grille Evolution 1960–2026
-**Yayım:** 08.12.2026, 19:00 | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
+**Yayım:** 30.11.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
 Loop qaydası EP002 ilə eynidir: Prompt 2-nin end frame-i = Prompt 1-in ilk kadrı. Hər era üçün Pinterest referansı götür. Konkret model adları yazılmayıb, era üslubu ilə təsvir olunub.
 
 ## Ssenari

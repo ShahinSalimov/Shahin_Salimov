@@ -1,5 +1,5 @@
 # EP015 — Ghost Garage #006: The Midnight Gift
-**Yayım:** 24.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 24.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Bayram epizodu. Maşın hədiyyə qutusu kimi qırmızı lentlə bağlıdır, lent özü açılır. Musiqi: festive phonk. "Jingle Bells" melodiyası public domain-dir (19-cu əsr), amma hazır yazıları (recording) istifadə etmə, Suno-da yeni aranjiman yarat. Suno mahnı adını bloklasa, "festive sleigh bells melody" yaz.
 
 ## Ssenari

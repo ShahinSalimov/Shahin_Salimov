@@ -1,5 +1,5 @@
 # EP006 — Ghost Garage #003: Gold Edition
-**Yayım:** 06.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 28.11.2026, 23:00 UTC (00:00 CET · 18:00 ET · 15:00 PT · 03:00 Bakı, növbəti gün) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Konsept: qara qarajda qızılı detallar macro ASMR ilə quraşdırılır. Vokallı epizod, hook ekranda caption kimi göstərilir.
 
 ## Ssenari

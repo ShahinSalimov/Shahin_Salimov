@@ -22,7 +22,14 @@ Müəllif: Şahin Səlimov (SALIMOFFF)
 ## Qeyd
 Kanalların dəqiq abunəçi/baxış rəqəmləri açıq mənbələrdə olmadığı üçün analizə daxil edilməyib. Rəqəmlər yalnız mənbədə göstərildiyi qədərdir.
 
+| 12_Branding/ | **YENİ (26.11):** avatar, banner, watermark, loqo, thumbnail overlay-ləri + `Kanal_Qurasdirma.md` (name, handle, description EN/DE/ES/FR, keywords, playlistlər, bütün ayarlar) |
+| 13_Uzun_Videolar/ | **YENİ:** L01 və L02, 16:9, ≈5:30, chapters, promptlar, musiqi, metadata |
+| 14_Macro_Moments.md | **YENİ:** 13 qısa macro Short (MM01–MM13) |
+| 15_Prompt_Reveal.md | **YENİ:** "The exact prompt behind..." Short formatı (PR01–PR13) |
+| 16_Uploader/ | **YENİ:** YouTube Data API ilə planlanmış upload proqramı + `schedule.json` |
+
 ## Haradan başlamalı
-1. `11_Upload_Checklist.md` → "Kanal bir dəfəlik quraşdırma" bölməsi.
-2. `08_Yayim_Teqvimi.md` → bugünkü epizod.
-3. `10_Epizodlar/EP001_Ghost_Garage_001.md` → promptları Kling-ə, musiqini Suno-ya yapışdır, CapCut-da `09` faylındakı beat sync addımları ilə montaj et.
+1. `12_Branding/Kanal_Qurasdirma.md`: kanalı sıfırdan qur (≈1 saat).
+2. `08_Yayim_Teqvimi.md`: ritm və saatlar (Avropa + Amerika). İlk 2 gün: 1 uzun video + 3 Short, sonra 1 gündən bir 3 Short.
+3. `13_Uzun_Videolar/L01...` və `10_Epizodlar/EP001-003`: 27.11 üçün generasiya.
+4. Yükləmə: indi YouTube Studio-da Schedule ilə, API audit gəldikdən sonra `16_Uploader` ilə.

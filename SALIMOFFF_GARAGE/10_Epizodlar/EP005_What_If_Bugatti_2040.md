@@ -1,5 +1,5 @@
 # EP005 — What If: What If Bugatti Built a Car in 2040?
-**Yayım:** 04.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
+**Yayım:** 28.11.2026, 14:00 UTC (15:00 CET · 09:00 ET · 06:00 PT · 18:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
 Fan-made konsept. Loqonu dəqiq kopyalamağa çalışma, alət brend adını bloklasa "French luxury hypercar brand" yaz. Əvvəlcə Midjourney/ChatGPT ilə 1 konsept şəkil yarat, onu 3 hissədə referans kimi istifadə et.
 
 ## Ssenari

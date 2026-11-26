@@ -1,5 +1,5 @@
 # EP014 — Barn to Billion: Volga 21 — From Village Barn to Restomod
-**Yayım:** 22.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 14.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Yerli auditoriya üçün nostalji epizod: Azərbaycan və postsovet izləyicisi bu maşını tanıyır, şərh və paylaşım ehtimalı yüksəkdir. Pinterest-dən GAZ-21 Volga referans şəkli götür. Musiqi: retro estrada üslubunda **orijinal** melodiya (real sovet mahnısı istifadə etmə) → phonk remix.
 
 ## Ssenari

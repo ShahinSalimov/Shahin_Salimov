@@ -1,5 +1,5 @@
 # EP004 — Barn to Billion: Found in a Barn, Reborn in 30 Seconds
-**Yayım:** 02.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 28.11.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Bu epizodda **"Next car — you choose"** mexanikası başlayır (EP011 üçün). Musiqi kontrastı: köhnə = harmonica blues, yeni = hard rock.
 
 Referans: Pinterest-dən "1960s classic coupe barn find" şəkli (brendsiz və ya istədiyin klassik). Hər hissədə eyni referans.

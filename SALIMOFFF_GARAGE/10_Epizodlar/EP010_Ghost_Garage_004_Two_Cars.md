@@ -1,5 +1,5 @@
 # EP010 — Ghost Garage #004: Two Cars, One Garage
-**Yayım:** 14.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference, 2 referans) + Suno
+**Yayım:** 06.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference, 2 referans) + Suno
 İki maşın eyni anda yığılır: sol tərəfdə qırmızı, sağda qara. Sonda üz-üzə faralar. Musiqi "duel" kimi: hər maşının öz beat-i, sonda birləşir.
 
 Omni Reference-də iki ayrı referans şəkil ver (qırmızı super-coupe və qara super-coupe). Alət iki maşını qarışdırırsa, hər maşını ayrı generasiya edib CapCut-da split screen et.
@@ -74,5 +74,5 @@ author: SALIMOFFF
 
 **Pinned comment**
 ```
-Red or Black? One word. Also: Episode #005 is built from YOUR comments, out on 16.12.
+Red or Black? One word. Also: Episode #005 is built from YOUR comments, out on Dec 8.
 ```

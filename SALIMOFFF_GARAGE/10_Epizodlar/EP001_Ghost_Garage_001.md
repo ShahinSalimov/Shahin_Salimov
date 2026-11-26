@@ -1,5 +1,5 @@
 # EP001 — Ghost Garage #001: This Car Built Itself at 3AM
-**Yayım:** 26.11.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 27.11.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Video promptları zip-dəki `05_Promptlar/` ilə eynidir, dəyişdirilməyib. Musiqi qatı əlavə olunub.
 
 ## Ssenari

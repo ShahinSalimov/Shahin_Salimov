@@ -1,6 +1,6 @@
 # EP011 — Ghost Garage #005: You Chose This Car
-**Yayım:** 16.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
-Maşın EP004 və EP008-in pinned comment-lərindən seçilir: ən çox like alan şərh qalib olur. Promptlarda `[CAR MODEL]` və `[COLOR]` yerinə qalib maşını yaz, Pinterest-dən onun referans şəklini Omni Reference-ə əlavə et.
+**Yayım:** 08.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+Maşın EP004 və EP008-in pinned comment-lərindən (və L01-in pinned comment-indən) seçilir: ən çox like alan şərh qalib olur. Promptlarda `[CAR MODEL]` və `[COLOR]` yerinə qalib maşını yaz, Pinterest-dən onun referans şəklini Omni Reference-ə əlavə et.
 
 Şərhlərdə uyğun model olmasa (və ya şərh az gəlsə), ehtiyat variant: **matte grey luxury hyper-SUV**. Videonun sonunda "Chosen by @username" yazısını yalnız real qalib olanda göstər.
 

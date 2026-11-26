@@ -1,5 +1,5 @@
 # EP013 — What If: What If a Hypercar Was Made of Ice?
-**Yayım:** 20.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
+**Yayım:** 12.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
 Qış/Yeni il dövrü. Brendsiz konsept, ona görə bloklanma riski yoxdur. Buz şəffaflığı ən yaxşı alınan şeydir: macro kadrlara üstünlük ver.
 
 ## Ssenari

@@ -1,5 +1,5 @@
 # EP003 — Ghost Garage #002: The White Ghost
-**Yayım:** 30.11.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 27.11.2026, 23:00 UTC (00:00 CET · 18:00 ET · 15:00 PT · 03:00 Bakı, növbəti gün) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Hər 3 hissədə eyni referans şəkil (ağ ultra-lüks sedan). Konsept: qarajın içinə qar yağır, maşın qar dənələri arasında yığılır.
 
 ## Ssenari

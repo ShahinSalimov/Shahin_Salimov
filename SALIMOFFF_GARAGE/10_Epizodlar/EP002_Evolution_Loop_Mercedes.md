@@ -1,5 +1,5 @@
 # EP002 — Evolution Loop: Mercedes Headlights 1980–2026 in 20 Seconds
-**Yayım:** 28.11.2026, 19:00 | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
+**Yayım:** 27.11.2026, 14:00 UTC (15:00 CET · 09:00 ET · 06:00 PT · 18:00 Bakı) | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
 Bu epizod 2 hissədir (2 x 10 san). Loop üçün: Prompt 2-nin son kadrı Prompt 1-in ilk kadrı ilə eyni olmalıdır. Kling-də Prompt 2-də **end frame** kimi Prompt 1-in ilk kadrının screenshot-unu ver.
 
 Qeyd: modellərin dəqiq il/kuzov kodlarını yazmamışam, era üslubları ilə təsvir olunub. Daha dəqiq nəticə üçün Pinterest-dən hər era üçün 1 referans şəkil götür. Alət brend adını bloklasa, "German luxury sedan" yaz və referans şəkillərə güvən.

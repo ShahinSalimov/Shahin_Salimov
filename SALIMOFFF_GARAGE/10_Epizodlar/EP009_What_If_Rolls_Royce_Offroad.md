@@ -1,5 +1,5 @@
 # EP009 — What If: What If Rolls-Royce Made an Off-Roader?
-**Yayım:** 12.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
+**Yayım:** 04.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 + Suno
 Fan-made konsept. Əvvəlcə 1 konsept şəkil yarat (ultra-lüks off-road, iri təkərlər, panteon tipli barmaqlıq, emblemsiz), sonra onu referans kimi istifadə et. Alət brend adını bloklasa: "British ultra-luxury brand".
 
 ## Ssenari

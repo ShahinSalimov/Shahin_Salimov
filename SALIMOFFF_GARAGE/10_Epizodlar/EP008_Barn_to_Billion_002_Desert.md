@@ -1,5 +1,5 @@
 # EP008 — Barn to Billion: Desert Wreck to Desert King
-**Yayım:** 10.12.2026, 19:00 | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
+**Yayım:** 02.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 30 san | **Format:** 9:16 | **Alət:** Kling 4.0 (Omni Reference) + Suno
 Səhrada qumun altından çıxan köhnə pickup → off-road monster. "Next car — you choose" ikinci dəfə soruşulur (EP004-dəki ilə birlikdə hesablanır).
 
 ## Ssenari
@@ -65,5 +65,5 @@ author: SALIMOFFF
 
 **Pinned comment**
 ```
-Last call: comment the car for Ghost Garage #005. Most liked comment gets built on 16.12, with your name in the video.
+Last call: comment the car for Ghost Garage #005. Most liked comment gets built on Dec 8, with your name in the video.
 ```

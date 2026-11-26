@@ -1,5 +1,5 @@
 # EP012 — Evolution Loop: Porsche 911 Silhouette 1964–2026
-**Yayım:** 18.12.2026, 19:00 | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
+**Yayım:** 10.12.2026, 18:00 UTC (19:00 CET · 13:00 ET · 10:00 PT · 22:00 Bakı) | **Müddət:** 20 san (sonsuz loop) | **Format:** 9:16 | **Alət:** Kling 4.0 (start/end frame) + Suno
 Fərqli bucaq: ön yox, **yan profil silueti**. 911-in silueti 60 ildən çoxdur tanınır, morph effekti burada çox təmiz görünür. Loop qaydası EP002 ilə eynidir. Konkret nəsil kodları yazılmayıb, era üslubu ilə təsvir olunub.
 
 ## Ssenari

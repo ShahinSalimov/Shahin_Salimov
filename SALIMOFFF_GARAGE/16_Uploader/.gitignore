@@ -1,0 +1,6 @@
+client_secret.json
+token.json
+uploaded.json
+videos/
+thumbnails/
+__pycache__/
