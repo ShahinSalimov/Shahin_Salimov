@@ -4,7 +4,7 @@ Code for the Ashen Crown YouTube channel (renamed from Ashen Atlas on 26 Nov 202
 
 ## Brand (from Video #4)
 
-- Name: Ashen Crown. Handle: @AshenCrown (set by the user on 26 Nov 2026). Tagline: Real people · Lost worlds · Forgotten stories.
+- Name: Ashen Crown. Handle: @AshenCrown-i6f (YouTube-assigned suffix, kept by the user on 26 Nov 2026). Never say or show the handle in videos; use the channel name and links. Tagline: Real people · Lost worlds · Forgotten stories.
 - Logo: assets/logo.png (= assets/branding/logo_1_green_king.png, swap if the user picks variant 2 or 3). Old compass logo: assets/logo_atlas_compass_old.png.
 - Banners and logo variants: assets/branding/. Fonts: Cinzel (OFL). Name chosen to match the crowned bronze king logo.
 - On-screen name, outro line and metadata tags use "Ashen Crown". Videos #1-#3 keep the old name.
