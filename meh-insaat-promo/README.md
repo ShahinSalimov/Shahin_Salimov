@@ -13,17 +13,23 @@ Qaydalar (bütün layihə üçün):
 |---|---|---|---|---|
 | 1 | 0–6 | Boş sahə, gündoğan | Göndərilən 1-ci şəkil | Hər böyük layihə boş bir torpaqdan başlayır. |
 | 2 | 6–12 | Beton təməl | 3-cü şəkil | Möhkəm təməl — etibarlı gələcək. |
-| 3 | 12–19 | 2 mərtəbəli fərdi ev tikilir | Sonuncu (20-ci) şəkil | MEH-İnşaat — evinizi sıfırdan tikirik. |
-| 4 | 19–25 | Asfalt | 7-ci şəkil | Yol və asfalt işləri. |
-| 5 | 25–31 | Elektrik | 9-cu şəkil | Elektrik təchizatı — tam təhlükəsizliklə. |
-| 6 | 31–37 | Havalandırma | 12-ci şəkil | Havalandırma sistemləri... |
-| 7 | 37–43 | Kondisioner | 13-cü şəkil | ...və kondisionerlərin quraşdırılması. |
-| 8 | 43–50 | Daxili təmir | 16-cı şəkil | Daxili təmir — hər detalda keyfiyyət. |
+| 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil | MEH-İnşaat — evinizi sıfırdan tikirik. |
+| 4 | 18–24 | Asfalt | 7-ci şəkil | Yol və asfalt işləri. |
+| 4B | 24–29 | Küçə və park işıqlandırması | **yaradılmalı** | Küçə və park işıqlandırması. |
+| 5 | 29–34 | Elektrik | 9-cu şəkil | Elektrik təchizatı — tam təhlükəsizliklə. |
+| 6 | 34–39 | Havalandırma | 12-ci şəkil | Havalandırma sistemləri... |
+| 7 | 39–44 | Kondisioner | 13-cü şəkil | ...və kondisionerlərin quraşdırılması. |
+| 8 | 44–50 | Daxili təmir | 16-cı şəkil | Daxili təmir — hər detalda keyfiyyət. |
 | 9 | 50–55 | Hazır interyer | 17-ci şəkil | Nəticə — arzuladığınız məkan. |
-| 9B | 55–58 | Ofis divarında logo | **yaradılmalı** | (səssiz pauza, musiqi) |
-| 10 | 58–64 | Komanda (yalnız kişilər) fərdi evin qarşısında | **yaradılmalı** | Bir, iki və üç mərtəbəli evlər — açar təhvil. |
-| 10B | 64–67 | Böyük bina, qısa | **yaradılmalı** | Daha böyük layihələr də bizə etibar olunur. |
+| 9B | 55–58 | Ofis divarında logo | **hazırdır**: `scenes/09B_office_logo_3s.mp4` | (musiqi) |
+| 10 | 58–64 | Komanda (yalnız kişilər) fərdi evin qarşısında | `scenes/10_team.jpg` | Bir, iki və üç mərtəbəli evlər — açar təhvil. |
+| 10B | 64–67 | Böyük bina, qısa | `scenes/10B_building.jpg` | Daha böyük layihələr də bizə etibar olunur. |
 | 11 | 67–77 | Logo outro + nömrə | **hazırdır**: `outro/MEH_Insaat_logo_outro_9x16_10s.mp4` | MEH-İnşaat MMC. Təmir və tikinti xidmətləri. Zəng edin: sıfır yetmiş, yeddi yüz on bir, iyirmi iki, əlli dörd. |
+
+### Scene 4B — küçə və park işıqlandırması
+```
+Ultra-realistic cinematic shot, vertical 9:16, blue hour, a male electrician in a navy blue work uniform and white hard hat standing in the basket of an aerial work platform, adjusting a sleek modern LED street lamp that has just switched on, below him a landscaped park alley in front of a modern corporate office campus, rows of elegant lamp posts and warm bollard lights glowing along curved paved paths, trees uplit with warm light, glass office facade softly lit in the background, deep blue sky with a soft orange horizon, 28mm lens, low angle, high dynamic range, photorealistic, all male, no women, no text, no logos
+```
 
 Atılan şəkillər: 2, 4, 5, 6, 8, 10, 11, 14, 15, 18 (ehtiyat variantlar), 19 (qadınlar və bina var).
 
