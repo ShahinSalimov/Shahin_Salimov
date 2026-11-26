@@ -7,6 +7,7 @@ import gen as G
 S = sys.argv[1]; STEP = sys.argv[2]; ID = sys.argv[3]
 OUT = f"{S}/short_{ID}"; os.makedirs(OUT, exist_ok=True)
 W, H, FPS = 1080, 1920, 30
+MOTION = os.environ.get("MOTION", "1") != "0"  # 2.5D depth parallax + atmosphere (motion.py)
 
 END = ("Follow for more lost worlds. Full documentary on YouTube.", "FOLLOW FOR MORE", [])
 SEA = "Sea Peoples warrior with a tall feathered headdress, bronze armour and a round shield"
@@ -168,13 +169,16 @@ def kb(s, u, mode):
     return cv2.warpAffine(s, M, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
 yy, xx = np.mgrid[0:H, 0:W]; r = np.sqrt(((xx - W / 2) / (W / 2)) ** 2 + ((yy - H / 2) / (H / 2)) ** 2)
 VIG = np.clip(1 - .3 * np.clip(r - .6, 0, None) ** 1.5 * 1.6, .55, 1).astype(np.float32)[..., None]
+if MOTION:
+    import motion as M
+    M.init(OUT); M.set_size(W, H)
 shots = []
 for i, (_, _, ps) in enumerate(SEGS):
     a, b = seg_bounds[i], seg_bounds[i + 1]
     if i == 0: a = 0
-    if not ps: shots.append((a, b, None)); continue
+    if not ps: shots.append((a, b, None, "")); continue
     d = (b - a) / len(ps)
-    for j in range(len(ps)): shots.append((a + j * d, a + (j + 1) * d, f"{OUT}/img_{i}_{j}.png"))
+    for j in range(len(ps)): shots.append((a + j * d, a + (j + 1) * d, f"{OUT}/img_{i}_{j}.png", ps[j]))
 logo = Image.open(f"{S}/img/i-001.png").convert("RGBA").resize((560, 560), Image.LANCZOS)
 m = Image.new("L", (2240, 2240), 0); ImageDraw.Draw(m).ellipse((160, 160, 2080, 2080), fill=255); logo.putalpha(m.resize((560, 560), Image.LANCZOS))
 lay_cache = {}
@@ -206,12 +210,13 @@ def end_layer():
         fnt = F(SERIF, 70); t = "ASHEN ATLAS"; tw = dr.textlength(t, font=fnt); dr.text(((W - tw) / 2, 1180), t, font=fnt, fill=GOLD + (255,))
     return layer(("end",), d)
 def frame(t):
-    i = next((k for k, (a, b, _) in enumerate(shots) if a <= t < b), len(shots) - 1)
+    i = next((k for k, (a, b, *_) in enumerate(shots) if a <= t < b), len(shots) - 1)
     def shot(k, t):
-        a, b, p = shots[k]; u = min(1, max(0, (t - a) / (b - a)))
+        a, b, p, pr = shots[k]; u = min(1, max(0, (t - a) / (b - a)))
         if p is None: return np.zeros((H, W, 3), np.float32) + 14
+        if MOTION: return M.frame(p, pr, u, t - a, k, VIG)
         return kb(src(p), u, k).astype(np.float32) * VIG
-    f = shot(i, t); a, b, _ = shots[i]
+    f = shot(i, t); a, b = shots[i][:2]
     if i + 1 < len(shots) and t > b - .35:
         w = (t - (b - .35)) / .35; f = f * (1 - w) + shot(i + 1, t) * w
     seg = next((k for k in range(len(SEGS)) if seg_bounds[k] <= t < seg_bounds[k + 1]), len(SEGS) - 1)

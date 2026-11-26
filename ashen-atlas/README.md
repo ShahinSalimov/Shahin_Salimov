@@ -26,7 +26,7 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 | Images | `gen.py ROOT` (SDXL-Turbo, 1024x576, 4 steps) | `ROOT/gen/*.png` |
 | Review | `sheet.py ROOT FROM TO out.jpg` | contact sheet |
 | Graphics | `graphics.py ROOT` | maps, timeline, diagrams |
-| Video | `render.py ROOT out.mp4` | 1080p25 video + `timeline.json` |
+| Video | `render.py ROOT out.mp4` (uses `motion.py`; `MOTION=0` for old Ken Burns) | 1080p25 video + `timeline.json` |
 | Music | `music.py ROOT` | original procedural score, ducked under the voice, `mix.wav` |
 | Subtitles | `srt.py ROOT out.srt` | English SRT |
 | Shorts | `gshort.py ROOT img ID`, then `render ID` | 1080x1920 Shorts |
@@ -34,9 +34,20 @@ Code for the Ashen Atlas YouTube channel. Each long documentary ships with 3 Sho
 
 `chain.sh` / `chain2.sh` run the steps in order. They contain absolute scratchpad paths from the session that produced them. Edit the paths before reusing.
 
+## Motion format (from Video #4 on)
+
+Every still is animated by `motion.py`, never shown as a flat Ken Burns pan:
+
+- Depth map per image (Depth-Anything-V2-Small, CPU, ~3.5 s each, cached in `ROOT/depth/`).
+- 2.5D parallax camera: near layers move and grow faster than the background. Six moves cycle per shot: push-in, truck right, push-in + drift, crane up, pull-out, truck left.
+- Atmosphere chosen from prompt keywords: dust motes always; embers + light flicker for fire/torch/lamp/smoke; drifting ground fog for sea/coast/mist/storm/mountain/night/ruin; snow for ice/snow/glacier. Film grain on every frame.
+- Cost: ~125 ms per frame, about 45-60 min for a 14-min video.
+- Write shot prompts with a clear foreground subject (person, object) against a deeper background: parallax only reads when there is depth in the picture.
+
 ## Environment
 
-- Python venv with: `kokoro-onnx onnxruntime soundfile numpy scipy torch diffusers pillow opencv-python-headless "geopandas<1.0"`
+- Python venv with: `kokoro-onnx onnxruntime soundfile numpy scipy torch diffusers transformers pillow opencv-python-headless "geopandas<1.0"`
+- Depth model `depth-anything/Depth-Anything-V2-Small-hf` downloads from Hugging Face on first run (~100 MB).
 - Kokoro TTS model files `kokoro-v1.0.onnx` and `voices-v1.0.bin` in `ROOT/models/` (from the kokoro-onnx releases).
 - SDXL-Turbo (`stabilityai/sdxl-turbo`) downloads from Hugging Face on first run.
 - ffmpeg, Inter and DejaVu fonts.

@@ -4,6 +4,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from shots import SHOTS
 import gen as G  # reuse prompt expansion (gen.py exits early only when run as main)
+import motion as M  # 2.5D depth parallax + atmosphere; MOTION=0 falls back to plain Ken Burns
+MOTION = os.environ.get("MOTION", "1") != "0"
 
 S = sys.argv[1]; OUTMP4 = sys.argv[2]
 T0 = float(sys.argv[3]) if len(sys.argv) > 3 else 0.0      # preview range
@@ -18,6 +20,7 @@ GOLD = (212, 169, 98); ORANGE = (230, 120, 50); CREAM = (245, 236, 220); GREY = 
 GRAPH = {k: k for k in ("G1", "G2", "G3", "G4", "G5")}
 
 man = json.load(open(f"{S}/narration/manifest.json"))
+M.init(S)
 paras = json.load(open(f"{S}/paras.json"))
 
 # ---------- timeline ----------
@@ -158,7 +161,8 @@ def render_shot(sh, lt, dur, idx):
     u = min(max(lt / max(dur, 0.01), 0), 1)
     u = u * u * (3 - 2 * u) * 0.6 + u * 0.4
     if kind in ("ai", "art"):
-        f = kenburns(load_src(img_for(kind, sh[1])), u, idx).astype(np.float32) * VIG
+        if MOTION: f = M.frame(img_for(kind, sh[1]), sh[1], u, lt, idx, VIG)
+        else: f = kenburns(load_src(img_for(kind, sh[1])), u, idx).astype(np.float32) * VIG
         if len(sh) > 2:
             a = min(1, max(0, (lt - 0.6) / 0.6)) * min(1, max(0, (dur - lt - 0.3) / 0.5))
             f = overlay(f, caption_layer(sh[2], tag=(kind == "art" and sh[2].startswith("AI illustration"))), a)
@@ -267,6 +271,10 @@ if __name__ == "__main__":
     print("TOTAL", round(TOTAL, 1), "segments", len(segs), flush=True)
     json.dump({"sec_off": sec_off, "total": TOTAL, "segs": [(a, b, list(s)) for a, b, s in segs]},
               open(f"{S}/timeline.json", "w"), indent=1)
+    if MOTION:  # precompute depth maps once (~3.5 s each on CPU), cached in S/depth
+        need = sorted({img_for(sh[0], sh[1]) for _, _, sh in segs if sh[0] in ("ai", "art")})
+        for k, pth in enumerate(need): M.depth(pth)
+        print("depth maps", len(need), flush=True)
     apath = f"{S}/narration_timeline.wav"
     if not os.path.exists(apath): build_audio(apath)
     t1 = TOTAL if T1 is None else min(T1, TOTAL)
