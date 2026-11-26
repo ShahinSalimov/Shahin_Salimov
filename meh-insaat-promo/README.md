@@ -1,4 +1,4 @@
-# MEH-İnşaat MMC — Instagram / TikTok promo (9:16, 77 san)
+# MEH-İnşaat MMC — Instagram / TikTok promo (9:16, 79 san)
 
 Qaydalar (bütün layihə üçün):
 - Logo (işarə, ad, yazılar, rənglər, şrift) **heç vaxt dəyişdirilmir**. Logo olan kadrlarda AI yalnız fonu yaradır, logo orijinal fayldan montajda qoyulur.
@@ -15,19 +15,25 @@ Bütün seçilmiş şəkillər bir lövhədə: `reference_board.jpg`
 | # | Zaman | Səhnə | Şəkil |
 |---|---|---|---|
 | 1 | 0–6 | Boş sahə, gündoğan | Göndərilən 1-ci şəkil |
-| 2 | 6–12 | Beton təməl | 3-cü şəkil |
-| 3 | 12–18 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil |
-| 4 | 18–24 | Asfalt | 7-ci şəkil |
-| 4B | 24–29 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` |
-| 5 | 29–34 | Elektrik | 9-cu şəkil |
-| 6 | 34–39 | Havalandırma | 12-ci şəkil |
-| 7 | 39–44 | Kondisioner | 13-cü şəkil |
-| 8 | 44–50 | Daxili təmir | 16-cı şəkil |
-| 9 | 50–55 | Hazır interyer | 17-ci şəkil |
-| 9B | 55–58 | Ofis divarında logo | **hazırdır**: `scenes/09B_office_logo_3s.mp4` |
-| 10 | 58–64 | Komanda (yalnız kişilər) fərdi evin qarşısında | `scenes/10_team.jpg` |
-| 10B | 64–67 | Böyük bina, qısa | `scenes/10B_building.jpg` |
-| 11 | 67–77 | Logo outro + nömrə | **hazırdır**: `outro/MEH_Insaat_logo_outro_9x16_10s.mp4` |
+| 2 | 6–11 | Beton təməl | 3-cü şəkil |
+| 3 | 11–17 | 2 mərtəbəli fərdi ev tikilir | 20-ci şəkil |
+| 4 | 17–23 | Asfalt | 7-ci şəkil |
+| 4A | 23–27 | İşıq dirəyinin sıfırdan quraşdırılması | **yaradılmalı** |
+| 4B | 27–31 | Küçə və park işıqlandırması | `scenes/04B_street_lighting.jpg` |
+| 5 | 31–36 | Elektrik | 9-cu şəkil |
+| 6 | 36–41 | Havalandırma | 12-ci şəkil |
+| 7 | 41–46 | Kondisioner | 13-cü şəkil |
+| 8 | 46–52 | Daxili təmir | 16-cı şəkil |
+| 9 | 52–57 | Hazır interyer | 17-ci şəkil |
+| 9B | 57–60 | Ofis divarında logo | **hazırdır**: `scenes/09B_office_logo_3s.mp4` |
+| 10 | 60–66 | Komanda (yalnız kişilər) fərdi evin qarşısında | `scenes/10_team.jpg` |
+| 10B | 66–69 | Böyük bina, qısa | `scenes/10B_building.jpg` |
+| 11 | 69–79 | Logo outro + nömrə | **hazırdır**: `outro/MEH_Insaat_logo_outro_9x16_10s.mp4` |
+
+### Scene 4A — işıq dirəyinin sıfırdan quraşdırılması
+```
+Ultra-realistic cinematic shot, vertical 9:16, blue hour, installation of a new tall black modern street lamp pole in a landscaped park alley in front of a modern corporate office campus, a truck-mounted crane lifting the steel pole by a sling, the pole hanging vertically just above a fresh square concrete foundation with four protruding steel anchor bolts, two male workers in navy blue work uniforms, white hard hats and work gloves guiding the base of the pole by hand, a third male worker kneeling with a large wrench and nuts ready to bolt it down, a row of already installed identical black lamp poles glowing warm along the curved paved path in the background, trees uplit with warm light, glass office facade softly lit, deep blue sky with a soft orange horizon, low angle, 28mm lens, high dynamic range, photorealistic, all male, no women, no text, no logos
+```
 
 ### Scene 4B — küçə və park işıqlandırması
 ```
