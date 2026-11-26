@@ -1,4 +1,4 @@
-# Ashen Chronicles (copied from #3, rewrite for Ötzi) - Video #3: The Bronze Age Collapse. Narration source (English). One string = one paragraph.
+# Ashen Crown (copied from #3, rewrite for Ötzi) - Video #3: The Bronze Age Collapse. Narration source (English). One string = one paragraph.
 # Facts are hedged where scholars disagree. Main references: Eric H. Cline, "1177 B.C." (2014/2021);
 # Medinet Habu inscriptions of Ramesses III; Ugarit tablet RS 20.238; Uluburun excavation (INA, Pulak);
 # Langgut, Finkelstein & Litt 2013 (Sea of Galilee pollen); Kaniewski et al. 2013 (Cyprus).
@@ -82,7 +82,7 @@ SECTIONS = [
 ("OUTRO", [
 "Three thousand years ago, an interconnected world, with its diplomats, merchants and great kings, came apart within a few generations.",
 "The people who lived through it could not see the whole picture. They only saw the ships on the horizon, the empty granaries, and the letters that never got an answer.",
-"I'm Ashen Chronicles. If you want more stories of lost worlds, subscribe, and I'll see you in the next one.",
+"I'm Ashen Crown. If you want more stories of lost worlds, subscribe, and I'll see you in the next one.",
 ]),
 ]
 if __name__ == "__main__":

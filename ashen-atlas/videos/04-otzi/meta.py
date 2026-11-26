@@ -43,7 +43,7 @@ SOURCES
 #BronzeAgeCollapse #AncientHistory #Documentary
 
 TAGS (comma-separated, under 500 characters):
-bronze age collapse, 1177 bc, sea peoples, late bronze age, ancient history documentary, hittites, mycenaeans, ugarit, ramesses iii, medinet habu, uluburun shipwreck, amarna letters, collapse of civilization, ancient egypt, trojan war, eric cline, ancient mysteries, history documentary, ashen chronicles
+bronze age collapse, 1177 bc, sea peoples, late bronze age, ancient history documentary, hittites, mycenaeans, ugarit, ramesses iii, medinet habu, uluburun shipwreck, amarna letters, collapse of civilization, ancient egypt, trojan war, eric cline, ancient mysteries, history documentary, ashen crown
 
 PINNED COMMENT:
 Which do you think did the most damage: the Sea Peoples, drought, earthquakes or the collapse of trade? Tell us below. The Göbekli Tepe documentary is on the end screen.

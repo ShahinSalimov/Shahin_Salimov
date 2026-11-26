@@ -207,7 +207,7 @@ def cap_layer(text):
 def end_layer():
     def d(dr, L):
         L.alpha_composite(logo, ((W - 560) // 2, 560))
-        fnt = F(SERIF, 70); t = "ASHEN CHRONICLES"; tw = dr.textlength(t, font=fnt); dr.text(((W - tw) / 2, 1180), t, font=fnt, fill=GOLD + (255,))
+        fnt = F(SERIF, 70); t = "ASHEN CROWN"; tw = dr.textlength(t, font=fnt); dr.text(((W - tw) / 2, 1180), t, font=fnt, fill=GOLD + (255,))
     return layer(("end",), d)
 def frame(t):
     i = next((k for k, (a, b, *_) in enumerate(shots) if a <= t < b), len(shots) - 1)

@@ -201,7 +201,7 @@ def render_shot(sh, lt, dur, idx):
             f[y0:y0 + arr.shape[0], x0:x0 + arr.shape[1]] = reg * (1 - al) + arr[..., :3] * al
             ta = min(1, max(0, (lt - 0.4) / 0.5))
             def d(dr, L):
-                fnt = font(SERIF_B, 64); t = "ASHEN CHRONICLES"; tw = dr.textlength(t, font=fnt)
+                fnt = font(SERIF_B, 64); t = "ASHEN CROWN"; tw = dr.textlength(t, font=fnt)
                 dr.text(((W - tw) / 2, H - 290), t, font=fnt, fill=GOLD + (255,))
             if "intro" not in caption_cache: caption_cache["intro"] = text_layer(d)
             f = overlay(f, caption_cache["intro"], ta)
@@ -232,7 +232,7 @@ def render_shot(sh, lt, dur, idx):
                 dr.ellipse((1280, 290, 1660, 670), outline=GOLD + (255,), width=4, fill=(0, 0, 0, 120))
                 t = "SUBSCRIBE"; fnt = font(SANS_B, 44); tw = dr.textlength(t, font=fnt)
                 dr.text((1470 - tw / 2, 455), t, font=fnt, fill=CREAM + (255,))
-                t = "ASHEN CHRONICLES  •  real people, lost worlds"; fnt = font(SANS, 34); tw = dr.textlength(t, font=fnt)
+                t = "ASHEN CROWN  •  real people, lost worlds"; fnt = font(SANS, 34); tw = dr.textlength(t, font=fnt)
                 dr.text(((W - tw) / 2, 880), t, font=fnt, fill=(220, 210, 195, 255))
             if "end" not in caption_cache: caption_cache["end"] = text_layer(d)
             return overlay(f, caption_cache["end"], min(1, lt / 1.0)) * min(1, (dur - lt) / 1.5)
