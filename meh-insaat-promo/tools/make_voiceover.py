@@ -11,6 +11,7 @@ Outputs: vo_lines/*.mp3, voiceover_full.wav, MEH_Insaat_final.mp4
 """
 import asyncio
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,7 +20,10 @@ import edge_tts
 
 VOICE = "az-AZ-BabekNeural"   # male; female: az-AZ-BanuNeural
 PITCH = "-2Hz"                # a little deeper, more corporate
-EXTEND = 4.0                  # freeze the last frame 4 s for the phone line
+EXTEND = 5.5                  # freeze the last frame 4 s for the phone line
+PROXY = os.environ.get("HTTPS_PROXY") or None
+FONT = os.environ.get("PHONE_FONT")  # optional .ttf: draws 070 711 22 54 on the last 4 s
+PHONE = "070 711 22 54"
 
 # (start s, scene end s, text) - measured from the video's scene cuts
 LINES = [
@@ -34,9 +38,9 @@ LINES = [
     (57.7, 61.5, "Kondisionerlərin peşəkar quraşdırılması."),
     (61.9, 71.5, "Yol və asfalt işləri — dəqiq, möhkəm və uzunömürlü."),
     (71.9, 81.5, "Küçə və park işıqlandırması: dirəyin quraşdırılmasından lampanın yanmasına qədər."),
-    (81.9, 86.4, "Peşəkar komanda. Vaxtında və keyfiyyətli təhvil."),
-    (87.0, 92.4, "Meh İnşaat MMC. Təmir və tikinti xidmətləri."),
-    (92.6, 96.4, "Zəng edin: sıfır yetmiş, yeddi yüz on bir, iyirmi iki, əlli dörd."),
+    (81.9, 86.4, "Peşəkar komanda, vaxtında təhvil."),
+    (86.6, 92.4, "Meh İnşaat MMC. Təmir və tikinti xidmətləri."),
+    (92.6, 97.9, "Zəng edin: sıfır yetmiş, yeddi yüz on bir, iyirmi iki, əlli dörd."),
 ]
 RATES = ["-6%", "+0%", "+6%", "+12%", "+18%"]  # tried in order until the line fits
 
@@ -54,7 +58,7 @@ async def make_lines(folder):
         path = folder / f"{i:02d}.mp3"
         room = end - start - 0.35
         for rate in RATES:
-            await edge_tts.Communicate(text, VOICE, rate=rate, pitch=PITCH).save(str(path))
+            await edge_tts.Communicate(text, VOICE, rate=rate, pitch=PITCH, proxy=PROXY).save(str(path))
             d = duration(path)
             if d <= room:
                 break
@@ -81,7 +85,13 @@ def main():
 
     # 2) video (+4 s freeze for the phone line) + voice (+ ducked music)
     args = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video), "-i", "voiceover_full.wav"]
-    vf = f"[0:v]tpad=stop_mode=clone:stop_duration={EXTEND}[v]"
+    vf = f"[0:v]tpad=stop_mode=clone:stop_duration={EXTEND}"
+    if FONT:
+        t0 = total - EXTEND
+        vf += (f",drawtext=fontfile='{FONT}':text='{PHONE}':fontsize=h*0.05:fontcolor=0xCFAC5F:"
+               f"x=(w-text_w)/2:y=h*0.80:shadowcolor=black@0.6:shadowx=2:shadowy=2:"
+               f"alpha='if(lt(t,{t0}),0,min(1,(t-{t0})/0.6))'")
+    vf += "[v]"
     if music:
         args += ["-stream_loop", "-1", "-i", str(music)]
         af = (f"[2:a]atrim=0:{total},volume=0.55,afade=t=out:st={total - 1.5}:d=1.5[m];"
