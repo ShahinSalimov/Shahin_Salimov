@@ -5,28 +5,34 @@ Generator bir klipdə iki shot-u yaxşı vermirsə, hər shot-u ayrıca 5 saniy�
 
 ---
 
-## HİSSƏ 1 (0–10 san) — Boş torpaqdan təmələ
-Start frame: `scenes/01_empty_plot.jpg` · Shot 2 referansı: `scenes/02_concrete.jpg`
+## HİSSƏ 1 (0–10 san) — Boş torpaq və qazıntı (yenilənib, beton 2-ci hissəyə keçib)
+Start frame: `scenes/01_empty_plot.jpg`
 
 ```
-Vertical 9:16 cinematic commercial for a construction company, ultra-realistic, shot on ARRI Alexa, 24 fps, natural motion, warm golden sunrise light. SHOT 1 (0-5s): slow smooth drone flight moving forward and gently descending over an empty leveled construction plot at sunrise, wooden survey stakes with orange ribbons and bright orange marking lines outlining the footprint of a future house pass beneath the camera, soft morning haze drifting over the ground, fine dust glowing in the low sun, golden lens flare. SHOT 2 (5-10s): hard cut to a low-angle close shot on a construction site, a concrete pump hose pours thick grey wet concrete into a steel rebar grid, four male workers in navy blue work uniforms, orange safety vests, white hard hats and rubber boots spread and level the concrete with rakes in a natural rhythmic motion, small splashes of concrete, dust drifting in warm backlight, camera slowly pushes in toward the point where the concrete lands. Realistic physics, real-time speed, all workers are adult men.
+Vertical 9:16 cinematic commercial for a construction company, ultra-realistic, shot on ARRI Alexa, 24 fps, natural motion, warm golden sunrise light. SHOT 1 (0-5s): slow smooth drone flight moving forward and gently descending over an empty leveled construction plot at sunrise, wooden survey stakes with orange ribbons and bright orange marking lines outlining the footprint of a future house pass beneath the camera, soft morning haze drifting over the ground, fine dust glowing in the low sun, golden lens flare. SHOT 2 (5-10s): cut to a medium-wide low-angle shot on the same plot, a yellow tracked excavator digs the foundation trench along the orange marking lines, its bucket lifts a load of soil and drops it onto a pile, dust rising in the warm backlight, a male site foreman in a navy blue uniform and white hard hat signals with his hand, camera slowly tracks sideways. Realistic physics, real-time speed, all workers are adult men.
 ```
 **Negative prompt**
 ```
-women, children, extra people appearing, deformed hands, extra fingers, distorted faces, melting objects, morphing, warped rebar, floating concrete, concrete flowing upward, unrealistic physics, slow motion artifacts, flickering, jitter, camera shake, blurry, low resolution, cartoon, CGI look, 3D render, plastic skin, oversaturated colors, text, subtitles, captions, logos, watermark, signs with letters, tall skyscrapers in the foreground, horizontal frame
+women, children, extra people appearing, deformed hands, extra fingers, distorted faces, excavator morphing, bucket passing through the ground, soil floating, tracks sliding, melting, morphing, unrealistic physics, flickering, jitter, camera shake, blurry, low resolution, cartoon, CGI look, 3D render, plastic skin, oversaturated colors, text, subtitles, captions, logos, watermark, tall skyscrapers in the foreground, horizontal frame
 ```
 
 ---
 
-## HİSSƏ 2 (10–20 san) — Fərdi evin sıfırdan tikintisi
-Start frame: `scenes/03_house_construction.jpg`
+## HİSSƏ 2 (10–20 san) — Armatur, beton tökmə və evin hörülməsi
+Rejim: text-to-video. Image-to-video işlədəcəksənsə, start frame kimi `scenes/02_concrete.jpg` götür və shot-ları ayrıca kliplər kimi yarat.
+Divar daşı: Azərbaycanda standart sayılan bej-sarı **mişar daşı** (sawn shell limestone). Qırmızı kərpic istəsən, prompt-da `beige sawn shell limestone blocks` əvəzinə `standard red clay bricks` yaz.
 
 ```
-Vertical 9:16 ultra-realistic cinematic commercial shot, warm morning light, natural motion, 24 fps. SHOT 1 (0-5s): wide eye-level shot of a modern two-storey private house under construction in a quiet suburban plot, walls of white aerated concrete blocks, wooden scaffolding around the house, the camera slowly tilts up from pallets of blocks and a rotating orange concrete mixer on the ground to the second floor, male workers in navy blue uniforms and white hard hats work on the scaffolding, one carries a block along the scaffold. SHOT 2 (5-10s): cut to a medium close shot on the scaffold, a male mason in a navy uniform and white hard hat spreads mortar with a trowel, places an aerated concrete block on the wall, taps it twice with a rubber mallet and checks it with a spirit level, light dust in the sunlight, shallow depth of field, camera slowly orbits a little to the side. Human scale private house only, all workers are adult men.
+Vertical 9:16 ultra-realistic cinematic commercial, warm morning sunlight, natural motion, real-time speed, 24 fps, all workers are adult men in navy blue work uniforms, orange safety vests and white hard hats. SHOT 1 (0-3s): medium shot of a foundation pit of a private house, a steel rebar cage inside wooden formwork, three male workers tie the crossing rebar bars together with steel binding wire and pliers, one twists the wire with a tying hook, another lays a new rebar bar into place, camera slowly slides along the formwork. SHOT 2 (3-6.5s): cut to a medium-wide shot, a heavy concrete mixer truck with a slowly rotating drum stands next to the foundation, a truck-mounted concrete pump with its boom extended pours thick grey concrete through a hose into the rebar formwork, one worker guides the hose, another pushes a concrete vibrator into the fresh concrete, two others spread it with rakes, splashes and light dust in the sunlight, camera slowly cranes up to show the machines and the crew together. SHOT 3 (6.5-10s): cut to a medium-wide shot from about fifteen meters away, the walls of a two-storey private house rise on the finished foundation, built from beige-yellow sawn shell limestone blocks, wooden scaffolding along the walls, four masons work along the wall: one spreads mortar with a trowel, one lays a limestone block and taps it into line, one carries a block on his shoulder along the scaffold, one mixes mortar in a small orange concrete mixer on the ground, stacks of limestone blocks on pallets in the foreground out of focus, camera slowly pushes in but stays at a distance, the whole wall and the crew visible.
 ```
 **Negative prompt**
 ```
-women, children, high-rise building, apartment towers, tower crane, skyscrapers, extra people appearing, deformed hands, extra fingers, distorted faces, blocks floating, walls collapsing, morphing, melting, warped scaffolding, unrealistic physics, flickering, jitter, camera shake, blurry, low resolution, cartoon, CGI look, plastic skin, oversaturated, text, subtitles, captions, logos, watermark, horizontal frame
+women, children, extra people appearing, white aerated concrete blocks, white bricks, foam blocks, gas blocks, extreme close-up of stones, macro shot of blocks, high-rise building, tower crane, skyscrapers, deformed hands, extra fingers, distorted faces, rebar bending like rubber, wire floating, concrete flowing upward, floating concrete, drum rotating backward, trucks morphing, blocks floating, walls collapsing, scaffolding warping, melting, morphing, unrealistic physics, flickering, jitter, camera shake, blurry, low resolution, cartoon, CGI look, plastic skin, oversaturated, text, subtitles, captions, logos, watermark, horizontal frame
+```
+
+**Yeni referans şəkil** (3-cü shot üçün; köhnə şəkildə ağ gaz-blok var):
+```
+Ultra-realistic cinematic shot, vertical 9:16, medium-wide view from about fifteen meters away of a two-storey private house under construction in a quiet suburban plot, walls built from beige-yellow sawn shell limestone blocks with mortar joints, wooden scaffolding along the walls, four male masons in navy blue work uniforms and white hard hats working along the wall, one spreading mortar, one laying a block, one carrying a block on his shoulder, one at a small orange concrete mixer on the ground, pallets of limestone blocks in the foreground slightly out of focus, warm morning sunlight, slight dust in the air, 35mm lens, photorealistic, all male, no women, no white blocks, no tall buildings, no text, no logos
 ```
 
 ---
@@ -128,8 +134,8 @@ A confident, warm, deep adult male voice in his late 30s, native Azerbaijani spe
 
 | Hissə | Başlanğıc | Mətn |
 |---|---|---|
-| 1 | 0.5 san | Hər böyük layihə boş bir torpaqdan başlayır. Möhkəm təməl — etibarlı gələcək. |
-| 2 | 10.5 san | MEH-İnşaat — bir, iki və üç mərtəbəli evlərin sıfırdan tikintisi. Layihədən açar təhvilə qədər. |
+| 1 | 0.5 san | Hər böyük layihə boş bir torpaqdan başlayır. |
+| 2 | 10.5 san | Möhkəm təməl — etibarlı gələcək. MEH-İnşaat — bir, iki və üç mərtəbəli evlərin sıfırdan tikintisi. |
 | 3 | 20.5 san | Yol və asfalt işləri — dəqiq, möhkəm, uzunömürlü. |
 | 4 | 30.5 san | Küçə və park işıqlandırması: dirəyin quraşdırılmasından lampanın yanmasına qədər. |
 | 5 | 40.5 san | Elektrik təchizatı və havalandırma sistemləri — tam təhlükəsizliklə. |
@@ -139,8 +145,8 @@ A confident, warm, deep adult male voice in his late 30s, native Azerbaijani spe
 
 **Bir parçada generasiya üçün bütöv mətn:**
 ```
-Hər böyük layihə boş bir torpaqdan başlayır. Möhkəm təməl — etibarlı gələcək.
-MEH-İnşaat — bir, iki və üç mərtəbəli evlərin sıfırdan tikintisi. Layihədən açar təhvilə qədər.
+Hər böyük layihə boş bir torpaqdan başlayır.
+Möhkəm təməl — etibarlı gələcək. MEH-İnşaat — bir, iki və üç mərtəbəli evlərin sıfırdan tikintisi.
 Yol və asfalt işləri — dəqiq, möhkəm, uzunömürlü.
 Küçə və park işıqlandırması: dirəyin quraşdırılmasından lampanın yanmasına qədər.
 Elektrik təchizatı və havalandırma sistemləri — tam təhlükəsizliklə.
