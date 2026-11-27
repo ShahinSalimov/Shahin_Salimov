@@ -1,7 +1,7 @@
-"""Short covers 1080x1920 for the 1849 balloon-bomb drone Short. Usage: cover.py ROOT (images from ROOT/short_drone)."""
+"""Short covers 1080x1920 for the Mysore rockets Short. Usage: cover.py ROOT (images from ROOT/short_rockets)."""
 import sys, os, numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
-S = sys.argv[1]; SRC = f"{S}/short_drone"; OUT = f"{S}/deliver"
+S = sys.argv[1]; SRC = f"{S}/short_rockets"; OUT = f"{S}/deliver"
 XB = "/usr/share/fonts/opentype/inter/Inter-Black.otf"; B = "/usr/share/fonts/opentype/inter/Inter-Bold.otf"
 CREAM = (250, 243, 228); GOLD = (214, 175, 110); ORANGE = (240, 120, 45); AMBER = (255, 195, 80)
 logo = Image.open(f"{S}/img/i-001.png").convert("RGBA").resize((800, 800))
@@ -29,7 +29,7 @@ def cover(name, src, lines, tag, y0=150):
     d.text(((1080 - tw) / 2, 1594), tag, font=f, fill=GOLD)
     im.alpha_composite(logo.resize((140, 140), Image.LANCZOS), (470, 1690))
     im.convert("RGB").save(f"{OUT}/{name}.jpg", quality=93)
-cover("Cover_Drone_A_balloon", f"{SRC}/img_6_0.png",
-      [("THE FIRST", CREAM, 170), ("DRONE?", ORANGE, 230)], "VENICE  ·  1849", y0=170)
-cover("Cover_Drone_B_drone", f"{SRC}/img_0_0.png",
-      [("175 YEARS", CREAM, 170), ("OLD?", ORANGE, 230)], "VENICE  ·  1849", y0=170)
+cover("Cover_Rockets_A_tipu", f"{SRC}/img_1_0.png",
+      [("AMERICA'S", CREAM, 150), ("ROCKETS?", ORANGE, 190)], "MYSORE, INDIA  ·  1780s", y0=170)
+cover("Cover_Rockets_B_fire", f"{SRC}/img_0_0.png",
+      [("MADE IN", CREAM, 170), ("INDIA?", ORANGE, 220)], "THE ROCKETS' RED GLARE", y0=170)

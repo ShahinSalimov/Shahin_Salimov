@@ -50,9 +50,11 @@ def thumb(name, bg, lines, sub, tint, mode=None):
     im.alpha_composite(logo.resize((104,104),Image.LANCZOS),(1150,590))
     im.convert("RGB").save(f"{OUT}/{name}.jpg",quality=92); im.convert("RGB").save(f"{OUT}/{name}.png")
 ORANGE=(240,120,45); AMBER=(255,195,80)
-def img(k,i):
+def img(k,i,flip=True):
     p=f"{S}/gen/{G.key(G.full(SHOTS[k][i][0],SHOTS[k][i][1]))}.png"; o=f"{S}/thumb/flip_{k[0]}_{k[1]}.png"
-    os.makedirs(f"{S}/thumb",exist_ok=True); Image.open(p).transpose(Image.FLIP_LEFT_RIGHT).save(o); return o
-thumb("T4_IT_HAS_HANDS", img((6,2),0), [("11,500 YEARS OLD",CREAM,96),("IT HAS",CREAM,150),("HANDS?",AMBER,180)], "Göbekli Tepe", (255,160,70))
-thumb("T5_WHO_CARVED_THIS_FACE", img((4,6),0), [("WHO",CREAM,150),("CARVED",CREAM,150),("THIS?",ORANGE,180)], "11,500 years ago", (255,150,60))
+    os.makedirs(f"{S}/thumb",exist_ok=True); im=Image.open(p); (im.transpose(Image.FLIP_LEFT_RIGHT) if flip else im).save(o); return o
+COLD=(150,190,230)
+thumb("T1_WHO_KILLED_HIM", img((1,0),0), [("WHO",CREAM,140),("KILLED",CREAM,140),("HIM?",ORANGE,170)], "5,300 years ago", COLD)
+thumb("T2_SHOT_IN_THE_BACK", img((1,1),0,False), [("SHOT",CREAM,140),("FROM",CREAM,140),("BEHIND",ORANGE,160)], "Ötzi the Iceman", COLD)
+thumb("T3_5300_YEARS_IN_ICE", img((3,1),0), [("FROZEN",CREAM,140),("5,300",AMBER,170),("YEARS",CREAM,140)], "Who killed him?", COLD)
 print("ok")
