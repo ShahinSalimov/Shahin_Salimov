@@ -44,10 +44,12 @@ $V -I $T/render_short.py $W/short_a assets/fonts $W/music_a.wav $W/epNN_short_A.
    render_long.py expects `assets/fonts` to contain Anton.ttf and Oswald.ttf (it does).
 6. Thumbnail: one nb2 16:9 image (car on right 2/3, dark left third), then 2-3 words in Anton on the left
    (white + red word + gold subtitle), 1280x720 JPG. See ep01 for the style.
+6b. Short covers: `$V -I $T/short_cover.py $W/short_a/img_scenes/00.png assets/fonts "LINE ONE" "LINE TWO" $W/epNN_cover_short_A.jpg`
+   (2-4 punchy words per line, white + gold). Also send the Short frames (img_scenes) as JPG; the owner wants them.
 7. QA the renders: frames at several timestamps, captions never stacked, loudness about -14 LUFS.
 8. Write `$W/epNN_upload_info.md` (title, description with chapters from `$W/chapters.txt`, tags, pinned comment,
    Short titles, "Altered or synthetic content: YES", Baku publish times 17:00 / 21:00 / 03:00).
-9. Deliver with SendUserFile: long mp4, shorts, thumbnail, srt, upload_info.
+9. Deliver with SendUserFile: long mp4, shorts, thumbnail, Short covers + Short frames, srt, upload_info.
 10. Update `state.json` (`done`, `next_episode`, `credits_left`), commit `episodes/epNN/*.json`, upload_info and state, push.
 
 ## Budget
