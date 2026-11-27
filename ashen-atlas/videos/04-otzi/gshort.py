@@ -1,4 +1,4 @@
-"""YouTube Short (9:16, ~55 s): Bronze Age Collapse Shorts."""
+"""YouTube Shorts (9:16, 25-33 s) for Video #4 Ötzi the Iceman: arrow, tattoos."""
 import sys, os, json, subprocess, numpy as np, cv2, soundfile as sf
 from PIL import Image, ImageDraw, ImageFont
 from scipy.signal import fftconvolve, lfilter, resample_poly
@@ -10,43 +10,33 @@ W, H, FPS = 1080, 1920, 30
 MOTION = os.environ.get("MOTION", "1") != "0"  # 2.5D depth parallax + atmosphere (motion.py)
 
 END = ("Follow for more lost worlds. Full documentary on YouTube.", "FOLLOW FOR MORE", [])
-SEA = "Sea Peoples warrior with a tall feathered headdress, bronze armour and a round shield"
-FACE = "extreme close-up portrait of a fierce Bronze Age " + SEA + ", intense eyes looking into camera, dark background, dramatic side light"
+from shots import OTZI, MUMMY
+FACE = "extreme close-up portrait of a " + OTZI + ", intense eyes looking into camera, snowy mountain background, cold light"
 SPECS = {
-"seapeoples": [
- ("Who were the warriors who helped end the Bronze Age?", "WHO WERE THEY?", [FACE]),
- ("Around twelve hundred BCE, great cities from Greece to Syria burned.", "1200 BCE",
-  ["burning Bronze Age palace at night on a hilltop, flames and smoke", "burning ancient harbour city at night, ships on fire in the bay"]),
- ("Egyptian carvings call the attackers the peoples of the sea.", "THE SEA PEOPLES",
-  ["weathered ancient Egyptian temple wall relief carved with warriors in feathered headdresses, raking sunlight"]),
- ("Pharaoh Ramesses the Third fought them at the mouth of the Nile.", "RAMESSES III",
-  ["naval battle at the mouth of the Nile, Egyptian ships fighting warships with bird-head prows, archers, chaos"]),
- ("Where they came from is still a mystery.", "STILL A MYSTERY",
-  ["close-up of the carved wooden bird-head prow of an ancient war galley cutting through stormy waves, Bronze Age, dark clouds"]),
+"arrow": [
+ ("He was shot in the back, five thousand three hundred years ago.", "SHOT IN THE BACK", [FACE]),
+ ("In 1991, hikers found him melting out of the ice in the Alps.", "FOUND IN 1991", [MUMMY]),
+ ("For ten years, everyone thought he froze to death.", "FROZE TO DEATH?",
+  ["Copper Age man lying in the snow during a blizzard in the high mountains, exhausted, night"]),
+ ("Then an X-ray showed a flint arrowhead in his shoulder.", "AN ARROWHEAD",
+  ["X-ray image of a human shoulder and collarbone with a small bright triangular arrowhead inside, dark background"]),
+ ("It tore an artery. He probably bled to death in minutes.", "DEAD IN MINUTES",
+  ["archer seen from behind drawing a bow, aiming at a distant resting man in a snowy rocky gully, dusk"]),
+ ("And his killer left his precious copper axe behind. Why?", "WHY LEAVE THE AXE?",
+  ["ancient small copper axe with a trapezoid copper blade in a bent yew-wood handle lying on snowy rocks, close-up, cold light"]),
  END],
-"ugarit": [
- ("This king begged for help as his kingdom burned.", "HIS LAST LETTER?",
-  ["extreme close-up portrait of a worried Bronze Age Syrian king with a dark curled beard and a gold diadem, eyes looking into camera, oil lamp light, dark background"]),
- ("My father, the enemy's ships came. My cities were burned.", "\"MY CITIES WERE BURNED\"",
-  ["long low wooden war galleys with oars and bird-head prows approaching a coastal Bronze Age city at dawn, smoke, no modern ships", "burning ancient harbour city with flat-roofed stone houses at night"]),
- ("His army was far away. His ships were gone.", "NO ARMY. NO SHIPS.",
-  ["empty ancient stone quay with a few small wooden rowing boats pulled up on the beach, dark clouds, dusk, Bronze Age"]),
- ("Ugarit was destroyed, and never rebuilt.", "NEVER REBUILT",
-  ["ruins of a destroyed Bronze Age palace, burned mud-brick walls on low stone foundations, no arches, no columns, ash, morning light"]),
- ("Archaeologists found his letter in the ruins.", "FOUND IN THE RUINS",
-  ["ancient clay tablet with cuneiform script lying in ash and rubble, close-up, shaft of light"]),
- END],
-"ship": [
- ("In nineteen eighty-two, a diver off Turkey found strange metal on the seabed.", "WHAT DID HE FIND?",
-  ["close-up portrait of a Turkish sponge diver man with a moustache and wet hair looking into camera, holding a diving mask, on a boat deck, sea behind, 1980s photograph"]),
- ("A ship that sank three thousand three hundred years ago.", "3,300 YEARS OLD",
-  ["rows of ancient copper oxhide ingots on the sea floor, covered in sand, underwater, blue light"]),
- ("Ten tonnes of copper. One tonne of tin. Enough bronze for an army.", "10 TONNES OF COPPER",
-  ["Bronze Age smith pouring glowing molten bronze into a stone mould, sparks, dark workshop"]),
- ("Ivory, ebony, Baltic amber, and a gold scarab of Nefertiti.", "7 CULTURES, 1 SHIP",
-  ["small ancient gold Egyptian scarab ring with hieroglyphs, museum macro, black background"]),
- ("Soon after, that whole world collapsed.", "THEN IT COLLAPSED",
-  ["close-up of a wide square linen sail on a small ancient wooden boat at sunset, Bronze Age, warm light"]),
+"tattoos": [
+ ("This man had sixty-one tattoos, five thousand years ago.", "61 TATTOOS", [FACE]),
+ ("No pictures. Just short lines and small crosses.", "LINES AND CROSSES",
+  ["close-up of the skin of an ancient mummy on the lower back with groups of short dark parallel tattoo lines, museum light"]),
+ ("They were cut into the skin, and rubbed with charcoal.", "CHARCOAL",
+  ["Copper Age healer cutting short lines into a man's knee skin with a small flint blade and rubbing in black charcoal, firelight, close-up"]),
+ ("Most sit on his back, knees and ankles, where his joints were worn.", "WHERE IT HURT",
+  ["close-up of an ancient mummy ankle with small dark tattoo crosses and lines, museum light"]),
+ ("So they may have been a treatment for pain.", "ANCIENT MEDICINE?",
+  ["Copper Age man lying on furs while a healer presses charcoal into small cuts on his lower back, hut, firelight"]),
+ ("Days later, someone shot him in the back with an arrow.", "THEN HE WAS MURDERED",
+  ["silhouette of an archer drawing a bow behind a boulder on a snowy alpine slope, dusk, mist"]),
  END],
 }
 SEGS = SPECS[ID]
@@ -66,7 +56,7 @@ if STEP == "img":
             fn = f"{OUT}/img_{i}_{j}.png"
             if os.path.exists(fn): continue
             pipe(full(p), num_inference_steps=4, guidance_scale=0.0, width=576, height=1024,
-                 generator=torch.Generator().manual_seed(800 + 10 * i + j)).images[0].save(fn)
+                 generator=torch.Generator().manual_seed(int(os.environ.get("SEED", 3300)) + 10 * i + j)).images[0].save(fn)
             print("img", i, j, flush=True)
     sys.exit()
 
@@ -75,13 +65,13 @@ from kokoro_onnx import Kokoro
 k = Kokoro(f"{S}/models/kokoro-v1.0.onnx", f"{S}/models/voices-v1.0.bin")
 SR = 24000; lines = []
 for txt, _, _ in SEGS:
-    a, _ = k.create(txt.replace("Ugarit", "Oo-gah-rit").replace("'", " "), voice="am_michael", speed=1.0, lang="en-us")
+    a, _ = k.create(txt.replace("1991", "nineteen ninety-one"), voice="am_michael", speed=1.12, lang="en-us")
     idx = np.where(np.abs(a) > .01)[0]; a = a[max(0, idx[0] - 240): idx[-1] + 2400]; lines.append(a.astype(np.float32))
 # timeline: segment = its line + pause; target ~55 s
-pause = [0.6] * (len(SEGS) - 1) + [0.0]
+pause = [0.3] * (len(SEGS) - 1) + [0.0]
 starts = []; t = 0.25
 for a, p in zip(lines, pause): starts.append(t); t += len(a) / SR + p
-TOTAL = t + 2.5; seg_bounds = starts + [TOTAL]
+TOTAL = t + 1.6; seg_bounds = starts + [TOTAL]
 voice = np.zeros(int(TOTAL * SR) + SR, np.float32)
 for a, s in zip(lines, starts): voice[int(s * SR): int(s * SR) + len(a)] += a
 voice = voice[:int(TOTAL * SR)]
@@ -112,7 +102,7 @@ def kick(f0):
     return (np.sin(2 * np.pi * np.cumsum(f) / MSR) * np.exp(-x * 8)).astype(np.float32)
 K1, K2 = kick(60), kick(100)
 t = seg_bounds[1]  # drums enter at segment 2
-while t < seg_bounds[4]:
+while t < seg_bounds[5]:
     for off, d, g in ((0, K1, 1), (1.5, K2, .5), (2, K1, .7), (3, K2, .4), (3.5, K2, .3)): add(dr, d, t + off * BEAT, g)
     t += 4 * BEAT
 mel = [(74, 2), (72, 1), (69, 1), (67, 2), (69, 2), (65, 1), (67, 1), (69, 4), (62, 2), (65, 2), (67, 2), (69, 2), (72, 2), (74, 6)]
@@ -124,9 +114,9 @@ ir = (rng.standard_normal(int(2.2 * MSR)) * np.exp(-np.arange(int(2.2 * MSR)) / 
 def rev(x, w): return x * (1 - w) + fftconvolve(x, ir)[:len(x)].astype(np.float32) * w
 def nm(x): return x / (np.sqrt(np.mean(x ** 2)) + 1e-9)
 # mood automation: dark open, full middle, drums out for "why did they leave", outro swell
-gD = np.interp(tt, [0, seg_bounds[4], TOTAL], [1, 1, .8])
-gP = np.interp(tt, [0, 1.5, seg_bounds[4] - .5, seg_bounds[4] + .5, seg_bounds[5], TOTAL], [.3, .8, .8, .35, .5, .9])
-gF = np.interp(tt, [0, seg_bounds[4], seg_bounds[4] + 1, TOTAL], [1, 1, .8, 1])
+gD = np.interp(tt, [0, seg_bounds[5], TOTAL], [1, 1, .8])
+gP = np.interp(tt, [0, 1.5, seg_bounds[5] - .5, seg_bounds[5] + .5, seg_bounds[6], TOTAL], [.3, .8, .8, .35, .5, .9])
+gF = np.interp(tt, [0, seg_bounds[5], seg_bounds[5] + 1, TOTAL], [1, 1, .8, 1])
 music = .28 * nm(drone) * gD + .22 * rev(nm(pl), .3) * gP + .2 * nm(dr) + .22 * rev(nm(fl), .35) * gF
 music *= np.minimum(1, tt / 1.0) * np.minimum(1, (TOTAL - tt) / 1.5)
 v = resample_poly(voice, MSR, SR)[:N]; v = np.pad(v, (0, N - len(v)))
@@ -230,7 +220,7 @@ def frame(t):
     if t < .3: f *= t / .3
     if t > TOTAL - .6: f *= max(0, (TOTAL - t) / .6)
     return np.clip(f, 0, 255).astype(np.uint8)
-mp4 = f"{S}/deliver/Short_BAC_{ID}_9x16" + ("_TikTok" if TT_MODE else "") + ".mp4"
+mp4 = f"{S}/deliver/Short_{ID}_9x16" + ("_TikTok" if TT_MODE else "") + ".mp4"
 cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
        "-i", f"{OUT}/mix" + ("_tt" if TT_MODE else "") + ".wav", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
        "-c:a", "aac", "-ar", "48000", "-b:a", "192k", "-shortest", "-movflags", "+faststart", mp4]

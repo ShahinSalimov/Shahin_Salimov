@@ -1,88 +1,83 @@
-# Ashen Crown (copied from #3, rewrite for Ötzi) - Video #3: The Bronze Age Collapse. Narration source (English). One string = one paragraph.
-# Facts are hedged where scholars disagree. Main references: Eric H. Cline, "1177 B.C." (2014/2021);
-# Medinet Habu inscriptions of Ramesses III; Ugarit tablet RS 20.238; Uluburun excavation (INA, Pulak);
-# Langgut, Finkelstein & Litt 2013 (Sea of Galilee pollen); Kaniewski et al. 2013 (Cyprus).
+# Ashen Crown - Video #4: Ötzi the Iceman. Narration source (English). One string = one paragraph.
+# Facts hedged where scholars disagree. Main references: Spindler 1994; Gostner & Egarter Vigl 2002 (arrowhead);
+# Pernter et al. 2007 (artery lesion); Oeggl et al. 2007 (pollen, last 33 hours); Samadelli et al. 2015 (61 tattoos);
+# Artioli et al. 2017 (copper axe, Tuscany); Maixner et al. 2018 (last meal); Wang et al. 2023 (genome, Cell Genomics);
+# South Tyrol Museum of Archaeology, Bolzano.
 import json, sys
 SECTIONS = [
 ("COLD OPEN", [
-"Look at this face. He is one of the invaders carved on the walls of an Egyptian temple, more than three thousand years ago. The Egyptians called his people the peoples of the sea. And within a few decades, the greatest kingdoms of the ancient world were gone.",
-"Around twelve hundred BCE, from Greece to Syria, palaces burned. Cities were abandoned. Writing disappeared from whole regions. Trade routes that had linked three continents fell silent.",
-"Was it these raiders from the sea? Or something much bigger? By the end of this video, you'll know what the evidence says, and why it still matters today.",
+"Look at this face. Five thousand three hundred years ago, this man climbed high into the Alps. He never came down.",
+"Someone shot him in the back with an arrow. Then the ice covered him, and kept his body almost perfectly, for more than five thousand years.",
+"Who was he? Why was he up there? And who wanted him dead? By the end of this video, you'll know what the evidence says, and why the case is still open.",
 ]),
 ("TITLE", [
-"This is the story of the Bronze Age Collapse, the moment the first connected world in history fell apart. We'll ask three questions. What was lost? Who, or what, destroyed it? And what rose from the ashes?",
+"This is the story of Ötzi the Iceman, the oldest murder mystery in the world.",
 ]),
-("THE FIRST GLOBAL AGE", [
-"Imagine the eastern Mediterranean around thirteen hundred BCE.",
-"In Egypt, the pharaohs of the New Kingdom ruled from the Nile to the coast of the Levant. In Anatolia, the Hittite kings ruled from their mountain capital, Hattusa. In Mesopotamia stood Babylon and a rising Assyria. In Greece, warrior kings ruled from fortified palaces at Mycenae, Pylos and Thebes. And on Crete and Cyprus, and in rich trading cities like Ugarit on the Syrian coast, merchants grew wealthy.",
-"These powers fought wars. But they also wrote to each other. In the eighteen eighties, at a site in Egypt called Amarna, local people found a cache of clay tablets. They turned out to be the letters of kings, written mostly in Akkadian, the diplomatic language of the age.",
-"In these letters, the great kings call each other brother. They trade gold for horses, ask for doctors, arrange royal marriages, and complain when a gift is too small. One king of Babylon grumbled that the gold the pharaoh sent him, when it was put in the furnace, turned out to be worth less than it should.",
-"Even old enemies made peace. In twelve fifty-nine BCE, after years of war over Syria, Ramesses the Second of Egypt and the Hittite king Hattusili the Third signed a treaty. Copies survive in both Egyptian hieroglyphs and in Akkadian on clay. It is one of the oldest peace treaties known, and a replica hangs today at the United Nations in New York.",
-"Historians sometimes call this world a club of great powers. It was not one empire. It was a network. And like any network, it depended on everything continuing to move.",
+("THE BODY IN THE ICE", [
+"On the nineteenth of September, nineteen ninety-one, two German hikers, Helmut and Erika Simon, left the marked trail near a mountain pass in the Ötztal Alps, more than three thousand two hundred metres high, on the border between Austria and Italy.",
+"In a rocky gully full of meltwater, they saw something brown sticking out of the ice. It was a human head and shoulders.",
+"They thought it was a climber who had died in an accident, perhaps a few years earlier. That summer had been warm, and the glacier was melting. Bodies of lost mountaineers turned up from time to time.",
+"So the recovery was rough. Rescuers hacked at the ice with a pneumatic drill and ice picks, and damaged the body's hip. Pieces of a bow and a strange axe were picked up almost like rubbish.",
+"Only when the body reached Innsbruck did an archaeologist look at the axe and realise how old it was. Radiocarbon dating later gave the answer. The man had died around thirty-three hundred BCE.",
+"He was older than the Great Pyramid of Giza. Older than the great stones of Stonehenge. When Tutankhamun was born, this man had already been lying in the ice for about two thousand years.",
+"Surveyors then found that the body had lain about ninety metres inside Italy. Today he rests in a museum in Bolzano, in a cold cell that copies the conditions of the glacier. The newspapers gave him a nickname, after the valley: Ötzi.",
 ]),
-("A SHIP FULL OF METAL", [
-"In nineteen eighty-two, a sponge diver off the southern coast of Turkey, near a cape called Uluburun, reported strange metal biscuits with ears on the seabed.",
-"They were copper ingots. Underwater archaeologists from the Institute of Nautical Archaeology spent more than ten years excavating the wreck. It had sunk around thirteen hundred BCE.",
-"On board were about ten tonnes of copper and around one tonne of tin. There were blue glass ingots, ebony from Africa, elephant and hippopotamus ivory, amber from the Baltic region, jars of resin, Canaanite jewellery, Mycenaean pottery, and a gold scarab with the name of the Egyptian queen Nefertiti.",
-"One ship carried goods from at least seven different cultures. This was trade on a scale the world would not see again for centuries.",
-"And look at those two metals. Copper and tin, mixed roughly nine to one, make bronze. Bronze made the weapons, the tools, the armour of the age. But copper came largely from places like Cyprus, and tin came from very far away, possibly from Central Asia, carried over thousands of kilometres.",
-"No kingdom could make bronze on its own. Every army, every palace, depended on ships like this one arriving safely.",
+("WHO WAS ÖTZI?", [
+"So who was he?",
+"Ötzi was about forty-five years old when he died, old for his time. He was around one metre sixty tall, and probably weighed about fifty kilograms.",
+"He lived in the Copper Age, a time when people in the Alps farmed wheat and barley, kept sheep, goats and cattle, and were just beginning to use metal.",
+"In twenty twenty-three, scientists published a new, high-quality study of his genome. It showed that more than ninety percent of his ancestry came from early farmers whose ancestors had moved into Europe from Anatolia, in what is now Turkey.",
+"It also changed his face. Older reconstructions showed a pale man with thick hair. The genome suggests he had much darker skin, dark eyes, and was probably going bald.",
+"His body tells us he had lived a hard life. His joints were worn. He carried the bacteria that cause Lyme disease, and parasites in his gut. One fingernail that survived has lines that may show he was seriously ill three times in his last months.",
 ]),
-("RE-HOOK", [
-"So what happens when the ships stop coming? To find out, we need to go to a city on the coast of Syria, in its final days.",
+("WHAT HE CARRIED", [
+"But what makes Ötzi unique is not only his body. It is everything he carried. For the first time, archaeologists could see the complete outfit of a man from the Copper Age.",
+"He wore a coat made of strips of sheep and goat leather, sewn together, and leggings of goat leather. His hat was made of bear fur. His shoes had bear-leather soles and were stuffed with dry grass, to keep his feet warm.",
+"He carried a flint dagger with a handle of ash wood, birch-bark containers, one of them probably used to carry glowing embers, and a kit to make fire.",
+"He also had pieces of birch fungus on leather strings. Some researchers think he may have used it as medicine.",
+"And then there was the axe. A blade of almost pure copper, fixed to a handle of yew wood. In his world, this was a precious object, perhaps a sign of status. A study in twenty seventeen suggested the copper came from as far away as southern Tuscany.",
+"There was something strange about his weapons, too. His longbow, almost one metre eighty long, was unfinished. In his deer-skin quiver were fourteen arrows. Only two of them were ready to shoot.",
+"Why was a man with a valuable axe walking through the high mountains with a bow he could not use? Hold on to that question.",
 ]),
-("THE FALL", [
-"Ugarit was one of the richest ports of the Bronze Age. Its archives held texts in many languages, and its scribes used one of the earliest alphabets in the world, written in wedge-shaped signs on clay.",
-"Among the tablets found in the ruins is a letter from the last king of Ugarit, Ammurapi, to the king of Cyprus. It reads, in part: My father, behold, the enemy's ships came. My cities were burned, and they did evil things in my country. Does my father not know that all my troops and chariots are in the land of Hatti, and all my ships are in the land of Lukka?",
-"Another letter from the king of Cyprus gives advice: if enemy ships have been seen, make yourself strong, gather your troops and chariots, and fortify your cities. It may have come too late.",
-"Ugarit was destroyed, most likely within a few years after eleven ninety BCE. It was never rebuilt.",
-"Inland, the Hittite capital Hattusa was abandoned and parts of it burned. Excavators believe much of the city had already been emptied before the fire, as if the royal court had left. After the last known king, Suppiluliuma the Second, the Hittite Empire simply disappears from history.",
-"In Greece, the palace of Pylos burned around the same period. The fire baked hundreds of clay tablets written in Linear B, an early form of Greek, and preserved them. Some of them seem to describe watchers being sent to guard the coast.",
-"Mycenae, Tiryns and Thebes suffered destructions. Cities in Cyprus and on the Levantine coast were damaged or abandoned. Over a few decades, many of the great centres of the eastern Mediterranean were destroyed, and many of them never recovered.",
+("SIXTY-ONE TATTOOS", [
+"When researchers looked closely at his skin, they found something else. Ötzi is covered in tattoos. Sixty-one of them.",
+"They are not pictures. They are groups of short lines and small crosses, made by cutting the skin and rubbing in charcoal. They are among the oldest tattoos known on a human body.",
+"Most of them sit on his lower back, his knees, his ankles and his wrists, the places where his joints were worn. So many researchers think they were not decoration. They may have been a kind of treatment, for pain.",
+"Five thousand years ago, someone may have tried to heal this man. A few days later, someone else tried to kill him.",
 ]),
-("THE SEA PEOPLES", [
-"So who were the enemies on those ships?",
-"Egyptian records give us a name. Around twelve hundred and eight BCE, the pharaoh Merneptah fought off an invasion from Libya. Among the attackers were groups the Egyptians described as coming from the sea: the Sherden, the Shekelesh, the Lukka, and others.",
-"Some of these names were not new. Sherden warriors had served earlier pharaohs as mercenaries, even as royal bodyguards. The peoples of the sea were not strangers from nowhere. They were part of the same world that was now breaking apart.",
-"About thirty years later, in the eighth year of the pharaoh Ramesses the Third, the threat returned. On the walls of his temple at Medinet Habu, near Thebes, Ramesses recorded what happened.",
-"The foreign countries made a conspiracy in their islands, the inscription says. No land could stand before their arms, from Hatti, Kode, Carchemish, Arzawa and Alashiya on.",
-"The reliefs show a great battle on land, and a naval battle at the mouth of the Nile. Enemy warriors wear horned helmets or tall feathered headdresses. Ox carts carry women and children. These were not only raiders. Many of them seem to have been migrants, looking for new land.",
-"Ramesses claims a total victory. Some of the defeated, the inscription says, were settled in fortresses under Egyptian control.",
-"Among the names on the list are the Peleset. Many scholars connect them with the Philistines, who settled on the southern coast of Canaan soon afterwards.",
-"So the Sea Peoples were real. But were they the cause of the collapse? Or were they a symptom of it?",
+("THE LAST TWO DAYS", [
+"Scientists have been able to reconstruct his last days in surprising detail.",
+"Pollen in his gut acts like a travel diary. It suggests that in his last day and a half, Ötzi moved from the high mountains down into a valley, and then climbed back up again, very high, very fast. Pollen from a tree called the hop hornbeam was still fresh, so he probably died in late spring or early summer.",
+"His right hand had a deep cut between the thumb and the index finger. It had started to heal, so it happened a few days before his death. Some researchers think it was a defensive wound, from a fight.",
+"And his stomach was full. His stomach was only located years after the discovery, and its contents were analysed in detail in twenty eighteen. It contained ibex meat, a lot of fat, and einkorn wheat, an early type of grain. He seems to have eaten it perhaps less than two hours before he died.",
+"Think about that. A man who believed he was being hunted would not sit down to a large, heavy meal. Ötzi probably felt safe. He had stopped to rest.",
+]),
+("THE ARROW", [
+"For ten years after his discovery, people thought Ötzi had died of cold and exhaustion, maybe caught in a storm.",
+"Then, in two thousand and one, a radiologist named Paul Gostner looked again at X-rays of his body. In his left shoulder, he saw a small shape that should not have been there.",
+"It was a flint arrowhead.",
+"Someone had shot Ötzi from behind. The arrow entered his back and tore a major artery under his collarbone. Later scans showed that the wound was almost certainly fatal. He probably bled to death within minutes.",
+"The arrow shaft was never found. Someone may have pulled it out. Perhaps it was the killer, and perhaps because arrows could identify their owner.",
+"Ötzi also had a serious injury to his head. Was he struck after he fell? Or did he hit his head on a rock as he collapsed? Scientists still disagree.",
 ]),
 ("THE SUSPECTS", [
-"Today, most historians think no single enemy could have done all this. Instead, they point to several problems that hit at the same time.",
-"The first suspect is drought. Pollen preserved in sediment cores from the Sea of Galilee, and from a salt lake on Cyprus, suggest a long dry period in the region in the late thirteenth and twelfth centuries BCE.",
-"Texts point the same way. Egyptian records say Merneptah sent grain to keep the land of Hatti alive. Letters found at Ugarit mention urgent shipments of grain. In one of them, the writer calls it a matter of life or death.",
-"The second suspect is earthquakes. Several sites show damage that may have been caused by them, and some scientists have proposed a so-called earthquake storm, a series of large quakes over decades. Others think the evidence is too uncertain.",
-"The third suspect is people inside the kingdoms. Palace societies were heavily taxed and tightly controlled. When harvests failed, some historians think, ordinary people may have rebelled, or simply walked away.",
-"And the fourth is the network itself. When trade broke down, copper and tin stopped flowing. Kingdoms that depended on each other began to fail one after another.",
-]),
-("THE PERFECT STORM", [
-"The historian Eric Cline, who wrote a well-known book on the collapse, calls it a perfect storm. Each of these problems alone might have been survivable. Together, they overwhelmed a system in which everything was connected.",
-"Think of it as a chain of dominoes. Drought brings hunger. Hunger brings unrest and migration. Migrants and raiders attack weakened cities. Destroyed ports mean trade stops. Without trade, no bronze, no luxury goods for the elites, no grain for the hungry.",
-"The more connected the world was, the faster the damage spread. Its greatest strength had become its weakness.",
-"Not everyone fell. Egypt survived, though it lost its empire in the Levant and grew weaker over the following century. Assyria survived. Some cities on the Phoenician coast, like Tyre, Sidon and Byblos, came through. But the old order was gone.",
-]),
-("AFTER THE DARK", [
-"In Greece, what followed is often called a Dark Age. For about four centuries, there were no palaces, fewer people, and no writing. Linear B was forgotten.",
-"When the Greeks began to write again, they used a new system, borrowed from the Phoenicians. It was an alphabet, simple enough for merchants, not just palace scribes.",
-"Iron came into wider use. Iron ore can be found in many places, unlike tin. Some historians think the loss of the tin trade pushed smiths to master iron working, though the change was gradual.",
-"New peoples and kingdoms appeared in the Levant, among them the Philistines, the Phoenician city-states and ancient Israel, whose name first appears on a stele of Merneptah. Out of the ruins of the Bronze Age came the world of Homer, of the alphabet, and of classical Greece.",
-"And the memory of the lost age did not vanish completely. Centuries later, Greek poets sang of Mycenae rich in gold, of kings like Agamemnon, and of a great war at Troy. Whatever really happened, the Greeks of the Iron Age remembered that before them there had been a greater age, of heroes and palaces, that had ended in fire.",
+"So who killed Ötzi? After five thousand years, we will never have a name. But we can look at the motives.",
+"The first theory is robbery. But that does not fit well. The killer left behind the most valuable thing Ötzi had: his copper axe. Perhaps such an axe was too easy to recognise, and taking it would have revealed the crime.",
+"The second theory is a fight that went wrong. In twenty seventeen, a German police detective, Alexander Horn, reviewed the case like a modern murder. In his view, the hand wound points to a fight a few days earlier. The killer, he suggested, may have followed Ötzi up the mountain, and shot him from a distance while he rested.",
+"The third theory is that Ötzi was not a simple shepherd. His copper axe, his age, and his tattoos have led some to wonder whether he was a man of some importance, perhaps caught up in a conflict between groups in the valleys. There is no proof of this.",
+"And there are even older ideas, such as a sacrifice or a ritual burial. Most researchers today reject them. The evidence points to a violent, personal attack.",
 ]),
 ("WHAT WE KNOW VS. WHAT WE DON'T", [
 "So what can we say for sure?",
-"Many major centres from Greece to Syria were destroyed or abandoned in the decades around twelve hundred BCE. The Hittite Empire, Ugarit and the Mycenaean palaces did not survive.",
-"Egyptian texts describe invasions by groups from the sea, and climate records suggest a serious drought.",
-"But we still don't know exactly who the Sea Peoples were, or where they came from. We don't know how much damage they caused, or how much was done by earthquakes, famine or revolt. And we don't know the exact order in which the dominoes fell.",
-"New evidence still appears, from shipwrecks, sediment cores, and tablets found in the ruins.",
+"Ötzi lived around thirty-three hundred BCE, and died high in the Alps, at about forty-five years old.",
+"He was shot from behind with a flint-tipped arrow, and probably died within minutes. He had eaten a large meal shortly before, and had been injured in the hand a few days earlier.",
+"But we don't know who shot him, or why. We don't know why he climbed so high, so fast. And we don't know how his head was injured, or why his killer left the copper axe behind.",
+"New studies still appear almost every year, from his genes, his gut, his clothes and his tools.",
 ]),
 ("OUTRO", [
-"Three thousand years ago, an interconnected world, with its diplomats, merchants and great kings, came apart within a few generations.",
-"The people who lived through it could not see the whole picture. They only saw the ships on the horizon, the empty granaries, and the letters that never got an answer.",
-"I'm Ashen Crown. If you want more stories of lost worlds, subscribe, and I'll see you in the next one.",
+"For five thousand years, a man lay in a gully below the ice, with his unfinished bow, his fourteen arrows and his copper axe beside him.",
+"Then a warm summer melted the ice, and he came back, carrying the oldest crime scene in the world.",
+"I'm Ashen Crown. If you want more stories of real people from lost worlds, subscribe, and I'll see you in the next one.",
 ]),
 ]
 if __name__ == "__main__":

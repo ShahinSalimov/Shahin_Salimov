@@ -11,7 +11,7 @@ for s in secs:
         if m and p[0].islower(): m[-1]+=' '+p
         else: m.append(p)
     s['paras']=m
-RESPELL=[(r"Ugarit","Oo-gah-rit"),(r"Ammurapi","Ah-moo-rah-pee"),(r"Hattusa","Hah-too-shah"),(r"Suppiluliuma","Soo-pee-loo-lee-oo-mah"),(r"Merneptah","Mer-nep-tah"),(r"Medinet Habu","Meh-dee-net Hah-boo"),(r"Uluburun","Oo-loo-boo-roon"),(r"Shekelesh","Sheh-keh-lesh"),(r"Sherden","Sher-den"),(r"Peleset","Peh-leh-set"),(r"Arzawa","Ar-zah-wah"),(r"Alashiya","Ah-lah-shee-yah"),(r"Carchemish","Kar-keh-mish"),(r"Kode","Koh-deh"),(r"Akkadian","Ah-kay-dee-an"),(r"Gobekli Tepe","Gur-beck-lee Teh-peh"),(r"Karahan Tepe","Kah-rah-hahn Teh-peh"),(r"Tas Tepeler","Tahsh Teh-peh-lehr"),
+RESPELL=[(r"Ötztal","Urts-tahl"),(r"Ötzi","Urt-see"),(r"Gostner","Gost-ner"),(r"einkorn","ine-korn"),(r"Bolzano","Bol-tsah-no"),(r"Innsbruck","Inns-brook"),(r"Ugarit","Oo-gah-rit"),(r"Ammurapi","Ah-moo-rah-pee"),(r"Hattusa","Hah-too-shah"),(r"Suppiluliuma","Soo-pee-loo-lee-oo-mah"),(r"Merneptah","Mer-nep-tah"),(r"Medinet Habu","Meh-dee-net Hah-boo"),(r"Uluburun","Oo-loo-boo-roon"),(r"Shekelesh","Sheh-keh-lesh"),(r"Sherden","Sher-den"),(r"Peleset","Peh-leh-set"),(r"Arzawa","Ar-zah-wah"),(r"Alashiya","Ah-lah-shee-yah"),(r"Carchemish","Kar-keh-mish"),(r"Kode","Koh-deh"),(r"Akkadian","Ah-kay-dee-an"),(r"Gobekli Tepe","Gur-beck-lee Teh-peh"),(r"Karahan Tepe","Kah-rah-hahn Teh-peh"),(r"Tas Tepeler","Tahsh Teh-peh-lehr"),
  (r"Sanliurfa","Shahn-lee-oor-fah"),(r"Nevali Chori","Neh-vah-luh Choh-ree"),(r"Karacadag","Kah-rah-jah-dah"),(r"Ataturk","Ah-tah-turk"),
  (r"Mohenjo-daro","Mohenjo-dahro"),(r"'"," ")]
 def speak(t):

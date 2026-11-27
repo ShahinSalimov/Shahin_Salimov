@@ -1,4 +1,4 @@
-"""Procedural background score for the Bronze Age Collapse documentary (fully original, no samples).
+"""Procedural background score for the Ötzi the Iceman documentary (fully original, no samples).
 Layers: tanpura-style drone + plucks, pad chords, bansuri-style flute melody, frame drum, wind.
 Mood follows the narration timeline; music ducks under the voice."""
 import sys, json, numpy as np, soundfile as sf
@@ -17,11 +17,11 @@ def pt(sec, p):  # absolute time of paragraph start
     return off[sec] + (0 if p == 0 else q["start"])
 
 # ---- mood cues (time, mood) ----
-CUES = [(0, "tension"), (off[2] - 2, "swell"), (off[2], "epic"), (off[3], "warm"), (pt(3, 3), "day"), (pt(3, 5), "reflect"),
-        (off[4], "voyage"), (pt(4, 4), "warm"), (off[5], "hook"), (off[6], "mystery"), (pt(6, 1), "tension"), (pt(6, 3), "storm"),
-        (pt(6, 5), "decline"), (off[7], "hook"), (pt(7, 1), "tension"), (pt(7, 5), "storm"), (pt(7, 7), "migration"), (pt(7, 8), "mystery"),
-        (off[8], "reflect"), (pt(8, 1), "drought"), (pt(8, 3), "tension"), (pt(8, 5), "decline"), (off[9], "storm"), (pt(9, 3), "reflect"),
-        (off[10], "decline"), (pt(10, 1), "hope"), (pt(10, 4), "epic"), (off[11], "reflect"), (off[12], "hope"), (TOTAL - 21, "end")]
+CUES = [(0, "tension"), (off[2] - 2, "swell"), (off[2], "epic"), (off[3], "mystery"), (pt(3, 3), "tension"), (pt(3, 5), "epic"),
+        (pt(3, 6), "reflect"), (off[4], "warm"), (pt(4, 2), "day"), (pt(4, 5), "evening"), (off[5], "warm"), (pt(5, 4), "sacred"),
+        (pt(5, 6), "hook"), (off[6], "mystery"), (pt(6, 3), "tension"), (off[7], "voyage"), (pt(7, 2), "tension"), (pt(7, 4), "evening"),
+        (off[8], "dark"), (pt(8, 2), "hook"), (pt(8, 3), "storm"), (pt(8, 5), "mystery"), (off[9], "tension"), (pt(9, 2), "storm"),
+        (pt(9, 4), "mystery"), (off[10], "reflect"), (off[11], "hope"), (TOTAL - 21, "end")]
 # per mood: layer gains (drone, pluck, pad, melody, perc, wind), progression, scale, melody density
 MOODS = {
  "dark":     ((1.0, .0, .25, .35, 0, .9), "dark", "minor", .35),

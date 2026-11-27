@@ -17,7 +17,7 @@ SANS = "/usr/share/fonts/opentype/inter/Inter-Medium.otf"
 SANS_B = "/usr/share/fonts/opentype/inter/Inter-Bold.otf"
 SANS_L = "/usr/share/fonts/opentype/inter/Inter-Light.otf"
 GOLD = (212, 169, 98); ORANGE = (230, 120, 50); CREAM = (245, 236, 220); GREY = (150, 150, 150)
-GRAPH = {k: k for k in ("G1", "G2", "G3", "G4", "G5")}
+GRAPH = {k: k for k in ("G1", "G2", "G3")}
 
 man = json.load(open(f"{S}/narration/manifest.json"))
 M.init(S)
@@ -115,13 +115,13 @@ def fit_text(dr, text, path, size, maxw):
         size -= 2
     return font(path, size)
 
-KNOW = ["Many centres from Greece to Syria fell c. 1200–1150 BCE",
-        "Hittite Empire, Ugarit and Mycenaean palaces did not survive",
-        "Egyptian texts describe invaders from the sea",
-        "Climate records suggest a long drought"]
-DONT = ["Who the Sea Peoples were and where they came from", "How much damage they caused",
-        "The role of earthquakes, famine and revolt", "The exact order of events"]
-KSTEP = {0: (0, 0), 1: (2, 0), 2: (4, 0), 3: (4, 4)}
+KNOW = ["Lived c. 3300 BCE, died at about 45, high in the Alps",
+        "Shot from behind with a flint-tipped arrow",
+        "Ate a large meal shortly before he died",
+        "Hand wounded a few days earlier"]
+DONT = ["Who shot him, and why", "Why he climbed so high, so fast",
+        "How his head was injured", "Why the killer left the copper axe"]
+KSTEP = {0: (0, 0), 1: (1, 0), 2: (4, 0), 3: (4, 4)}
 
 static_cache = {}
 def static_card(kind, data):
@@ -209,10 +209,10 @@ def render_shot(sh, lt, dur, idx):
         if c == "title":
             f = kenburns(load_src(img_for("ai", title_bg_prompt)), u, 1).astype(np.float32) * VIG * 0.55
             def d(dr, L):
-                fnt = font(SERIF_B, 96); t = "THE BRONZE AGE COLLAPSE"; tw = dr.textlength(t, font=fnt)
+                fnt = font(SERIF_B, 96); t = "ÖTZI THE ICEMAN"; tw = dr.textlength(t, font=fnt)
                 dr.text(((W - tw) / 2 + 4, 384), t, font=fnt, fill=(0, 0, 0, 160))
                 dr.text(((W - tw) / 2, 380), t, font=fnt, fill=CREAM + (255,))
-                f2 = font(SANS, 42); t2 = "When the First Global World Fell"; tw2 = dr.textlength(t2, font=f2)
+                f2 = font(SANS, 42); t2 = "The Oldest Murder Mystery in the World"; tw2 = dr.textlength(t2, font=f2)
                 dr.text(((W - tw2) / 2, 580), t2, font=f2, fill=GOLD + (255,))
                 f3 = font(SANS_L, 28); t3 = "Historical scenes are AI-generated reconstructions."; tw3 = dr.textlength(t3, font=f3)
                 dr.text(((W - tw3) / 2, H - 80), t3, font=f3, fill=(220, 215, 205, 230))
@@ -222,13 +222,13 @@ def render_shot(sh, lt, dur, idx):
             bg, L = static_card("know", sh[2])
             return overlay(bg.copy(), L, 1.0)
         if c == "end":
-            f = kenburns(load_src(img_for("ai", SHOTS[(12, 2)][0][1])), u, 0).astype(np.float32)
+            f = kenburns(load_src(img_for("ai", SHOTS[(11, 2)][0][1])), u, 0).astype(np.float32)
             f = cv2.GaussianBlur(f, (0, 0), 12) * 0.35
             def d(dr, L):
                 dr.text((150, 150), "WATCH NEXT", font=font(SANS_B, 46), fill=GOLD + (255,))
                 dr.rounded_rectangle((150, 240, 1010, 724), 14, outline=GOLD + (255,), width=4, fill=(0, 0, 0, 120))
-                t = "Göbekli Tepe"; fnt = font(SERIF_B, 48); tw = dr.textlength(t, font=fnt)
-                dr.text((580 - tw / 2, 430), t, font=fnt, fill=CREAM + (255,)); f2 = font(SANS, 30); t2 = "The Temple Before Civilization"; dr.text((580 - dr.textlength(t2, font=f2) / 2, 510), t2, font=f2, fill=GOLD + (255,))
+                t = "The Bronze Age Collapse"; fnt = font(SERIF_B, 44); tw = dr.textlength(t, font=fnt)
+                dr.text((580 - tw / 2, 430), t, font=fnt, fill=CREAM + (255,)); f2 = font(SANS, 30); t2 = "Who Destroyed the First Global World?"; dr.text((580 - dr.textlength(t2, font=f2) / 2, 510), t2, font=f2, fill=GOLD + (255,))
                 dr.ellipse((1280, 290, 1660, 670), outline=GOLD + (255,), width=4, fill=(0, 0, 0, 120))
                 t = "SUBSCRIBE"; fnt = font(SANS_B, 44); tw = dr.textlength(t, font=fnt)
                 dr.text((1470 - tw / 2, 455), t, font=fnt, fill=CREAM + (255,))

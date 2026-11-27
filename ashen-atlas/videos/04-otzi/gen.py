@@ -1,10 +1,10 @@
 import sys, os, re, hashlib, time, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from shots import SHOTS
-STYLE=", photorealistic cinematic film still, Late Bronze Age eastern Mediterranean, dramatic warm light, bronze and ochre tones, 35mm film grain, shallow depth of field"
+STYLE=", photorealistic cinematic film still, Copper Age Alps 3300 BC, cold natural light, earthy tones, 35mm film grain, shallow depth of field"
 ART=", museum photography, photorealistic, soft spotlight"
 PLAIN=", photorealistic cinematic film still, 35mm film grain"
-NOSTYLE=re.compile(r"1880s|1980s|present-day|archaeolog|scientist|underwater|Iron Age|Phoenician merchant|Greek bard")
+NOSTYLE=re.compile(r"1991|present-day|X-ray|archaeolog|scientist|Great Pyramid|museum|hop hornbeam|ibex")
 def full(kind,p):
     if kind=="art": return p+ART
     return p+(PLAIN if NOSTYLE.search(p) else STYLE)
