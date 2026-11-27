@@ -12,14 +12,14 @@ Code for the Ashen Crown YouTube channel (renamed from Ashen Atlas on 26 Nov 202
 
 ## Publishing plan
 
-- Long documentaries: 12-18 min, never longer than 20 min (user rule, 26 Nov 2026). Each ships with 3 Shorts (25-30 s, hook in the first second).
+- Long documentaries: 10-15 min, never longer than 16 min (27 Nov 2026 data review: 14-min video kept 30%, 34-min video only 8%). Each ships with 3 Shorts (25-33 s, hook in the first second): 2 cut from the long video + 1 "Modern vs Past" test Short (see below).
 - Production and publishing every other day from 26 Nov 2026, start 01:25 Baku time.
 - Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov), #3 Bronze Age Collapse (26 Nov, 14:27, last Ken Burns video). From #4 on: motion format.
 - Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (published 26 Nov), next:
   Ötzi the Iceman (who killed him?), The Egtved Girl (a Bronze Age teenager who travelled across Europe),
   Pompeii's last day through the lives of its people, Çatalhöyük (a family in a 9,000-year-old town),
   Tutankhamun (the boy king's short life), The Tollund Man, The Lady of Cao, Puabi the Queen of Ur.
-- Human-centred rule (from Shorts data: Priest-King, Dancing Girl and Gravestones Shorts led): every video and Short
+- Human-centred rule (from early Shorts data; refined on 27 Nov, see Data review): every video and Short
   is told through a person: a face, a name or a life (who were they, how did they live, how did they die).
   Open on a human face + question, follow one character through the story, end on what their life tells us.
 
@@ -74,7 +74,62 @@ Every still is animated by `motion.py`, never shown as a flat Ken Burns pan:
 
 ## Shorts formula (from data)
 
-- First second: big close-up FACE (statue, relief, person) + a question hook ("Priest or King?"). Priest-King Short: 268 views in 4 h vs 126 in 48 h for the earlier drains Short.
-- 25-30 s, no slow middle.
+- First second: the concrete object or face itself on screen + a number or a famous name + a question. No establishing shot, no slow intro.
+- Strongest pattern (27 Nov): famous name or concrete discovery ("Did a Chariot Kill Tutankhamun?" 93% viewed, "A Diver Found This 3,300-Year-Old Ship" 43%). Abstract titles fail even when they get first-day views ("Priest or King?" 15%, "The Last Letter of a Dying Kingdom" 13%).
+- 25-33 s. 40-45 s Shorts fell to 18-38%. No slow middle.
+- Judge a Short by average percentage viewed after 48 h, not by first-day views (the first-day burst is YouTube's test audience).
+- Never delete old Shorts: the Vulture Stone Short took off on day 3 (617 views in one day).
 - TikTok versions: run any Short script with `TT=1` → ending "Follow for more lost worlds. The full documentary is on YouTube.", output `*_TikTok.mp4`. Captions and posting plan in `tiktok/`.
 - Long-video thumbnails use the same formula: face on the right, 2-4 word question on the left (`thumbs2.py`, `thumbs_m.py`).
+
+## Data review 27 Nov 2026 (first 3 days, 3,243 views, 19.95 h, +10 subscribers)
+
+| Short | Views | Avg viewed |
+|---|---|---|
+| Did a Chariot Kill Tutankhamun? (motion test, few hours of data) | 103 | 93% |
+| A Diver Found This 3,300-Year-Old Ship | 660 | 43% |
+| This City Had Drains 4,500 Years Ago (45 s) | 214 | 38% |
+| The 11,500-Year-Old Vulture Stone | 625 | 34% |
+| She's 10 cm Tall and 4,500 Years Old | 263 | 31% |
+| They Thought These Were Gravestones | 230 | 28% |
+| Who Were the Sea Peoples? | 206 | 25% |
+| 4,500-Year-Old Writing That No One Can Read | 147 | 25% |
+| Someone Carved This 11,500 Years Ago (40 s) | 125 | 18% |
+| Priest or King? Nobody Knows Who Ruled This City | 354 | 15% |
+| The Last Letter of a Dying Kingdom | 129 | 13% |
+
+Long videos: Bronze Age Collapse 14:27, 30% viewed, CTR 1.46%; Stonehenge 19:31, 18%, CTR 2.47%; City With No Palace 34:18, 8%, CTR 1.54%.
+Actions: long videos 10-15 min; thumbnail = one object or face + max 3 words, target CTR 4%+; Shorts by the formula above; re-check the Tutankhamun Short at 48 h (if it stays above 70% at 300+ views, motion + famous name becomes the default).
+
+## Growth goal: YouTube Partner Program
+
+- Full YPP (ad revenue): 1,000 subscribers + either 10 million public Shorts views in 90 days or 4,000 public watch hours on long videos in 12 months.
+- Early tier (memberships, Super Thanks): 500 subscribers + 3 public uploads in 90 days + 3 million Shorts views in 90 days or 3,000 watch hours. Thresholds can differ by country; check YouTube Studio > Earn.
+- 10 M Shorts views in 90 days is about 110,000 views per day. Day 3 was about 1,000-1,300. One viral Short (1 M+) changes this, so the plan is volume + testing: many Shorts, double down on any format that beats 60% viewed.
+
+## Content pillar 2: Modern vs Past (test from 27 Nov 2026, user direction)
+
+Link something people use or watch today (phones, supercars, luxury brands, drones, missiles, social media, fast food, billionaires) to its ancestor in the past. Cover the whole world, not only Europe: China, India, Persia, the Mongols, Mali, the Aztecs, the Inca, Egypt, Mesopotamia.
+
+Rules:
+- Every comparison must be historically real; hedge disputed claims ("may have", "historians debate"). Never invent an "ancient smartphone".
+- Modern wars: compare the technology only (drones, armour, rockets). Never name sides or show real victims of current conflicts, no gore. Keeps videos advertiser-friendly.
+- No real modern brand logos or car badges in images; describe "a modern luxury supercar" instead.
+- Format: Short, 25-33 s. Open on a split image or a modern object morphing into the ancient one + question. Title: "Today's X Has a 2,000-Year-Old Ancestor" style.
+- One test Short per production day. After 6 tests compare average viewed against pillar 1. A pillar that wins gets long videos too (e.g. "The War Machines That Came Before Drones", 10-15 min).
+
+Test queue (facts to verify again before scripting):
+1. War drones: Austria sent unmanned bomb balloons over Venice in 1849.
+2. Rockets: Tipu Sultan's iron-cased Mysore rockets (1780s-1790s, India) inspired Britain's Congreve rockets.
+3. Supercars: Tutankhamun was buried with six chariots, some covered in gold (the "Lamborghini of Egypt"). Follows up the Chariot Short.
+4. Sports-star salaries: the Roman charioteer Gaius Appuleius Diocles is said to have earned about 35 million sesterces.
+5. Richest person: Mansa Musa of Mali (1324 pilgrimage to Mecca, his gold reportedly hit prices in Cairo).
+6. Internet / messaging: the Mongol Yam relay stations, the Persian Royal Road couriers.
+7. Data storage: Inca khipu, knotted strings that recorded numbers.
+8. Fast food: Pompeii's thermopolia, Roman street-food counters.
+9. Tanks: Hussite war wagons (15th century, Bohemia).
+10. Encryption: the Spartan scytale and the Caesar cipher.
+11. Social media: graffiti on Pompeii's walls.
+12. Luxury brand: Tyrian purple, a dye worth more than gold.
+
+Channel name: keep "Ashen Crown" (it names no era or region). If Modern vs Past wins, widen the tagline first (e.g. "The past behind everything"), and add to the name only if the tagline is not enough.
