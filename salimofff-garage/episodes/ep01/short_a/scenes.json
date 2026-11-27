@@ -1,0 +1,41 @@
+{
+ "car": "a brushed stainless steel 1981 DeLorean DMC-12 sports car, sharp angular wedge shape, gull-wing doors, black louvered rear window, unpainted silver steel body panels",
+ "style": "cinematic realistic documentary film still, 35mm film grain, muted teal and amber color grading, shallow depth of field, no text, no letters, no logos, no watermark, vertical composition",
+ "scenes": [
+  {
+   "text": "This car was supposed to cost twelve thousand dollars.",
+   "img": "{car} hero shot from low front angle in a dark studio, dramatic rim light, smoke on the floor",
+   "model": "nb2"
+  },
+  {
+   "text": "That's literally why it's called the DMC-12.",
+   "img": "{car} with both gull-wing doors open, seen from the front, spotlight from above, black background",
+   "model": "nb2"
+  },
+  {
+   "text": "Stainless steel skin. Gull-wing doors. A design by one of Italy's greatest car designers.",
+   "img": "extreme close-up of brushed stainless steel car body panel and a gull-wing door hinge, light sweeping across the metal",
+   "model": "z"
+  },
+  {
+   "text": "But when it reached showrooms in 1981, it cost around twenty-five thousand. More than a Corvette.",
+   "img": "{car} alone on display in a 1981 car dealership showroom at night under spotlights",
+   "model": "nb2"
+  },
+  {
+   "text": "It was slow, it broke down, and America was sliding into a recession.",
+   "img": "rows of unsold stainless steel gull-wing sports cars in a huge port parking lot under a grey sky, early 1980s",
+   "model": "nb2"
+  },
+  {
+   "text": "Within two years, the factory was shut down, and its creator was arrested by the FBI.",
+   "img": "an abandoned car factory assembly line with tools left behind, dust in light beams, 1982",
+   "model": "z"
+  },
+  {
+   "text": "Only about nine thousand were ever built. And it all started with one number.",
+   "img": "{car} under a dusty cover in a dark barn, one beam of light through the planks",
+   "model": "nb2"
+  }
+ ]
+}

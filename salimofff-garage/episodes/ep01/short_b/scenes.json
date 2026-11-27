@@ -1,0 +1,46 @@
+{
+ "car": "a brushed stainless steel 1981 DeLorean DMC-12 sports car, sharp angular wedge shape, gull-wing doors, black louvered rear window, unpainted silver steel body panels",
+ "style": "cinematic realistic documentary film still, 35mm film grain, muted teal and amber color grading, shallow depth of field, no text, no letters, no logos, no watermark, vertical composition",
+ "scenes": [
+  {
+   "text": "In 1982, a famous car boss opened a suitcase in a hotel room near L.A.X.",
+   "img": "a dim 1980s hotel room at night, an open briefcase on a bed, a tall man in a dark suit seen from behind, cold fluorescent light",
+   "model": "z"
+  },
+  {
+   "text": "Hidden cameras were recording everything.",
+   "img": "close-up of a hidden surveillance camera lens behind a hotel room air vent, red recording light, grainy VHS look",
+   "model": "z"
+  },
+  {
+   "text": "He was John DeLorean, the man behind the stainless steel car with gull-wing doors.",
+   "img": "{car} parked alone on a rain-soaked street at night under a single streetlight",
+   "model": "nb2"
+  },
+  {
+   "text": "His company was out of money, and he was desperate.",
+   "img": "an empty car factory floor at night with one unfinished stainless steel gull-wing car, dust and shadows",
+   "model": "nb2"
+  },
+  {
+   "text": "An informant offered him a deal to save it. It was an F.B.I. sting.",
+   "img": "two men talking in a parked car at night, faces in shadow, rain-streaked windshield, city light bokeh",
+   "model": "z"
+  },
+  {
+   "text": "He was arrested on the spot, and the tape was played on TV around the world.",
+   "img": "a 1982 living room lit only by a glowing CRT television showing a breaking news broadcast, silhouettes on a sofa",
+   "model": "z"
+  },
+  {
+   "text": "Two years later, a jury set him free.",
+   "img": "a 1984 courtroom, a tall man in a suit seen from behind standing at the defense table, warm light",
+   "model": "z"
+  },
+  {
+   "text": "So why did he walk out a free man? Full story on Salimofff Garage.",
+   "img": "{car} with gull-wing doors open under a starry night sky, light trails behind, cinematic hero shot",
+   "model": "nb2"
+  }
+ ]
+}

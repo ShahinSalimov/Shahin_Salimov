@@ -1,0 +1,24 @@
+{
+  "timezone": "Asia/Baku",
+  "next_episode": 2,
+  "credits_left": 852,
+  "done": {
+    "1": {"date": "2026-11-27", "topic": "DeLorean DMC-12", "long": "The DeLorean: The Dream Car That Destroyed Its Creator", "shorts": 2}
+  },
+  "topics": {
+    "2": "Tucker 48: the car the establishment killed",
+    "3": "Pontiac Aztek: how the ugliest car in America was born",
+    "4": "Lamborghini: from tractors to supercars (the Ferrari insult story)",
+    "5": "Saab: why the airplane company's cars disappeared",
+    "6": "Ford Pinto: the exploding car scandal",
+    "7": "Bugatti Veyron: the car that lost money on every sale",
+    "8": "Ford Edsel: the most famous flop in car history",
+    "9": "Yugo: the worst car in America?",
+    "10": "Chevrolet Corvair: Unsafe at Any Speed",
+    "11": "Studebaker Avanti: the last gamble of a dying brand",
+    "12": "Cizeta V16T: the forgotten 16-cylinder supercar",
+    "13": "Bricklin SV-1: the gull-wing safety car that bankrupted a province",
+    "14": "Lancia Stratos: the rally monster built for one job",
+    "15": "Subaru SVX: the strange luxury Subaru nobody bought"
+  }
+}

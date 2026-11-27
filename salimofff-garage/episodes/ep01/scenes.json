@@ -1,0 +1,211 @@
+{
+ "title": "The DeLorean: The Dream Car That Destroyed Its Creator",
+ "car": "a brushed stainless steel 1981 DeLorean DMC-12 sports car, sharp angular wedge shape, gull-wing doors, black louvered rear window, unpainted silver steel body panels",
+ "style": "cinematic realistic documentary film still, 35mm film grain, muted teal and amber color grading, shallow depth of field, no text, no letters, no logos, no watermark",
+ "scenes": [
+  {
+   "chapter": null,
+   "text": "October 19th, 1982. A hotel room near Los Angeles airport. A tall man in an expensive suit opens a suitcase, lifts a bag of white powder, and smiles at the camera hidden in the wall.",
+   "img": "a dim 1980s hotel room at night, an open briefcase on a bed, a tall man in a dark expensive suit seen from behind, hidden-camera surveillance angle from a high corner, grainy VHS look, cold fluorescent light",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "\"It's better than gold,\" he says. Seconds later, FBI agents walk through the door.",
+   "img": "FBI agents in 1980s suits and windbreakers bursting through a hotel room door, motion blur, dramatic low angle, harsh light from the hallway, faces not visible",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "The man was John DeLorean. Months earlier he had been one of the most famous car executives in America. And the car that carried his name was about to disappear forever.",
+   "img": "{car} parked alone in an empty dark street at night, rain-soaked asphalt, single streetlight, reflections on the stainless steel",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "This is the story of how a dream car was built in a war zone, sold at double its promised price, and dragged its creator into an FBI sting. And why, forty years later, it is worth more than ever.",
+   "img": "{car} with both gull-wing doors open in a dark studio, dramatic rim light, smoke on the floor, hero shot from low front three-quarter angle",
+   "model": "nb2"
+  },
+  {
+   "chapter": "CHAPTER 1: THE GOLDEN BOY",
+   "text": "To understand the DeLorean, you have to understand the man. John Zachary DeLorean grew up in Detroit, the son of a factory worker. He studied engineering and joined General Motors in the 1950s.",
+   "img": "Detroit in the 1950s, a busy street with smoking factory chimneys and classic American cars, overcast sky, vintage Kodachrome photograph look",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "At Pontiac, he helped push a crazy idea past the company's own rules: put a big V8 engine into a mid-size family car. In 1964 it became the Pontiac GTO, and many historians call it the car that kicked off the muscle car era.",
+   "img": "a 1964 American muscle car in dark blue parked in front of a 1960s suburban drive-in diner at dusk, neon glow, chrome bumper, period-correct photograph",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "His rise was fast. He became the youngest head of a GM division, and later ran Chevrolet, the biggest car brand in America. He wore long hair, dated models, and partied with Hollywood stars. Detroit had never seen an executive like him.",
+   "img": "a glamorous 1970s Hollywood party, a tall man in a wide-lapel suit seen from behind holding a cocktail, blurred celebrities and camera flashes in the background, warm golden light",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "In 1973, at the very top, he walked away from General Motors. He said the company had become too slow, too safe and too boring. He wanted to build his own car. An ethical sports car, he called it. Safe, efficient, and built to last.",
+   "img": "a tall man in a dark suit walking away down a long corporate office corridor in the 1970s, seen from behind, wood panels and fluorescent lights, lonely mood",
+   "model": "z"
+  },
+  {
+   "chapter": "CHAPTER 2: THE DREAM CAR",
+   "text": "DeLorean founded the DeLorean Motor Company in 1975 and hired the best names he could find. The body was drawn by Giorgetto Giugiaro of Italdesign, the man behind some of the most famous cars of the century.",
+   "img": "a 1970s Italian car design studio, large pencil sketches pinned on the wall showing a very sharp angular wedge-shaped sports car with flat straight lines and gull-wing doors, a designer's hand drawing at a drafting table, warm lamp light",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "The skin would be brushed stainless steel. No paint at all. It would never rust, and it would look like nothing else on the road.",
+   "img": "extreme close-up macro of brushed stainless steel car body panel with fine grain lines, light sweeping across the metal surface, studio lighting",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "And the doors would open upward, like wings. To hold up those heavy steel doors, the team used torsion bars developed with help from Grumman, the aerospace company that built hardware for the Apollo moon missions.",
+   "img": "{car} with its gull-wing doors rising open in a dark workshop, low angle, dramatic side light, mechanics silhouettes in the background",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "Even the name was a promise. DMC-12. The twelve stood for the target price: twelve thousand dollars. A futuristic car for the price of an ordinary one.",
+   "img": "a 1970s promotional photo shoot of {car} on a turntable in a white studio, photographers and lights around it, glamorous advertising mood",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "But the early prototypes had problems. So DeLorean turned to Colin Chapman and Lotus in England to re-engineer almost the entire car. It worked, but it was expensive, and the bill would come back to haunt him.",
+   "img": "a late 1970s British engineering workshop, a bare steel backbone chassis frame of a road sports car without body panels resting on stands, engineers in white shirts studying blueprints, overcast window light",
+   "model": "nb2"
+  },
+  {
+   "chapter": "CHAPTER 3: A FACTORY IN A WAR ZONE",
+   "text": "Now DeLorean needed a factory, and he found the most unlikely place to build one: Dunmurry, on the edge of Belfast, Northern Ireland.",
+   "img": "aerial view of a large modern car factory being built on green fields near Belfast in 1979, cranes and steel frames, grey Irish sky",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "In the late 1970s, Northern Ireland was in the middle of the Troubles. Bombings, riots and soldiers on the streets. Unemployment in West Belfast was brutal.",
+   "img": "a tense Belfast street in the late 1970s, armored vehicles, soldiers at a checkpoint, brick terraced houses and graffiti-free walls, gritty documentary photograph, overcast",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "The British government made him an offer he couldn't refuse. Build your car here, and we will pay for most of it. Around one hundred million pounds of public money went into the project.",
+   "img": "a 1970s government meeting room, men in suits around a long table with stacks of contracts and a pen being handed over, faces out of frame, close focus on hands and documents",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "In return, the factory promised thousands of jobs. And for a while, it delivered. Catholic and Protestant workers came in through separate gates, but worked side by side on the same line.",
+   "img": "workers in blue overalls arriving at a car factory gate in the early morning in Northern Ireland, 1981, steam breath in cold air, documentary photograph",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "In early 1981, the first cars rolled out of Dunmurry. The dream was real.",
+   "img": "{car} on the assembly line in a 1981 factory, harsh fluorescent lights, workers in overalls finishing the car, film grain",
+   "model": "nb2"
+  },
+  {
+   "chapter": "CHAPTER 4: THE $25,000 PROBLEM",
+   "text": "Then the problems began. The car that was supposed to cost twelve thousand dollars arrived in showrooms at around twenty-five thousand. That was more than a Chevrolet Corvette.",
+   "img": "a 1981 American car dealership showroom at night with {car} on display under spotlights, an empty showroom floor, a single salesman standing by the window",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "And for that money, buyers got a car that was not fast. Its Peugeot-Renault-Volvo V6 made around 130 horsepower in American trim. It needed about ten seconds to reach sixty miles per hour.",
+   "img": "close-up of a 1980s V6 engine bay in the rear of a stainless steel sports car, oily metal, workshop lamp light, mechanic's hands with a wrench",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "Early owners reported doors that got stuck, electrics that failed, and panels that didn't line up. Stainless steel also showed every fingerprint.",
+   "img": "{car} parked on a suburban driveway in 1982 with one gull-wing door stuck half open, a frustrated owner seen from behind with his hands on his hips",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "Worst of all, the timing was terrible. America fell into a recession in 1981 and 1982. Interest rates were sky high. Thousands of unsold DeLoreans sat waiting in parking lots.",
+   "img": "rows of unsold stainless steel gull-wing sports cars parked in a huge port parking lot under a grey sky, early 1980s, wide aerial shot",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "The company was burning money. In February 1982, the British government put DeLorean Motor Cars into receivership. John DeLorean had months to find the money to save his company.",
+   "img": "an empty car factory assembly line with tools left behind, dust in the light beams, abandoned feeling, 1982",
+   "model": "z"
+  },
+  {
+   "chapter": "CHAPTER 5: THE HOTEL ROOM",
+   "text": "Desperate for cash, DeLorean began talking to a man who claimed he could arrange a huge investment. That man was a government informant.",
+   "img": "two men in a parked car at night talking, seen through the rain-streaked windshield, faces in shadow, city lights bokeh, 1982 noir mood",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "Over several meetings, the FBI secretly recorded the conversations. The plan on the table was a cocaine deal worth around twenty-four million dollars, with the profits meant to keep the company alive.",
+   "img": "a 1980s reel-to-reel tape recorder and cassette surveillance equipment in a dark van, glowing VU meters, headphones on the desk, blank paper evidence tags with no writing",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "On October 19th, 1982, in that hotel room near the airport, the trap closed. The arrest video was played on television around the world. The same week, the Dunmurry factory was shut for good.",
+   "img": "a 1982 living room with a glowing CRT television showing a breaking news broadcast, a family silhouetted watching on a sofa, dark room",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "But the story has a twist. In 1984, a jury found DeLorean not guilty. His lawyers argued that the government had entrapped him, and the jury agreed.",
+   "img": "a 1984 American courtroom, a wooden jury box and judge's bench in warm light, a tall man in a suit seen from behind standing at the defense table",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "He walked free. But his reputation, his fortune and his company were gone. Investigations into where the company's money had gone would continue for years.",
+   "img": "a tall man in a long coat walking alone down courthouse steps in the rain, seen from behind, photographers in the distance, dramatic overcast",
+   "model": "z"
+  },
+  {
+   "chapter": "CHAPTER 6: THE AFTERLIFE",
+   "text": "In the end, only about nine thousand DeLoreans were built. It should have been the end. A failed car from a failed company, forgotten in a few years.",
+   "img": "a single {car} covered with a dusty car cover in a dark barn, only the stainless steel lower door visible, a beam of light through the planks",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "Then, in 1985, a movie changed everything. A Hollywood comedy about time travel chose a stainless steel car with gull-wing doors as its time machine. Overnight, the DeLorean became the most famous car in the world.",
+   "img": "a crowded 1985 movie theater lobby at night with excited people, glowing marquee lights and popcorn, no readable text, warm nostalgic film look",
+   "model": "z"
+  },
+  {
+   "chapter": null,
+   "text": "Today, the cars that nobody wanted are collector pieces. Clean examples often sell for far more than their original price. A company in Texas bought the leftover parts and still keeps them running.",
+   "img": "a modern restoration workshop with several stainless steel gull-wing sports cars being restored, shelves full of spare parts, clean bright light",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "John DeLorean died in 2005, at 80 years old. He never built another car. But the one he did build outlived his company, his scandal and his critics.",
+   "img": "{car} parked at sunset on an empty desert road, golden hour, long shadows, calm and nostalgic, wide shot",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "So was the DeLorean a failure? As a business, absolutely. As a car, it was flawed. But as a dream, it might be one of the most successful cars ever made.",
+   "img": "{car} with gull-wing doors open under a starry night sky, light trails in the background, dreamy cinematic hero shot",
+   "model": "nb2"
+  },
+  {
+   "chapter": null,
+   "text": "If you want the next forgotten story, tell me in the comments which car or brand we should bring back to life. The most liked comment becomes the next episode. This is Salimofff Garage.",
+   "img": "a dim vintage garage at night lit by one hanging work lamp, an empty space waiting for the next car, dust in the light beam, warm amber and teal",
+   "model": "z"
+  }
+ ]
+}
