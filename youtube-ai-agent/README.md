@@ -1,4 +1,75 @@
-# YouTube AI Agent
+# SALIMOFF AI YOUTUBE
+
+YouTube kanallarını sıfırdan quran və idarə edən sistem. Sistem bazarı analiz edir, niş seçir, kanalı qurur, long və Shorts videoları hazırlayır, onları YouTube-a planlı yükləyir və hər 3 gündən bir inkişaf hesabatı yazır. Hesabatdan çıxan nəticələr növbəti videoların planına daxil olur.
+
+```
+1. Analiz     → AI namizəd nişlər təklif edir. Hər niş üçün son 90 günün real YouTube datası yığılır:
+                median baxış, kiçik kanalların uğuru (views/subs), yeni kanalların payı, rəqabət, Shorts payı.
+2. Qərar      → şəffaf formula: Tələb 22% · Kiçik kanal uğuru 24% · Rəqabət 14% · RPM 16% · AI ilə istehsal 12% ·
+                Monetizasiya təhlükəsizliyi 12%. Qalib niş səbəbi ilə birlikdə göstərilir, istəsəniz başqasını seçə bilərsiniz.
+                Qalib nişin outlier videolarından başlıq formulları, hook-lar, thumbnail ideyaları, ideal uzunluq çıxarılır.
+3. Kanal      → 5 ad variantı, handle, About mətni, açar sözlər, pillar-lar, ton, səs istiqaməti, vizual stil,
+                loqo və banner, monetizasiya planı. Avtomatik yaradılanlar: Kitabxanada stil,
+                "<Kanal> · Long" (16:9) və "<Kanal> · Shorts" (9:16, yandırılmış altyazı) profilləri.
+4. Plan       → AI long və Shorts ideyaları yazır. Prioritet = AI proqnozu × pillar çəkisi (hesabatlardan gəlir).
+5. İstehsal   → mövcud pipeline: ssenari → səhnələr → şəkillər → səs → montaj → metadata → thumbnail.
+6. Upload     → növbəti boş slot (həftədə N long / N Shorts, saat qurşağı Asia/Baku), publishAt, thumbnail,
+                "altered/synthetic content" işarəsi (containsSyntheticMedia).
+7. Hesabat    → hər 3 gün: baxış, izlənmə saatı, abunəçi, AVD, long və Shorts müqayisəsi, pillar-ların göstəriciləri,
+                YPP-yə qədər qalan təxmini gün sayı, AI tövsiyələri. Nəticələr "öyrənilənlər" siyahısına və
+                pillar çəkilərinə yazılır, tam avtomatik rejimdə həftəlik tezlik də dəyişdirilir.
+```
+
+## Başlamaq
+
+1. `start.bat` (Windows) və ya `./start.sh` (Mac/Linux). Brauzerdə http://127.0.0.1:8765 açılır.
+2. **Sistem ayarları** bölməsində Demo rejimi açıq olanda bütün sistem pulsuz və API-siz sınanır.
+3. **Yeni kanal** bölməsində dili, regionu və maraq sahələrini yazıb **Hamısını sistem etsin** düyməsini basın.
+4. Kanal səhifəsi → **Brend və strategiya** → checklist. YouTube-da kanalı açın: ad, avatar və telefon təsdiqi API ilə edilmir.
+5. **Autopilot və YouTube** → **YouTube-a qoş**. Bundan sonra **Brendinqi YouTube-a yaz** basın.
+
+### Autopilot rejimləri
+| Rejim | Nə edir |
+|---|---|
+| Təsdiqlə (tövsiyə) | Sistem plan qurur. İstehsala yalnız sizin təsdiqlədiyiniz ideyalar gedir, yükləmə və hesabat avtomatikdir |
+| Tam avtomatik | İdeya seçimi, istehsal, yükləmə və hesabat tam avtomatikdir. Uğursuz istehsal bir dəfə təkrarlanır |
+
+Qoruyucu limitlər: gündəlik büdcə (default $10), eyni anda 1 istehsal, hazır video buferi (2 long, 4 Shorts).
+
+## Telefon versiyası
+
+İnterfeys telefona uyğunlaşır. Telefondan idarə etmək üçün:
+1. Kompüterdə `start-phone.bat` (Windows) və ya `./start-phone.sh` faylını işə salın.
+2. Pəncərədə ünvan (məs. `http://192.168.1.25:8765`) və 6 rəqəmli PIN çıxır. Telefon eyni Wi-Fi şəbəkəsində olmalıdır.
+3. Telefonda ünvanı açıb PIN-i yazın. Brauzer menyusundan **Add to Home Screen / Ana ekrana əlavə et** seçsəniz, sistem tətbiq kimi açılacaq.
+
+Qeydlər:
+- Videolar kompüterdə hazırlanır, telefon yalnız idarəetmə panelidir. Kompüter yanılı qalmalıdır.
+- "YouTube-a qoş" (OAuth) addımını kompüterin özündə edin, çünki Google Desktop OAuth yalnız `127.0.0.1` ünvanına qayıdır.
+- Evdən kənarda telefondan girmək üçün Tailscale kimi şəxsi VPN istifadə edə bilərsiniz. Portu internetə birbaşa açmayın.
+- PIN `data/access_pin.txt` faylındadır. Dəyişmək üçün faylı silin, yenisi yaranacaq.
+
+## Google Cloud (real upload və analiz üçün, bir dəfə)
+
+1. console.cloud.google.com saytında layihə yaradın. **YouTube Data API v3** və **YouTube Analytics API**-ni Enable edin.
+2. **API key** yaradın və onu Sistem ayarları → "YouTube Data API key" xanasına yazın (bazar analizi üçün).
+3. OAuth consent screen: External, Test users bölməsinə öz Gmail-inizi əlavə edin.
+4. **OAuth client ID → Desktop app** yaradın. Client ID və Secret-i Sistem ayarlarına yazın.
+
+Bilməli olduğunuz məhdudiyyətlər:
+- **Yoxlanılmamış Google layihəsindən yüklənən videolar private rejimdə kilidlənir.** Public dərc üçün Google-un "YouTube API Services Audit" formunu doldurun. Audit keçənə qədər videolar yüklənir, sonra onları Studio-da əl ilə public edirsiniz.
+- Gündəlik kvota 10,000 vahiddir. Bir upload ≈ 1,600 vahid tutur (gündə ≈ 6 video), bir axtarış 100 vahid. Bir analiz (8 niş) ≈ 1,700 vahid tutur.
+- Custom thumbnail üçün kanal telefonla təsdiqlənməlidir (youtube.com/verify).
+- Kanal adı və avatar API ilə dəyişdirilmir. Təsvir, açar sözlər və banner avtomatik yazılır.
+- YPP hədləri (500/3,000 saat erkən, 1,000/4,000 saat tam) YouTube-un indiki qaydalarıdır və dəyişə bilər. ETA cari templə hesablanır və proqnozdur.
+- YouTube API açarı olmadan analiz AI təxminləri ilə işləyir. Hesabatda bu "AI təxmini" kimi qeyd olunur.
+
+---
+
+# Video Studio (video istehsal mühərriki)
+
+SALIMOFF bu mühərriki istifadə edir. Ayrıca da işləyir: sol paneldə **Video Studio**.
+
 
 Mövzu yazırsınız, proqram hazır YouTube videosu (MP4 + altyazı + başlıq/təsvir/teqlər) çıxarır. Kamera, montaj proqramı və diktor lazım deyil. Proqram öz kompüterinizdə işləyir, interfeysi brauzerdə açılır.
 
@@ -103,6 +174,7 @@ YouTube AI alətləri ilə hazırlanan kontentə icazə verir. Monetizasiya isə
 
 ## Texniki məlumat
 
+- `app/salimoff/` — SALIMOFF qatı: `research` (analiz/qərar), `channel` (blueprint, profillər), `planner` (ideyalar, istehsal, slotlar, upload), `reports` (hesabat və öyrənmə), `autopilot` (fon prosesi), `ytapi` (YouTube Data/Analytics/OAuth), `routes` (API).
 - `app/` — FastAPI server və brauzer interfeysi. `data/` — ayarlar, açarlar, layihələr. `output/` — hazır videolar.
 - API açarları yalnız kompüterinizdə, `data/keys.json` faylında saxlanılır. Bu faylı heç kimə göndərməyin.
 - Testlər (demo rejimdə, API-siz): `python -m pytest -q`

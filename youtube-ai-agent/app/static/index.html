@@ -3,26 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YouTube AI Agent</title>
+<title>SALIMOFF AI YOUTUBE</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="salimoff.css">
 </head>
 <body>
 <aside class="side">
-  <div class="brand">YouTube<br><b>AI Agent</b></div>
+  <div class="brand"><b>SALIMOFF</b><br>AI YOUTUBE</div>
   <nav>
-    <a href="#/new" data-nav="new">Video yarat</a>
-    <a href="#/history" data-nav="history">Tarixçə</a>
-    <a href="#/settings" data-nav="settings">Ayarlar</a>
-    <a href="#/library" data-nav="library">Kitabxana</a>
+    <a href="#/" data-nav="">İdarə paneli</a>
+    <a href="#/launch" data-nav="launch">Yeni kanal</a>
+    <a href="#/research" data-nav="research">Analizlər</a>
+    <a href="#/system" data-nav="system">Sistem ayarları</a>
+    <a href="studio.html">Video Studio</a>
   </nav>
   <div class="profile-box">
-    <label>Aktiv profil (kanal)</label>
-    <select id="profileSelect"></select>
     <div id="demoBadge" class="badge hidden">DEMO rejimi</div>
+    <small class="muted" id="schedState"></small>
   </div>
 </aside>
 <main id="view"></main>
 <div id="toast"></div>
-<script src="app.js"></script>
+<script src="salimoff.js"></script>
 </body>
 </html>

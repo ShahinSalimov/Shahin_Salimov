@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Studio · SALIMOFF</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+<aside class="side">
+  <div class="brand"><a href="/" style="color:inherit;text-decoration:none">SALIMOFF<br><b>AI YOUTUBE</b></a><br><small>Video Studio</small></div>
+  <nav>
+    <a href="#/new" data-nav="new">Video yarat</a>
+    <a href="#/history" data-nav="history">Tarixçə</a>
+    <a href="#/settings" data-nav="settings">Ayarlar</a>
+    <a href="#/library" data-nav="library">Kitabxana</a>
+  </nav>
+  <div class="profile-box">
+    <label>Aktiv profil (kanal)</label>
+    <select id="profileSelect"></select>
+    <div id="demoBadge" class="badge hidden">DEMO rejimi</div>
+  </div>
+</aside>
+<main id="view"></main>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

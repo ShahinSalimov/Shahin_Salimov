@@ -47,3 +47,8 @@ table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px so
 .scene-list div{background:var(--panel2);border-radius:8px;padding:8px 10px;font-size:13px}
 .voice-list button{margin:3px}
 @media (max-width:900px){body{flex-direction:column}.side{width:auto;height:auto;position:static}.split{grid-template-columns:1fr}main{padding:16px}}
+@media (max-width:900px){
+  body{flex-direction:column}.side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px}
+  nav{flex-direction:row;flex-wrap:wrap}.profile-box{margin:0}main{padding:14px}
+  table{display:block;overflow-x:auto}
+}

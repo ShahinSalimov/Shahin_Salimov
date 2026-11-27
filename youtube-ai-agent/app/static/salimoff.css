@@ -1,0 +1,57 @@
+.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:0 0 18px}
+.flow div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;color:var(--mute)}
+.flow b{display:block;color:var(--text);font-size:13px;margin-bottom:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid var(--line);color:var(--mute)}
+.chip.on{border-color:var(--ok);color:var(--ok)}.chip.off{border-color:var(--warn);color:var(--warn)}
+.chcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.chcard{cursor:pointer;display:flex;flex-direction:column;gap:10px}
+.chcard:hover{border-color:var(--mute)}
+.chhead{display:flex;gap:12px;align-items:center}
+.chhead img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:var(--panel2)}
+.chhead .ph{width:46px;height:46px;border-radius:50%;background:var(--panel2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.kpi{background:var(--panel2);border-radius:8px;padding:10px}
+.kpi span{display:block;font-size:11px;color:var(--mute)}.kpi b{font-size:19px}
+.kpi small{margin-left:6px}.up{color:var(--ok)}.down{color:var(--err)}
+.counts{display:flex;gap:4px;flex-wrap:wrap}
+.counts span{font-size:11px;background:var(--panel2);padding:3px 8px;border-radius:10px;color:var(--mute)}
+.counts span b{color:var(--text)}
+.st{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--panel2);white-space:nowrap}
+.st.ready,.st.published{color:var(--ok)}.st.producing,.st.uploading{color:var(--warn)}.st.failed{color:var(--err)}
+.st.scheduled{color:#6aa9ff}.st.approved{color:var(--text)}.st.rejected{opacity:.5}
+table{width:100%;border-collapse:collapse}td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:500;font-size:12px}
+.tablewrap{overflow-x:auto}
+.bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.parts{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;font-size:11px;color:var(--mute);align-items:center;min-width:220px}
+.win{border-color:var(--acc)}
+.log{font-size:12px;max-height:320px;overflow:auto}
+.log div{padding:4px 0;border-bottom:1px solid var(--line)}
+.log .error{color:var(--err)}.log .warn{color:var(--warn)}
+.assets{display:grid;grid-template-columns:160px 1fr;gap:12px;align-items:start}
+.assets img{width:100%;border-radius:10px;border:1px solid var(--line)}
+.pill{display:inline-block;background:var(--panel2);border-radius:12px;padding:2px 9px;margin:2px;font-size:12px}
+.checklist label{display:flex;gap:8px;align-items:flex-start;color:var(--text);font-size:13px}
+ul.tight{margin:6px 0;padding-left:18px}
+@media (max-width:900px){
+  body{flex-direction:column}.side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center}
+  nav{flex-direction:row;flex-wrap:wrap}.profile-box{margin:0}
+  main{padding:16px}.flow{grid-template-columns:repeat(3,1fr)}.assets{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .side{padding:10px 12px;gap:8px}.brand{font-size:12px}.brand b{font-size:16px}
+  nav a{padding:6px 8px;font-size:13px}
+  h1{font-size:19px}.flow{grid-template-columns:repeat(2,1fr)}.chcards{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}
+  #toast{left:12px;right:12px;bottom:12px}#toast div{max-width:none}
+  td,th{padding:6px 5px;font-size:12px}button{padding:9px 12px}button.small{padding:6px 9px}
+  input,select,textarea{font-size:16px} /* prevents iOS zoom on focus */
+  #schedState,.brand br{display:none}.brand{display:flex;gap:6px;align-items:baseline}
+  nav{gap:0}
+  table.stack tr:first-child{display:none}
+  table.stack tr{display:flex;flex-wrap:wrap;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  table.stack td{border:0;padding:0}table.stack td:nth-child(2){flex-basis:100%;order:-1}
+  table.stack td.row{flex-basis:100%}
+}

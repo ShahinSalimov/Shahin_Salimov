@@ -13,7 +13,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import llm, pipeline, script, store
+from . import access, llm, pipeline, script, store
+from .salimoff import routes as salimoff_routes
 
 STATIC = Path(__file__).parent / "static"
 
@@ -23,10 +24,15 @@ async def lifespan(_app):
     store.DATA.mkdir(parents=True, exist_ok=True)
     store.OUTPUT.mkdir(parents=True, exist_ok=True)
     pipeline.recover_interrupted()
+    salimoff_routes.startup()
     yield
 
 
-app = FastAPI(title="YouTube AI Agent", lifespan=lifespan)
+app = FastAPI(title="SALIMOFF AI YOUTUBE", lifespan=lifespan)
+app.include_router(salimoff_routes.router)
+app.middleware("http")(access.middleware)
+app.get("/login", include_in_schema=False)(lambda: access.login_page())
+app.post("/login", include_in_schema=False)(access.login_submit)
 
 
 def _proj(pid: str) -> dict:

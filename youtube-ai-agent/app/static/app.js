@@ -227,7 +227,10 @@ function renderApiTab(el) {
     ["fish", "Fish Audio (səsləndirmə, emosiyalar)", "fish.audio → Developers → API keys"],
     ["elevenlabs", "ElevenLabs (alternativ səs)", "elevenlabs.io → Profile → API key"],
     ["fal", "fal.ai (səhnəni hərəkətə gətirmək)", "fal.ai → Dashboard → Keys"],
-    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"]];
+    ["kie", "Kie.ai (səhnəni hərəkətə gətirmək, ucuz aqreqator)", "kie.ai → API Key (balansı Billing-dən artırın)"],
+    ["youtube_api_key", "YouTube Data API key (SALIMOFF: bazar analizi)", "console.cloud.google.com → APIs → YouTube Data API v3 → Credentials → API key"],
+    ["google_client_id", "Google OAuth Client ID (SALIMOFF: upload və analytics)", "Credentials → OAuth client ID → Desktop app"],
+    ["google_client_secret", "Google OAuth Client Secret", "eyni OAuth client"]];
   el.innerHTML = `<label><input type="checkbox" id="demo" ${state.settings.demo_mode ? "checked" : ""}> <b>Demo rejimi</b> — API-siz test: şəkillər, səs və ssenari süni yaradılır, xərc 0. Real video üçün söndürün.</label>
    ${rows.map(([k, label, hint]) => `<label>${label} <span class="muted">· ${hint}</span></label>
      <div class="row"><input data-key="${k}" placeholder="API açarı" value="${esc(state.keys[k])}" style="flex:1">

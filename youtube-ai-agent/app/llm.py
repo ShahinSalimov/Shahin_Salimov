@@ -129,6 +129,14 @@ def test_connection(provider: str) -> str:
         "elevenlabs": ("https://api.elevenlabs.io/v1/user", {"xi-api-key": key}),
         "kie": ("https://api.kie.ai/api/v1/chat/credit", {"Authorization": f"Bearer {key}"}),
     }
+    if provider == "youtube_api_key":
+        r = httpx.get("https://www.googleapis.com/youtube/v3/videos", timeout=30,
+                      params={"part": "id", "chart": "mostPopular", "maxResults": 1, "key": key})
+        if r.status_code >= 400:
+            raise ProviderError(f"Açar qəbul edilmədi ({r.status_code}): {r.text[:200]}")
+        return "Bağlantı uğurludur (YouTube Data API v3)"
+    if provider in ("google_client_id", "google_client_secret"):
+        return "Yadda saxlanıldı. Kanalı 'YouTube-a qoş' düyməsi ilə yoxlayın"
     if provider == "fal":
         return "Açar yadda saxlanıldı (fal.ai üçün ayrıca yoxlama endpoint-i yoxdur; ilk animasiyada yoxlanılacaq)"
     if provider not in urls:

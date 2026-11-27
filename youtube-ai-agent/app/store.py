@@ -93,7 +93,9 @@ DEFAULT_SETTINGS: dict = {
     },
 }
 
-DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": ""}
+DEFAULT_KEYS = {"deepseek": "", "openai": "", "anthropic": "", "fish": "", "elevenlabs": "", "fal": "", "kie": "",
+                # SALIMOFF AI YOUTUBE: research (API key) + upload/analytics (OAuth client)
+                "youtube_api_key": "", "google_client_id": "", "google_client_secret": ""}
 
 BASE_STYLES = [
     {
@@ -201,6 +203,21 @@ def save_profile(name: str, profile_id: str | None = None) -> dict:
         profiles.append(p)
         _write(DATA / "profiles.json", profiles)
         return p
+
+
+def create_profile_with(name: str, settings: dict) -> dict:
+    """Create a profile from an explicit settings dict (used by SALIMOFF channel setup)."""
+    with _lock:
+        profiles = list_profiles()
+        p = {"id": uuid.uuid4().hex[:10], "name": name, "settings": deep_merge(DEFAULT_SETTINGS, settings),
+             "updated": time.time()}
+        profiles.append(p)
+        _write(DATA / "profiles.json", profiles)
+        return p
+
+
+def get_profile(profile_id: str) -> dict | None:
+    return next((p for p in list_profiles() if p["id"] == profile_id), None)
 
 
 def apply_profile(profile_id: str) -> dict:
