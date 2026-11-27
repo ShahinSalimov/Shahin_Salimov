@@ -119,7 +119,7 @@ Rules:
 - One test Short per production day. After 6 tests compare average viewed against pillar 1. A pillar that wins gets long videos too (e.g. "The War Machines That Came Before Drones", 10-15 min).
 
 Test queue (facts to verify again before scripting):
-1. War drones: Austria sent unmanned bomb balloons over Venice in 1849.
+1. War drones: Austria sent unmanned bomb balloons over Venice in 1849. DONE 27 Nov (shorts/drone, 33 s). Next production day takes #2.
 2. Rockets: Tipu Sultan's iron-cased Mysore rockets (1780s-1790s, India) inspired Britain's Congreve rockets.
 3. Supercars: Tutankhamun was buried with six chariots, some covered in gold (the "Lamborghini of Egypt"). Follows up the Chariot Short.
 4. Sports-star salaries: the Roman charioteer Gaius Appuleius Diocles is said to have earned about 35 million sesterces.
