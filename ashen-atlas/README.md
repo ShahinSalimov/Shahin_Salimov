@@ -14,9 +14,9 @@ Code for the Ashen Crown YouTube channel (renamed from Ashen Atlas on 26 Nov 202
 
 - Long documentaries: 10-15 min, never longer than 16 min (27 Nov 2026 data review: 14-min video kept 30%, 34-min video only 8%). Each ships with 3 Shorts (25-33 s, hook in the first second): 2 cut from the long video + 1 "Modern vs Past" test Short (see below).
 - Production and publishing every other day from 26 Nov 2026, start 01:25 Baku time.
-- Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov), #3 Bronze Age Collapse (26 Nov, 14:27, last Ken Burns video). From #4 on: motion format.
-- Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (published 26 Nov), next:
-  Ötzi the Iceman (who killed him?), The Egtved Girl (a Bronze Age teenager who travelled across Europe),
+- Published: #1 Mohenjo-daro (24 Nov), #2 Göbekli Tepe (25 Nov), #3 Bronze Age Collapse (26 Nov, 14:27, last Ken Burns video), #4 Ötzi the Iceman (produced 28 Nov, 11:14, first motion-format long video, upload Sat 29 Nov 02:00 Baku; Shorts: arrow, tattoos). From #4 on: motion format.
+- Queue (human-centred, user direction 26 Nov 2026): Bronze Age Collapse (published 26 Nov), Ötzi (done 28 Nov), next:
+  The Egtved Girl (a Bronze Age teenager who travelled across Europe),
   Pompeii's last day through the lives of its people, Çatalhöyük (a family in a 9,000-year-old town),
   Tutankhamun (the boy king's short life), The Tollund Man, The Lady of Cao, Puabi the Queen of Ur.
 - Human-centred rule (from early Shorts data; refined on 27 Nov, see Data review): every video and Short
@@ -120,7 +120,7 @@ Rules:
 
 Test queue (facts to verify again before scripting):
 1. War drones: Austria sent unmanned bomb balloons over Venice in 1849. DONE 27 Nov (shorts/drone, 33 s). Next production day takes #2.
-2. Rockets: Tipu Sultan's iron-cased Mysore rockets (1780s-1790s, India) inspired Britain's Congreve rockets.
+2. Rockets: Tipu Sultan's iron-cased Mysore rockets (1780s-1790s, India) inspired Britain's Congreve rockets. DONE 28 Nov (shorts/rockets, 33 s, upload Mon 1 Dec).
 3. Supercars: Tutankhamun was buried with six chariots, some covered in gold (the "Lamborghini of Egypt"). Follows up the Chariot Short.
 4. Sports-star salaries: the Roman charioteer Gaius Appuleius Diocles is said to have earned about 35 million sesterces.
 5. Richest person: Mansa Musa of Mali (1324 pilgrimage to Mecca, his gold reportedly hit prices in Cairo).
